@@ -20,17 +20,22 @@ LBJOBLOG=${LBJOBLOG:-glite-lb-job_log}
 LBJOBSTAT=${LBJOBSTAT:-glite-lb-job_status}
 LBPURGE=${PURGE:-glite-lb-purge}
 
-BKSERVER="pc900.iihe.ac.be"
+BKSERVER="localhost"
 STATES="aborted cancelled done ready running scheduled waiting submitted "
 SOURCES="NetworkServer WorkloadManager BigHelper JobController LogMonitor LRMS Application UserInterface"
 
-stest=1
+dtest=1
 i=0
 JOBS_ARRAY_SIZE=10
 INTERVAL=2
+DATE_S=`date +"%s"`
+DATE=`date`
+LOG_FILE="$DATE_S.log"
+
 
 init()
 {
+echo "Date: $DATE" > $LOG_FILE
 export EDG_WL_QUERY_SERVER="$BKSERVER:9000"
 export EDG_WL_LOG_DESTINATION="$BKSERVER:9002"
 BKSERVER_HOST="$BKSERVER:9000"
@@ -50,7 +55,7 @@ rm jobList2
 #registrating a job
 job_reg()
 {
-eval $LBJOBREG -m pc900.iihe.ac.be:9000  -s userInterface > jobreg
+eval $LBJOBREG $BKSERVER_OPT -s $1 > jobreg
 getJobId
 job=`cat jobreg`
 rm jobreg
@@ -79,53 +84,52 @@ echo "Checking the Events............................................."
 echo
 job_id=0
 while [ $job_id -lt $JOBS_ARRAY_SIZE ] ; do
-	#sleep 2
-	dtest=0
-	#out is the list of events sent, we count the number of events and then we extract the job status
-	nbEvents=`cat out[$job_id] |grep glite-lb-logevent | wc -l`
-	nbEvents=$[$nbEvents+1]
-	cat out[$job_id] |gawk -F"-e " '{ print $2 }' > eventsTemp
-	echo "UserTag"> events
-	echo "RegJob">> events
-	cat eventsTemp|gawk -F" --" '{ print $1 }'>> events
-	rm eventsTemp
-	events3="blank"
+        #sleep 2
+        #out is the list of events sent, we count the number of events and then we extract the job status
+        nbEvents=`cat out[$job_id] |grep glite-lb-logevent | wc -l`
+        nbEvents=$[$nbEvents+1]
+        cat out[$job_id] |gawk -F"-e " '{ print $2 }' > eventsTemp
+        echo "UserTag"> events
+        echo "RegJob">> events
+        cat eventsTemp|gawk -F" --" '{ print $1 }'>> events
+        rm eventsTemp
+        events3="blank"
         i=0
         cmp -s events events3
-	while [ $? -ne 0 ] && [ $i -lt $INTERVAL ] ; do
+        while [ $? -ne 0 ] && [ $i -lt $INTERVAL ] ; do
 
 
-	#we use glite-lb-job_log and apply the same treatment as above to the output
-		eval $LBJOBLOG -r $INTERVAL -d 2  ${SAMPLE_JOBS_ARRAY[$job_id]} > joblog2
-		nbevents=`cat joblog2 | grep DATE | wc -l`
-		cat joblog2|gawk -F"DG.EVNT=\"" '{ print $2 }' > eventsTemp2
-		cat eventsTemp2|gawk -F"\"" '{ print $1 }'> events2
-		cat events2|sed /^$/d > events3
-		rm eventsTemp2 events2 joblog2
-		#Comparison of the outputs and intermediary printout
-		echo "Events Sent....." >> LoggedEvents.log
-		cat -n events >> LoggedEvents.log
-#		cat -n events
-		echo "Events recorded in the LB server....." >> LoggedEvents.log
-		cat -n events3 >> LoggedEvents.log
-#		cat -n events3
-		i=$[$i+1]
-		cmp -s events events3
-	done
-	cmp -s events events3
-	if [ $? -eq 0 ]; then
-        	dtest=1
-        	echo "Job $job_id ....................[OK]"  
-		i=0
+        #we use glite-lb-job_log and apply the same treatment as above to the output
+                eval $LBJOBLOG -r $INTERVAL -d 2  ${SAMPLE_JOBS_ARRAY[$job_id]} > joblog2
+                nbevents=`cat joblog2 | grep DATE | wc -l`
+                cat joblog2|gawk -F"DG.EVNT=\"" '{ print $2 }' > eventsTemp2
+                cat eventsTemp2|gawk -F"\"" '{ print $1 }'> events2
+                cat events2|sed /^$/d > events3
+                rm eventsTemp2 events2 joblog2
+                #Comparison of the outputs and intermediary printout
+                echo "Events Sent....." >> $LOG_FILE
+                cat -n events >> $LOG_FILE
+#               cat -n events
+                echo "Events recorded in the LB server....." >> $LOG_FILE
+                cat -n events3 >> $LOG_FILE
+#               cat -n events3
+                i=$[$i+1]
+                cmp -s events events3
+        done
+        cmp -s events events3
+        if [ $? -eq 0 ]; then
+                echo "Job $job_id ....................[OK]"  
+                i=0
 
-	else
-        	echo "Job $job_id.....................[FAILED]" 
-	fi
-	rm events events3 out[$job_id]
-	job_id=$[$job_id+1]
+        else
+                echo "Job $job_id.....................[FAILED]" 
+                dtest=0
+        fi
+        rm events events3 out[$job_id]
+        job_id=$[$job_id+1]
 done
 echo
-echo "A detailed list of events logged has been printed to LoggedEvents.log"
+echo "A detailed list of events logged has been printed to $LOG_FILE"
 echo
 }
 
@@ -139,39 +143,24 @@ job_id=0
         #sleep 1
         eval $LBJOBSTATUS ${SAMPLE_JOBS_ARRAY[$job_id]} > status
         testStatus=`cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}|wc -l`
-	i=0
-	while [ $testStatus -ne 1 ] && [ $i -lt $INTERVAL ] ; do
-		bkserver_state=`cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`
+        i=0
+        while [ $testStatus -ne 1 ] && [ $i -lt $INTERVAL ] ; do
+                bkserver_state=`cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`
                 testStatus=`cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}|wc -l`
-		i=$[$i+1]
-	done
-	if [$testStatus -eq 1 ] ; then
-		echo "Job: $job_id ..Logged state:${SAMPLE_JOBS_STATES[$job_id]}-Recorded `cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`.......[OK]"
+                i=$[$i+1]
+        done
+        if [$testStatus -eq 1 ] ; then
+                echo "Job: $job_id ..Logged state:${SAMPLE_JOBS_STATES[$job_id]}-Recorded `cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`.......[OK]"
         else
-        	echo "Job: $job_id ..Logged state:${SAMPLE_JOBS_STATES[$job_id]}-Recorded `cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`.......[FAILED]"
-		cat status > errorStatus.tmp
-        	echo "Detailed status has been copied to errorStatus.tmp"
-		echo
+                echo "Job: $job_id ..Logged state:${SAMPLE_JOBS_STATES[$job_id]}-Recorded `cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`.......[FAILED]"
+                cat status > errorStatus.tmp
+                echo "Detailed status has been copied to errorStatus.tmp"
+                echo
                 dtest=0
         fi
-	rm status
+        rm status
 job_id=$[$job_id+1]
 done
-}
-showHelp()
-{
-        echo  "Usage: $0 [OPTIONS] "
-        echo  "Options:"
-        echo  " -h | --help                   Show this help message."
-        echo  " -r | --retries                Number of test retries (2 by default)"
-	echo  " -n | --nbjobs                 Number of jobs (10 by default)"
-	echo  " -m | --bkserver               Host address of the BKServer ex:pc900.iihe.ac.be "
-        echo  " -s | --states                 List of states in which could tested jobs fall."
-	echo  " -l | --large-stress 'size'    Do a large stress logging ('size' random data added to the messages."
-        echo  ""
-
-#       echo  "For proper operation check your grid-proxy-info"
-#       grid-proxy-info
 }
 
 #logging events to the jobs. Events are selected randomly from a list.
@@ -181,17 +170,17 @@ echo "Logging events to the $JOBS_ARRAY_SIZE jobs...............................
 echo
 job_id2=0
 st_count=`echo $STATES | wc -w`
-	while [ $job_id2 -lt $JOBS_ARRAY_SIZE ] ; do
-	 tmp=`echo $RANDOM % $st_count + 1 | bc`
+        while [ $job_id2 -lt $JOBS_ARRAY_SIZE ] ; do
+         tmp=`echo $RANDOM % $st_count + 1 | bc`
         state=`echo $STATES | cut -d " " -f $tmp | tr A-Z a-z`
-	SAMPLE_JOBS_STATES[$job_id2]=$state
-	echo > LoggedEvents.log
-	echo "Submitting events to the job: ${SAMPLE_JOBS_ARRAY[$job_id2]} " >> LoggedEvents.log
-	echo >> LoggedEvents.log
+        SAMPLE_JOBS_STATES[$job_id2]=$state
+        echo >> $LOG_FILE
+        echo "Submitting events to the job: ${SAMPLE_JOBS_ARRAY[$job_id2]} " >> $LOG_FILE
+        echo >> $LOG_FILE
 
-	echo "event submitted.......................................[$state]" >> LoggedEvents.log
-	eval glite-lb-$state.sh $LARGE_STRESS -j ${SAMPLE_JOBS_ARRAY[$job_id2]} 2>out[$job_id2]
-	job_id2=$(($job_id2 + 1))
+        echo "event submitted.......................................[$state]" >> $LOG_FILE
+        eval glite-lb-$state.sh $LARGE_STRESS -j ${SAMPLE_JOBS_ARRAY[$job_id2]} 2>out[$job_id2]
+        job_id2=$(($job_id2 + 1))
 done
 }
 
@@ -203,11 +192,26 @@ echo
 
 job_id=0
 while [ $job_id -lt $JOBS_ARRAY_SIZE ] ; do
-	eval $LBLOGEVENT -s Application -e UserTag -j ${SAMPLE_JOBS_ARRAY[$job_id]} -name testTag -value 12345  >> LoggedEvents.log
+        eval $LBLOGEVENT -s Application -e UserTag -j ${SAMPLE_JOBS_ARRAY[$job_id]} -name testTag -value 12345  >> $LOG_FILE
 job_id=$[$job_id+1]
 done
 }
 
+showHelp()
+{        
+echo  "Usage: $0 [OPTIONS] "        
+echo  "Options:"        
+echo  " -h | --help                   Show this help message."        
+echo  " -r | --retries                Number of test retries (2 by default)"        
+echo  " -n | --nbjobs                 Number of jobs (10 by default)"        
+echo  " -m | --bkserver               Host address of the BKServer ex:pc900.iihe.ac.be "        
+echo  " -s | --states                 List of states in which could tested jobs fall."        
+echo  " -l | --large-stress 'size'    Do a large stress logging ('size' random data added to the messages."
+echo  ""
+
+#       echo  "For proper operation check your grid-proxy-info"
+#       grid-proxy-info
+}
 
 
 #input
@@ -215,15 +219,16 @@ if [ -z "$1" ]; then
   showHelp
   exit 2
 fi
+BK=0
 while test -n "$1"
 do
         case "$1" in
         "-h" | "--help") showHelp && exit 2 ;;
         "-r" | "--retries") shift ; INTERVAL=$1 ;;
-	"-n" | "--nbjobs") shift ; JOBS_ARRAY_SIZE=$1 ;;
-        "-m" | "--bkserver") shift ; BKSERVER=$1 ;;
+        "-n" | "--nbjobs") shift ; JOBS_ARRAY_SIZE=$1 ;;
+        "-m" | "--bkserver") shift ; BKSERVER=$1 BK=1;;
         "-s" | "--states") shift; STATES="$1" ;;
-	"-l" | "--large-stress") shift ; LARGE_STRESS="-l $1" ;;
+        "-l" | "--large-stress") shift ; LARGE_STRESS="-l $1" ;;
 #       "-g" | "--log") shift ; logfile=$1 ;;
 
         *) echo "Unrecognized option $1 try -h for help"; exit 2 ;;
@@ -231,6 +236,12 @@ do
         esac
         shift
 done
+if [ $BK -ne 1 ]; then
+        echo
+        echo "You must specify the hostname of the LB Server with the option -m (ex: -m pf435.ulb.ac.be)" 
+        echo
+        exit 2
+fi
 echo
 
 
@@ -244,10 +255,10 @@ testLB2
 #testProxy
 #eval $LBPURGE -h
 echo
-if [ $stest -eq 1  ];then
+if [ $dtest -eq 1  ];then
         echo "Final test result .........................................[OK]"
-	exit 1
-else 	echo "Final test result .........................................[FAILED]"
-	exit 0
+        exit 1
+else    echo "Final test result .........................................[FAILED]"
+        exit 0
  fi
 echo
