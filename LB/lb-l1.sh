@@ -41,6 +41,7 @@ showHelp()
 	echo  " -h | --help                   Show this help message."
         echo  " -m | --m lb_host              hostName or IPV4 adress "
 	echo  " -g | --log 'logfile'          Redirect all output to the 'logfile'."
+	echo "-html | --html		      Format output for html."
 	echo  ""
 #	echo  "For proper operation check your grid-proxy-info"
 #	grid-proxy-info
@@ -57,7 +58,7 @@ do
 	"-h" | "--help") showHelp && exit 2 ;;
 	"-m" | "--bkserver") shift ; LB_HOST=$1 ;;
 	"-g" | "--log") shift ; logfile=$1 flag=1 ;;
-
+        "-html" | "--html") newline="<br>" ;;
 	*) echo "Unrecognized option $1 try -h for help"; exit 2 ;;
 
 	esac
@@ -71,15 +72,15 @@ done
 
 function ping_host
 {
-  echo  " Testing ping to $LB_HOST" >> $logfile
+  echo  "${newline:-} Testing ping to $LB_HOST " >> $logfile
          result=`ping -c 5 $LB_HOST 2>/dev/null |  grep "0% packet loss"| wc -l`
   if [ $result -gt 0 ]; then
- 	echo "Pinging $LB_HOST                        OK " >> $logfile
+ 	echo "${newline:-}Pinging $LB_HOST                        OK$ " >> $logfile
   else 
-    echo "" >> $logfile
-    echo "Ping failed: The $LB_HOST is not accessible! "  >> $logfile
-    echo "" >> $logfile
-    echo " LB Basic Test:                      Failed. " >> $logfile
+    echo "${newline:-}" >> $logfile
+    echo "${newline:-}Ping failed: The $LB_HOST is not accessible! "  >> $logfile
+    echo "${newline:-}" >> $logfile
+    echo "${newline:-} LB Basic Test:                      Failed. " >> $logfile
     exit $TEST_ERROR
   fi
 #  echo "<font color="green"> - OK </font>"
@@ -90,7 +91,7 @@ check_exec()
         [ $DEBUG -gt 0 ] && [ -n "$2" ] && echo -n -e "$2\t" >> $logfile || echo -n -e "$1\t" >> $logfile
         eval $1
         RV=$?
-        [ $DEBUG -gt 0 ] && [ $RV -eq 0 ] && echo "OK" >> $logfile || echo "FAILED" >> $logfile
+        [ $DEBUG -gt 0 ] && [ $RV -eq 0 ] && echo "${newline:-}OK" >> $logfile || echo "${newline:-}FAILED" >> $logfile
         return $RV
 }
 
@@ -99,35 +100,35 @@ check_exec()
 #########################
 check_binaries()
 {
- check_exec 'LBJOBREG=`which $LBJOBREG`' "Checking binary $LBJOBREG ? " || exit 1
- check_exec 'LBJOBLOG=`which $LBJOBLOG`' "Checking binary $LBJOBLOG ? " || exit 1
- check_exec 'LBLOGEV=`which $LBLOGEV`' "Checking binary $LBLOGEV ?" || exit 1
- check_exec 'LBUSERJOBS=`which $LBUSERJOBS`' "Checking binary $LBUSERJOBS ?" || exit 1
- check_exec 'LBJOBSTAT=`which $LBJOBSTAT`' "Checking binary $LBJOBSTAT ? " || exit 1
- check_exec 'LBCHANGEACL=`which $LBCHANGEACL`' "Checking binary $LBCHANGEACL ?" || exit 1
- check_exec 'LBMON=`which $LBMON`' "Checking binary $LBMON       " || exit 1
+ check_exec 'LBJOBREG=`which $LBJOBREG`' "${newline:-}Checking binary $LBJOBREG ? " || exit 1
+ check_exec 'LBJOBLOG=`which $LBJOBLOG`' "${newline:-}Checking binary $LBJOBLOG ? " || exit 1
+ check_exec 'LBLOGEV=`which $LBLOGEV`' "${newline:-}Checking binary $LBLOGEV ?" || exit 1
+ check_exec 'LBUSERJOBS=`which $LBUSERJOBS`' "${newline:-}Checking binary $LBUSERJOBS ?" || exit 1
+ check_exec 'LBJOBSTAT=`which $LBJOBSTAT`' "${newline:-}Checking binary $LBJOBSTAT ? " || exit 1
+ check_exec 'LBCHANGEACL=`which $LBCHANGEACL`' "${newline:-}Checking binary $LBCHANGEACL ?" || exit 1
+ check_exec 'LBMON=`which $LBMON`' "${newline:-}Checking binary $LBMON " || exit 1
 }
 #
 # check the services
 ##################"
 check_services()
 {
-echo "Listening to locallogger port (9002)" >> $logfile
-./testSocket $LB_HOST 9002 >> $logfile
+echo "${newline:-}Listening to locallogger port (9002)" >> $logfile
+$SAME_SENSOR_HOME/tests/testSocket $LB_HOST 9002 >> $logfile
 if [ $? -eq 0 ]; then
- echo "logd running ? -                         [OK]" >> $logfile
+ echo "${newline:-}logd running ? -                         [OK]" >> $logfile
  else 
-    echo "logd running ? -                      [FAILED]" >> $logfile
+    echo "${newline:-}logd running ? -                      [FAILED]" >> $logfile
     exit $TEST_ERROR
   fi
-echo "Listening to interlogger ports (9000-9001-9003)" >> $logfile
-./testSocket $LB_HOST 9000 >> $logfile &&
-./testSocket $LB_HOST 9001 >> $logfile &&
-./testSocket $LB_HOST 9003 >> $logfile 
+echo "${newline:-}Listening to interlogger ports (9000-9001-9003)${linebreak:-}" >> $logfile
+$SAME_SENSOR_HOME/tests/testSocket $LB_HOST 9000 >> $logfile &&
+$SAME_SENSOR_HOME/tests/testSocket $LB_HOST 9001 >> $logfile &&
+$SAME_SENSOR_HOME/tests/testSocket $LB_HOST 9003 >> $logfile 
 if [ $? -eq 0 ]; then
- echo "Inetrlogd running ? -               [OK]" >> $logfile
+ echo "${newline:-}Interlogd running ? -               [OK]" >> $logfile
  else 
-    echo "interlogd running ? -            [FAILED]" >> $logfile
+    echo "${newline:-}interlogd running ? -            [FAILED]" >> $logfile
     exit $TEST_ERROR
   fi
 }
@@ -142,4 +143,4 @@ if [ $flag -ne 1 ];then
 	cat $logfile
 	rm $logfile
 fi
-
+exit $TEST_OK
