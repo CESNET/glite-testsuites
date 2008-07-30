@@ -4,19 +4,21 @@ Readme file for lb1 v1.0
 lb-l1.sh
 ********
 
-Script for testing of LB services 
+Script for level 1 testing of LB server
 
 * Prerequisities: 
-   - All services running (user does not have to get any credentials)
+   - LB server running (user does not have to get any credentials)
    - the following environment variables set:
 
-     GLITE_WMS_LOG_DESTINATION - address of local logger, in form 'host:port'
-     GLITE_WMS_QUERY_SERVER - address of LB server, in form 'host:port'
+     GLITE_LOCATION - PATH to gLite software
+     SAME_SENSOR_HOME - PATH to sensors (might be set to "." for testSocket sensor)
+     GLITE_LB_SERVER_PORT - if nondefault port (9000) used
 
 * Basic test:
-   PING
-   check LB binaries
-   check running services
+   ping_host() - basic network ping
+   check_binaries() - check for binary executables, calls check_exec()
+   check_socket() - TCPecho to host:port for all three LB server ports
+        (by default 9000 for logging, 9001 for querying, 9003 for web services)
 
 Usage: lb-l1.sh [OPTIONS] host
 Options:
@@ -26,7 +28,7 @@ Options:
  -c | --color           Format output as text with ANSI colours (autodetected by default).
  -x | --html            Format output as html.
 
-* The name of the bkserver host has to be specified everytime
+* The name of the LB server host has to be specified everytime
  
  
 Examples

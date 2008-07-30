@@ -2,9 +2,9 @@
 # ------------------------------------------------------------------------------
 # Definitions of functions and variables common to LB test scripts
 #
-#   ping_host()
-#   check_exec()
-#   check_binaries()
+#   ping_host() - basic network ping
+#   check_binaries() - check for binary executables, calls check_exec()
+#   check_socket() - TCPecho to host:port
 #
 # ------------------------------------------------------------------------------
 
@@ -117,36 +117,3 @@ function check_socket()
 		return $TEST_ERROR
 	fi
 }
-
-# check the services
-function check_services()
-{
-	# if run on the same machine, we can check for example
-	# netstat -an --inet | grep "^tcp .* 0.0.0.0:9000 .*LISTEN"
-	echo "${newline:-}Listening to locallogger port (9002)" >> $logfile
-	$TEST_SOCKET $LB_HOST 9002 >> $logfile
-	if [ $? -eq 0 ]; then
-		echo "${newline:-}logd running ? -                         [OK]" >> $logfile
-	else 
-		echo "${newline:-}logd running ? -                      [FAILED]" >> $logfile
-		exit $TEST_ERROR
-	fi
-	echo "${newline:-}Listening to LB server ports (9000-9001)${linebreak:-}" >> $logfile
-	$TEST_SOCKET $LB_HOST 9000 >> $logfile &&
-	$TEST_SOCKET $LB_HOST 9001 >> $logfile 
-	if [ $? -eq 0 ]; then
-		echo "${newline:-}LB server running ? -               [OK]" >> $logfile
-	else 
-		echo "${newline:-}LB server running ? -            [FAILED]" >> $logfile
-		exit $TEST_ERROR
-	fi
-	echo "${newline:-}Listening to LB server WS port (9003)${linebreak:-}" >> $logfile
-	$TEST_SOCKET $LB_HOST 9003 >> $logfile 
-	if [ $? -eq 0 ]; then
-		echo "${newline:-}LB server running with WS ? -               [OK]" >> $logfile
-	else 
-		echo "${newline:-}LB server running with WS ? -            [FAILED]" >> $logfile
-		exit $TEST_ERROR
-	fi
-}
-
