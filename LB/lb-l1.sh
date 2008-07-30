@@ -86,9 +86,32 @@ printf "Testing LB binaries:${lf}"
 check_binaries
 
 # check_services
-printf "Testing LB services"
-#check_services
-test_skipped
+printf "Testing LB server at ${LB_HOST}:${GLITE_LB_SERVER_PORT} (logging)"
+check_socket ${LB_HOST} ${GLITE_LB_SERVER_PORT}
+if [ $? -gt 0 ]; then
+	test_failed
+	print_error "LB server at ${LB_HOST}:${GLITE_LB_SERVER_PORT} might be unreachable"
+else
+	test_done
+fi
+#
+printf "Testing LB server at ${LB_HOST}:${GLITE_LB_SERVER_QPORT} (queries)"
+check_socket ${LB_HOST} ${GLITE_LB_SERVER_QPORT}
+if [ $? -gt 0 ]; then
+	test_failed
+	print_error "LB server at ${LB_HOST}:${GLITE_LB_SERVER_QPORT} might be unreachable"
+else
+	test_done
+fi
+#
+printf "Testing LB server at ${LB_HOST}:${GLITE_LB_SERVER_WPORT} (web services)"
+check_socket ${LB_HOST} ${GLITE_LB_SERVER_WPORT}
+if [ $? -gt 0 ]; then
+	test_failed
+	print_error "LB server at ${LB_HOST}:${GLITE_LB_SERVER_WPORT} might be unreachable"
+else
+	test_done
+fi
 
 test_end
 } &> $logfile

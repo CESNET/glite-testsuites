@@ -32,9 +32,8 @@ Options:
 Examples
 ********
 
-$ ./lb-l1.sh -o log scientific.civ.zcu.cz
-
-Jul 29 21:57:24 scientific lb-l1.sh:                                 start 
+$ ./lb-l1.sh sci.civ.zcu.cz
+Jul 30 15:01:21 scientific lb-l1.sh:                                 start 
 Testing ping to LB server sci.civ.zcu.cz                             done
 Testing LB binaries:
   checking binary glite-lb-logevent                                  done
@@ -43,6 +42,8 @@ Testing LB binaries:
   checking binary glite-lb-user_jobs                                 done
   checking binary glite-lb-job_status                                done
   checking binary glite-lb-change_acl                                done
-Testing LB services                                                  skipped
-Jul 29 21:57:26 scientific lb-l1.sh:                                 end 
+Testing LB server at sci.civ.zcu.cz:9000 (logging)                   done
+Testing LB server at sci.civ.zcu.cz:9001 (queries)                   done
+Testing LB server at sci.civ.zcu.cz:9003 (web services)              done
+Jul 30 15:01:21 scientific lb-l1.sh:                                 end 
 

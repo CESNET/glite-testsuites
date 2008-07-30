@@ -1,4 +1,4 @@
-#ident "$Header$
+#ident "$Header$"
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -52,7 +52,7 @@ main (int argc, char *argv[])
   echoserver.sin_family = AF_INET;	/* Internet/IP */
   echoserver.sin_addr.s_addr = inet_addr (adrIPp);	/* IP address */
   echoserver.sin_port = htons (atoi (argv[2]));	/* server port */
-  printf ("Connecting to: %s:%s\n", adrIPp, argv[2]);
+//  printf ("Connecting to: %s:%s\n", adrIPp, argv[2]);
 /* Establish connection */
   if (connect (sock,
 	       (struct sockaddr *) &echoserver, sizeof (echoserver)) < 0)
@@ -62,7 +62,7 @@ main (int argc, char *argv[])
   else
     {
       shutdown (sock, 2);
-      printf (" [OK]\n");
+//      printf (" [OK]\n");
       exit (0);
     }
 }

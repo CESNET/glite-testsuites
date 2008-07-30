@@ -34,6 +34,12 @@ LB_LOGD=glite-lb-logd
 LB_INTERLOGD=glite-lb-interlogd
 LB_SERVER=glite-lb-bkserverd
 
+GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
+let GLITE_LB_SERVER_QPORT=${GLITE_LB_SERVER_PORT}+1
+if [ -z "${GLITE_LB_SERVER_WPORT}" ]; then 
+	let GLITE_LB_SERVER_WPORT=${GLITE_LB_SERVER_PORT}+3
+fi
+
 TEST_SOCKET=$SAME_SENSOR_HOME/tests/testSocket
 
 DEBUG=2
@@ -96,9 +102,27 @@ function check_binaries()
 	fi
 }
 
-# check the services
-check_services()
+# check socket
+function check_socket()
 {
+	if [ $# -lt 2 ]; then
+		print_newline
+		print_error "No host:port to check"
+		return $TEST_ERROR
+	fi
+	$TEST_SOCKET $1 $2
+	if [ $? -eq 0 ];  then 
+		return $TEST_OK
+	else
+		return $TEST_ERROR
+	fi
+}
+
+# check the services
+function check_services()
+{
+	# if run on the same machine, we can check for example
+	# netstat -an --inet | grep "^tcp .* 0.0.0.0:9000 .*LISTEN"
 	echo "${newline:-}Listening to locallogger port (9002)" >> $logfile
 	$TEST_SOCKET $LB_HOST 9002 >> $logfile
 	if [ $? -eq 0 ]; then
