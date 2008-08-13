@@ -12,10 +12,8 @@ Prerequisities for all tests:
    GLITE_LOCATION - PATH to gLite software
    SAME_SENSOR_HOME - PATH to sensors (might be set to "." for testSocket sensor)
 
-- one may also need to run:
-
-$ make
-$ ln -s . tests
+- one may also need to run make to build the testSocket binary
+  and create link tests -> . (to be used for local SAME_SENSOR_HOME)
 
 
 lb-test-logger-remote.sh
