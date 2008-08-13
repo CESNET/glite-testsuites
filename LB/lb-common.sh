@@ -40,6 +40,8 @@ if [ -z "${GLITE_LB_SERVER_WPORT}" ]; then
 	let GLITE_LB_SERVER_WPORT=${GLITE_LB_SERVER_PORT}+3
 fi
 
+GLITE_LB_LOGGER_PORT=${GLITE_LB_LOGGER_PORT:-9002}
+
 TEST_SOCKET=$SAME_SENSOR_HOME/tests/testSocket
 
 DEBUG=2
@@ -82,24 +84,17 @@ function check_exec()
 
 function check_binaries()
 {
+# TODO: test only the binaries that are needed - it can differ in each test
 	local err=0
-	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL
+	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL $TEST_SOCKET
 	do	
-		printf "  checking binary %s" "$file"
 		check_exec $file 
-		if [ $? -eq 0 ]; then
-			test_done
-		else
-			test_failed
+		if [ $? -gt 0 ]; then
 			print_error "file $file not found"
-			err=1
+			return $TEST_ERROR
 		fi
 	done
-	if [ $err -eq 0 ];  then 
-		return $TEST_OK
-	else
-		return $TEST_ERROR
-	fi
+	return $TEST_OK
 }
 
 # check socket

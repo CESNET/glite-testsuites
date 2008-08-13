@@ -1,51 +1,54 @@
 $Header$
-Readme file for lb1 v1.0
 
-lb-l1.sh
-********
+Readme file for basic LB Integration tests 
 
-Script for level 1 testing of LB server
+Service ping tests:
+===================
 
-* Prerequisities: 
-   - LB server running (user does not have to get any credentials)
-   - the following environment variables set:
+Prerequisities for all tests:
+-----------------------------
+- the following environment variables set:
 
-     GLITE_LOCATION - PATH to gLite software
-     SAME_SENSOR_HOME - PATH to sensors (might be set to "." for testSocket sensor)
-     GLITE_LB_SERVER_PORT - if nondefault port (9000) used
+   GLITE_LOCATION - PATH to gLite software
+   SAME_SENSOR_HOME - PATH to sensors (might be set to "." for testSocket sensor)
 
-* Basic test:
-   ping_host() - basic network ping
-   check_binaries() - check for binary executables, calls check_exec()
-   check_socket() - TCPecho to host:port for all three LB server ports
-        (by default 9000 for logging, 9001 for querying, 9003 for web services)
+- one may also need to run:
 
-Usage: lb-l1.sh [OPTIONS] host
-Options:
- -h | --help            Show this help message.
- -o | --output 'file'   Redirect all output to the 'file' (stdout by default).
- -t | --text            Format output as plain ASCII text.
- -c | --color           Format output as text with ANSI colours (autodetected by default).
- -x | --html            Format output as html.
+$ make
+$ ln -s . tests
 
-* The name of the LB server host has to be specified everytime
+
+lb-test-logger-remote.sh
+------------------------
+Script for remote testing of LB logger
+
+Run ./lb-test-logger-remote.sh -h for test description and usage.
  
- 
-Examples
-********
+Example:
 
-$ ./lb-l1.sh sci.civ.zcu.cz
-Jul 30 15:01:21 scientific lb-l1.sh:                                 start 
+$ ./lb-test-logger-remote.sh sci.civ.zcu.cz
+Aug 13 15:57:02 scientific lb-test-logger-remote.sh:                 start
+Testing if all binaries are available                                done
+Testing ping to LB logger sci.civ.zcu.cz                             done
+Testing LB logger at sci.civ.zcu.cz:9002 (logging)                   done
+Aug 13 15:57:04 scientific lb-test-logger-remote.sh:                 end
+
+
+
+lb-test-server-remote.sh
+------------------------
+Script for remote testing of LB server
+
+Run ./lb-test-server-remote.sh -h for test description and usage.
+ 
+Example:
+
+$ ./lb-test-server-remote.sh sci.civ.zcu.cz
+Aug 13 15:58:22 scientific lb-test-server-remote.sh:                 start
+Testing if all binaries are available                                done
 Testing ping to LB server sci.civ.zcu.cz                             done
-Testing LB binaries:
-  checking binary glite-lb-logevent                                  done
-  checking binary glite-lb-job_log                                   done
-  checking binary glite-lb-job_reg                                   done
-  checking binary glite-lb-user_jobs                                 done
-  checking binary glite-lb-job_status                                done
-  checking binary glite-lb-change_acl                                done
 Testing LB server at sci.civ.zcu.cz:9000 (logging)                   done
 Testing LB server at sci.civ.zcu.cz:9001 (queries)                   done
 Testing LB server at sci.civ.zcu.cz:9003 (web services)              done
-Jul 30 15:01:21 scientific lb-l1.sh:                                 end 
+Aug 13 15:58:26 scientific lb-test-server-remote.sh:                 end
 
