@@ -73,15 +73,20 @@ source ${COMMON}
 
 DEBUG=2
 
-##
-#  Starting the test
-#####################
+if [ -z "$SAME_SENSOR_HOME" ]; then
+    echo "SAME_SENSOR_HOME not set"
+    exit 2
+fi
+
+######################
+# Starting the test  #
+######################
 
 {
 test_start
 
 # check_binaries
-printf "Testing if all binaries are available"
+printf "Testing if all binaries are available\n"
 check_binaries
 if [ $? -gt 0 ]; then
         test_failed
@@ -90,7 +95,7 @@ else
 fi
 
 # ping_host:
-printf "Testing ping to LB logger ${LB_HOST}"
+printf "Testing ping to LB logger ${LB_HOST}\n"
 ping_host ${LB_HOST}
 if [ $? -gt 0 ]; then
 	test_failed
@@ -100,7 +105,7 @@ else
 fi
  
 # check_services
-printf "Testing LB logger at ${LB_HOST}:${GLITE_LB_LOGGER_PORT} (logging)"
+printf "Testing LB logger at ${LB_HOST}:${GLITE_LB_LOGGER_PORT} (logging)\n"
 check_socket ${LB_HOST} ${GLITE_LB_LOGGER_PORT}
 if [ $? -gt 0 ]; then
 	test_failed
