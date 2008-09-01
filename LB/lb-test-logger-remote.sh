@@ -41,6 +41,14 @@ if [ -z "$1" ]; then
 	exit 2
 fi
 
+# read common definitions and functions
+COMMON=lb-common.sh
+if [ ! -r ${COMMON} ]; then
+	printf "Common definitions '${COMMON}' missing!"
+	exit 2
+fi
+source ${COMMON}
+
 logfile=$$.tmp
 flag=0
 while test -n "$1"
@@ -63,20 +71,7 @@ if [ ! -w $logfile ]; then
 	exit $TEST_ERROR
 fi
 
-# read common definitions and functions
-COMMON=lb-common.sh
-if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
-	exit 2
-fi
-source ${COMMON}
-
 DEBUG=2
-
-if [ -z "$SAME_SENSOR_HOME" ]; then
-    echo "SAME_SENSOR_HOME not set"
-    exit 2
-fi
 
 ######################
 # Starting the test  #
@@ -86,7 +81,7 @@ fi
 test_start
 
 # check_binaries
-printf "Testing if all binaries are available\n"
+printf "Testing if all binaries are available"
 check_binaries
 if [ $? -gt 0 ]; then
         test_failed
@@ -95,7 +90,7 @@ else
 fi
 
 # ping_host:
-printf "Testing ping to LB logger ${LB_HOST}\n"
+printf "Testing ping to LB logger ${LB_HOST}"
 ping_host ${LB_HOST}
 if [ $? -gt 0 ]; then
 	test_failed
@@ -105,7 +100,7 @@ else
 fi
  
 # check_services
-printf "Testing LB logger at ${LB_HOST}:${GLITE_LB_LOGGER_PORT} (logging)\n"
+printf "Testing LB logger at ${LB_HOST}:${GLITE_LB_LOGGER_PORT} (logging)"
 check_socket ${LB_HOST} ${GLITE_LB_LOGGER_PORT}
 if [ $? -gt 0 ]; then
 	test_failed

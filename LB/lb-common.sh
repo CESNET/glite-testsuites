@@ -14,10 +14,12 @@ if [ ! -r ${TEST_COMMON} ]; then
 	printf "Common definitions '${TEST_COMMON}' not found!\n"
 	exit 2	
 fi
-. ${TEST_COMMON}
+source ${TEST_COMMON}
+
 
 # define variables
 GLITE_LOCATION=${GLITE_LOCATION:-/opt/glite}
+SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
 PATH=$GLITE_LOCATION/bin:$GLITE_LOCATION/examples:$PATH
 export PATH
 

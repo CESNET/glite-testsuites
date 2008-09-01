@@ -42,6 +42,14 @@ if [ -z "$1" ]; then
 	exit 2
 fi
 
+# read common definitions and functions
+COMMON=lb-common.sh
+if [ ! -r ${COMMON} ]; then
+	printf "Common definitions '${COMMON}' missing!"
+	exit 2
+fi
+source ${COMMON}
+
 logfile=$$.tmp
 flag=0
 while test -n "$1"
@@ -63,14 +71,6 @@ if [ ! -w $logfile ]; then
 	echo "Cannot write to output file $logfile"
 	exit $TEST_ERROR
 fi
-
-# read common definitions and functions
-COMMON=lb-common.sh
-if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
-	exit 2
-fi
-source ${COMMON}
 
 DEBUG=2
 
