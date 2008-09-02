@@ -83,8 +83,8 @@ function check_exec()
 		return $TEST_ERROR
 	fi
 	# XXX: maybe use bash's command type?
-	ret=`which $1 > /dev/null 2>&1`
-	if [ $? -eq 0 ] && [ -x "$ret" ]; then 
+	local ret=`which $1 > /dev/null 2>&1`
+	if [ $? -eq 0 ] && [ -x $ret ]; then
 		return $TEST_OK
 	else
 		return $TEST_ERROR
@@ -127,8 +127,7 @@ function check_listener()
 	req_program=$1
 	req_port=$2
         if [ -z $1 ]; then
-                print_newline
-                print_error "No program name entered"
+                set_error "No program name entered"
                 return $TEST_ERROR
         fi
 
@@ -142,5 +141,4 @@ function check_listener()
 	else
 		return $TEST_OK
 	fi
-
 }
