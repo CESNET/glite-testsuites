@@ -37,11 +37,6 @@ LB_LOGD=glite-lb-logd
 LB_INTERLOGD=glite-lb-interlogd
 LB_SERVER=glite-lb-bkserverd
 
-SYS_LSOF=lsof
-SYS_GREP=grep
-SYS_SED=sed
-SYS_PS=ps
-
 # default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
 let GLITE_LB_SERVER_QPORT=${GLITE_LB_SERVER_PORT}+1
@@ -53,6 +48,10 @@ GLITE_LB_LOGGER_PORT=${GLITE_LB_LOGGER_PORT:-9002}
 
 # other binaries
 TEST_SOCKET=$SAME_SENSOR_HOME/tests/testSocket
+SYS_LSOF=lsof
+SYS_GREP=grep
+SYS_SED=sed
+SYS_PS=ps
 
 # not used at the moment
 DEBUG=2
@@ -83,8 +82,8 @@ function check_exec()
 		return $TEST_ERROR
 	fi
 	# XXX: maybe use bash's command type?
-	local ret=`which $1 > /dev/null 2>&1`
-	if [ $? -eq 0 ] && [ -x $ret ]; then
+	local ret=`which $1 2> /dev/null`
+	if [ ! -z "$ret" ] && [ -x $ret ]; then
 		return $TEST_OK
 	else
 		return $TEST_ERROR
