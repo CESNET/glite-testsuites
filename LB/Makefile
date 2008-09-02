@@ -10,5 +10,5 @@ testSocket: testSocket.c
 	ln -fs . tests
 
 clean:
-	rm -rf *.o tests $(EXEC)
+	rm -rf *.o tests $(EXEC) *.tmp *.err
 
