@@ -23,6 +23,7 @@ SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
 PATH=$GLITE_LOCATION/bin:$GLITE_LOCATION/examples:$PATH
 export PATH
 
+# LB binaries
 LBLOGEVENT=glite-lb-logevent
 LBJOBLOG=glite-lb-job_log
 LBJOBREG=glite-lb-job_reg
@@ -36,6 +37,7 @@ LB_LOGD=glite-lb-logd
 LB_INTERLOGD=glite-lb-interlogd
 LB_SERVER=glite-lb-bkserverd
 
+# default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
 let GLITE_LB_SERVER_QPORT=${GLITE_LB_SERVER_PORT}+1
 if [ -z "${GLITE_LB_SERVER_WPORT}" ]; then 
@@ -44,8 +46,10 @@ fi
 
 GLITE_LB_LOGGER_PORT=${GLITE_LB_LOGGER_PORT:-9002}
 
+# other binaries
 TEST_SOCKET=$SAME_SENSOR_HOME/tests/testSocket
 
+# not used at the moment
 DEBUG=2
 
 # ping host
@@ -70,8 +74,7 @@ function ping_host()
 function check_exec()
 {
 	if [ -z $1 ]; then
-		print_newline
-		print_error "No binary to check"
+		set_error "No binary to check"
 		return $TEST_ERROR
 	fi
 	# XXX: maybe use bash's command type?
@@ -86,16 +89,16 @@ function check_exec()
 function check_binaries()
 {
 # TODO: test only the binaries that are needed - it can differ in each test
-	local err=0
+	local ret=$TEST_OK
 	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL $TEST_SOCKET
 	do	
 		check_exec $file 
 		if [ $? -gt 0 ]; then
 			update_error "file $file not found"
-			return $TEST_ERROR
+			ret=$TEST_ERROR
 		fi
 	done
-	return $TEST_OK
+	return $ret
 }
 
 # check socket
