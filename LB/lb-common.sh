@@ -95,7 +95,7 @@ function check_binaries()
 {
 # TODO: test only the binaries that are needed - it can differ in each test
 	local ret=$TEST_OK
-	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL $TEST_SOCKET $SYS_LSOF $SYS_GREP $SYS_SED
+	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL $TEST_SOCKET $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS
 	do	
 		check_exec $file 
 		if [ $? -gt 0 ]; then
