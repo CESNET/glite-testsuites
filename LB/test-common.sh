@@ -71,8 +71,14 @@ function test_skipped()	{ printf "${test_skipped}${lf}"; }
 function test_dead()	{ printf "${test_dead}${lf}"; }
 function test_unused()	{ printf "${test_unused}${lf}"; }
 function test_unknown	{ printf "${test_unknown}${lf}"; }
-function test_start()	{ syslog "${test_start}"; reset_error }
-function test_end()	{ syslog "${test_end}"; reset_error }
+function test_start()	{ 
+	syslog "${test_start}"; 
+	reset_error 
+}
+function test_end()	{ 
+	syslog "${test_end}"; 
+	reset_error 
+}
 
 # set output to ASCII (without colors)
 function setOutputASCII()
@@ -167,7 +173,7 @@ set_test
 
 function reset_error()
 {
-	rm $testerrfile
+	rm -f $testerrfile
 }
 
 function set_error()
@@ -221,3 +227,4 @@ if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" && stty size <&1 > /dev/nu
 else
 	setOutputASCII
 fi
+
