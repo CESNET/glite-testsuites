@@ -75,23 +75,12 @@ function check_exec()
 		return $TEST_ERROR
 	fi
 	# XXX: maybe use bash's command type?
-	which $1 > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
-		local ret=`which $1`
-		if [ -x "$ret" ]; then
-			return $TEST_OK
-		else 
-			return $TEST_ERROR
-		fi
-	else 
+	ret=`which $1 > /dev/null 2>&1`
+	if [ $? -eq 0 ] && [ -x "$ret" ]; then 
+		return $TEST_OK
+	else
 		return $TEST_ERROR
 	fi
-    
-#	if [ $? -eq 0 ] && [ -x "$ret" ]; then 
-#        return $TEST_OK
-#	else
-#		return $TEST_ERROR
-#	fi
 }
 
 function check_binaries()
