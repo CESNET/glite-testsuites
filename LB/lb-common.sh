@@ -37,6 +37,11 @@ LB_LOGD=glite-lb-logd
 LB_INTERLOGD=glite-lb-interlogd
 LB_SERVER=glite-lb-bkserverd
 
+SYS_LSOF=lsof
+SYS_GREP=grep
+SYS_SED=sed
+SYS_PS=ps
+
 # default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
 let GLITE_LB_SERVER_QPORT=${GLITE_LB_SERVER_PORT}+1
@@ -90,7 +95,7 @@ function check_binaries()
 {
 # TODO: test only the binaries that are needed - it can differ in each test
 	local ret=$TEST_OK
-	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL $TEST_SOCKET
+	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL $TEST_SOCKET $SYS_LSOF $SYS_GREP $SYS_SED
 	do	
 		check_exec $file 
 		if [ $? -gt 0 ]; then
@@ -114,4 +119,28 @@ function check_socket()
 	else
 		return $TEST_ERROR
 	fi
+}
+
+# Check listener
+function check_listener()
+{
+	req_program=$1
+	req_port=$2
+        if [ -z $1 ]; then
+                print_newline
+                print_error "No program name entered"
+                return $TEST_ERROR
+        fi
+
+	pid=`lsof -F p +c 0 -i TCP:$req_port | sed "s/^p//"`
+	if [ -z $pid ]; then
+		return $TEST_ERROR
+	fi
+	program=`ps -p ${pid} -o args= | grep -E "[\/]*$req_program[ \t]*"`
+	if [ -z "$program" ];  then 
+		return $TEST_ERROR
+	else
+		return $TEST_OK
+	fi
+
 }
