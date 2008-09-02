@@ -52,8 +52,7 @@ DEBUG=2
 function ping_host()
 {
 	if [ -z $1 ]; then
-		print_newline
-		print_error "No host to ping"
+		set_error "No host to ping"
 		return $TEST_ERROR
 	fi
 	PING_HOST=$1
@@ -77,16 +76,16 @@ function check_exec()
 	fi
 	# XXX: maybe use bash's command type?
 	which $1 > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        local ret=`which $1`
-        if [ -x "$ret" ]; then
-            return $TEST_OK
-        else 
-            return $TEST_ERROR
-        fi
-    else 
-        return $TEST_ERROR
-    fi
+	if [ $? -eq 0 ]; then
+		local ret=`which $1`
+		if [ -x "$ret" ]; then
+			return $TEST_OK
+		else 
+			return $TEST_ERROR
+		fi
+	else 
+		return $TEST_ERROR
+	fi
     
 #	if [ $? -eq 0 ] && [ -x "$ret" ]; then 
 #        return $TEST_OK
@@ -103,7 +102,7 @@ function check_binaries()
 	do	
 		check_exec $file 
 		if [ $? -gt 0 ]; then
-			print_error "file $file not found"
+			update_error "file $file not found"
 			return $TEST_ERROR
 		fi
 	done
@@ -114,11 +113,10 @@ function check_binaries()
 function check_socket()
 {
 	if [ $# -lt 2 ]; then
-		print_newline
-		print_error "No host:port to check"
+		set_error "No host:port to check"
 		return $TEST_ERROR
 	fi
-	$TEST_SOCKET $1 $2
+	$TEST_SOCKET $1 $2 2> $testerrfile
 	if [ $? -eq 0 ];  then 
 		return $TEST_OK
 	else

@@ -86,6 +86,7 @@ printf "Testing if all binaries are available"
 check_binaries
 if [ $? -gt 0 ]; then
 	test_failed
+	print_error "Some binaries are missing"
 else
 	test_done
 fi

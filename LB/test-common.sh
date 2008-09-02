@@ -45,6 +45,9 @@ export LINES COLUMNS
 TEST_ERROR=1
 TEST_OK=0
 
+# test error file
+testerrfile=$$.err
+
 function set_test()
 {
 test_done="${spacefill}${begin_green}done${end_green}"
@@ -68,8 +71,8 @@ function test_skipped()	{ printf "${test_skipped}${lf}"; }
 function test_dead()	{ printf "${test_dead}${lf}"; }
 function test_unused()	{ printf "${test_unused}${lf}"; }
 function test_unknown	{ printf "${test_unknown}${lf}"; }
-function test_start()	{ syslog "${test_start}"; }
-function test_end()	{ syslog "${test_end}"; }
+function test_start()	{ syslog "${test_start}"; reset_error }
+function test_end()	{ syslog "${test_end}"; reset_error }
 
 # set output to ASCII (without colors)
 function setOutputASCII()
@@ -162,9 +165,26 @@ end_white="$ENDFONT"
 set_test
 }
 
+function reset_error()
+{
+	rm $testerrfile
+}
+
+function set_error()
+{
+	printf "%s ${lf}" "$*" > $testerrfile
+}
+
+function update_error()
+{
+	printf "%s; " "$*" >> $testerrfile
+}
+
 function print_error()
 {
 	printf "${begin_red}Error${end_red}: %s ${lf}" "$*"
+	printf "${begin_red}Error${end_red}: %s ${lf}" "`cat $testerrfile`"
+	reset_error
 }
 
 function print_warning()

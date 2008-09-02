@@ -85,6 +85,7 @@ printf "Testing if all binaries are available"
 check_binaries
 if [ $? -gt 0 ]; then
         test_failed
+	print_error "Some binaries are missing"
 else
         test_done
 fi
@@ -98,7 +99,7 @@ if [ $? -gt 0 ]; then
 else
 	test_done
 fi
- 
+
 # check_services
 printf "Testing LB logger at ${LB_HOST}:${GLITE_LB_LOGGER_PORT} (logging)"
 check_socket ${LB_HOST} ${GLITE_LB_LOGGER_PORT}
