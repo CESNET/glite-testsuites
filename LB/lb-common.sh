@@ -83,7 +83,7 @@ function check_exec()
 	fi
 	# XXX: maybe use bash's command type?
 	local ret=`which $1 2> /dev/null`
-	if [ ! -z "$ret" ] && [ -x $ret ]; then
+	if [ -n "$ret" -a -x "$ret" ]; then
 		return $TEST_OK
 	else
 		return $TEST_ERROR
