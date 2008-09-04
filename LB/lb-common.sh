@@ -39,6 +39,7 @@ LB_SERVER=glite-lb-bkserverd
 
 # default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
+GLITE_LB_IL_SOCK=${GLITE_LB_IL_SOCK:-/tmp/interlogger.sock}
 let GLITE_LB_SERVER_QPORT=${GLITE_LB_SERVER_PORT}+1
 if [ -z "${GLITE_LB_SERVER_WPORT}" ]; then 
 	let GLITE_LB_SERVER_WPORT=${GLITE_LB_SERVER_PORT}+3
@@ -121,6 +122,9 @@ function check_socket()
 }
 
 # Check listener
+# Arguments:
+#  $1: program expected to listen on the given port
+#  $2: TCP port to check
 function check_listener()
 {
 	req_program=$1
@@ -130,7 +134,33 @@ function check_listener()
                 return $TEST_ERROR
         fi
 
-	pid=`lsof -F p +c 0 -i TCP:$req_port | sed "s/^p//"`
+	pid=`lsof -F p -i TCP:$req_port | sed "s/^p//"`
+	if [ -z $pid ]; then
+		return $TEST_ERROR
+	fi
+	program=`ps -p ${pid} -o args= | grep -E "[\/]*$req_program[ \t]*"`
+	if [ -z "$program" ];  then 
+		return $TEST_ERROR
+	else
+		return $TEST_OK
+	fi
+}
+
+
+# Check socket listener
+# Arguments:
+#  $1: program expected to listen on the given socket
+#  $2: socket to check
+function check_socket_listener()
+{
+	req_program=$1
+	req_socket=$2
+        if [ -z $1 ]; then
+                set_error "No program name entered"
+                return $TEST_ERROR
+        fi
+
+	pid=`lsof -F p $req_socket | sed "s/^p//"`
 	if [ -z $pid ]; then
 		return $TEST_ERROR
 	fi

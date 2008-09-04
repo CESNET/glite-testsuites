@@ -143,11 +143,25 @@ fi
 
 # glite-lb-interlogd running:
 printf "Testing if Interlogger is running"
-if [ "$(pidof glite-lb-interlogd)" ]; then
+
+# glite-lb-interlogd running:
+printf "Testing if Interlogger is running"
+if [ "$(pidof ${LB_INTERLOGD})" ]; then
 	test_done
 else
 	test_failed
 	print_error "glite-lb-interlogd server is not running"
+fi
+
+
+# Interlogger listening on socket:
+printf "Testing if interlogger is listening on socket ${GLITE_LB_IL_SOCK}" 
+check_socket_listener ${LB_INTERLOGD} ${GLITE_LB_IL_SOCK}
+if [ $? -gt 0 ]; then
+        test_failed
+        print_error "LB interlogger is not listening on socket ${GLITE_LB_IL_SOCK}"
+else
+        test_done
 fi
 
 
