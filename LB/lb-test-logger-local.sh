@@ -5,20 +5,20 @@ progname=`basename $0`
 showHelp()
 {
 cat << EndHelpHeader
-Script for testing the LB server locally
+Script for testing the LB logger locally
 
 Prerequisities:
-   - LB server running on local machine
+   - LB logger running on local machine
    - environment variables set:
 
-     GLITE_LB_SERVER_PORT - if nondefault port (9000) is used
+     GLITE_LB_LOGGER_PORT - if nondefault port (9002) is used
 
 Tests called:
 
     pidof - return instance PIDs of the given binary
     mysqladmin ping - check for response by the mysql server
     check_socket() - simple tcp echo to all LB server ports
-      (by default 9000 for logging, 9001 for querying, 9003 for web services)
+      (9002 by default)
 
 Returned values:
     Exit TEST_OK: Test Passed
@@ -83,65 +83,26 @@ else
 	test_done
 fi
 
-# mySQL running:
-printf "Testing if mySQL is running"
-if [ "$(pidof mysqld)" ]; then
+# logger running:
+printf "Testing if LB logger is running"
+if [ "$(pidof ${LB_LOGD})" ]; then
 	test_done
 else
 	test_failed
-	print_error "mySQL server is not running"
+	print_error "${LB_LOGD} is not running"
 fi
 
-# mySQL accessible:
-printf "Testing if mySQL is accessible"
-if [ "$(mysqladmin ping)" ]; then
-	test_done
-else
-	test_failed
-	print_error "mySQL server is not answering"
-fi
-
-# server running:
-printf "Testing if LB Server is running"
-if [ "$(pidof ${LB_SERVER})" ]; then
-	test_done
-else
-	test_failed
-	print_error "${LB_SERVER} server is not running"
-fi
-
-# Server listening:
-printf "Testing if LB Server is listening on port ${GLITE_LB_SERVER_PORT}"
-check_listener ${LB_SERVER} ${GLITE_LB_SERVER_PORT}
+# logger listening:
+printf "Testing if LB logger is listening on port ${GLITE_LB_LOGGER_PORT}"
+check_listener ${LB_LOGD} ${GLITE_LB_LOGGER_PORT}
 if [ $? -gt 0 ]; then
         test_failed
-        print_error "LB server is not listening on port ${GLITE_LB_SERVER_PORT}"
+        print_error "LB logger is not listening on port ${GLITE_LB_LOGGER_PORT}"
 else
         test_done
 fi
 
-# Server listening:
-printf "Testing if LB Server is listening on port ${GLITE_LB_SERVER_QPORT}"
-check_listener ${LB_SERVER} ${GLITE_LB_SERVER_QPORT}
-if [ $? -gt 0 ]; then
-        test_failed
-        print_error "LB server is not listening on port ${GLITE_LB_SERVER_QPORT}"
-else
-        test_done
-fi
-
-# Server listening:
-printf "Testing if LB Server is listening on port ${GLITE_LB_SERVER_WPORT}"
-check_listener ${LB_SERVER} ${GLITE_LB_SERVER_WPORT}
-if [ $? -gt 0 ]; then
-        test_failed
-        print_error "LB server is not listening on port ${GLITE_LB_SERVER_WPORT}"
-else
-        test_done
-fi
-
-
-# Interlogger running:
+# interlogger running:
 printf "Testing if Interlogger is running"
 if [ "$(pidof ${LB_INTERLOGD})" ]; then
 	test_done

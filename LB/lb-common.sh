@@ -171,3 +171,5 @@ function check_socket_listener()
 		return $TEST_OK
 	fi
 }
+
+#df /var/lib/mysql/ | tail -n 1 | awk '{ print $4 }'
