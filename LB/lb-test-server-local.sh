@@ -85,7 +85,7 @@ fi
 
 # mySQL running:
 printf "Testing if mySQL is running"
-if [ "$(pidof mysqld)" ]; then
+if [ "$(${SYS_PIDOF} ${SYS_MYSQLD})" ]; then
 	test_done
 else
 	test_failed
@@ -94,7 +94,7 @@ fi
 
 # mySQL accessible:
 printf "Testing if mySQL is accessible"
-if [ "$(mysqladmin ping)" ]; then
+if [ "$(${SYS_MYSQLADMIN} ${SYS_PING})" ]; then
 	test_done
 else
 	test_failed
@@ -103,7 +103,7 @@ fi
 
 # server running:
 printf "Testing if LB Server is running"
-if [ "$(pidof ${LB_SERVER})" ]; then
+if [ "$(${SYS_PIDOF} ${LB_SERVER})" ]; then
 	test_done
 else
 	test_failed

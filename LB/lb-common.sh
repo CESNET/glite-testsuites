@@ -53,6 +53,10 @@ SYS_LSOF=lsof
 SYS_GREP=grep
 SYS_SED=sed
 SYS_PS=ps
+SYS_PIDOF=pidof
+SYS_MYSQLD=mysqld
+SYS_MYSQLADMIN=mysqladmin
+SYS_PING=ping
 
 # not used at the moment
 DEBUG=2
