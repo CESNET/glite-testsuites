@@ -37,6 +37,9 @@ LB_LOGD=glite-lb-logd
 LB_INTERLOGD=glite-lb-interlogd
 LB_SERVER=glite-lb-bkserverd
 
+#grid binaries
+GRIDPROXYINFO=grid-proxy-info
+
 # default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
 GLITE_LB_IL_SOCK=${GLITE_LB_IL_SOCK:-/tmp/interlogger.sock}

@@ -84,54 +84,66 @@ else
 	test_done
 fi
 
-# Register job:
-printf "Registering testing job "
-jobid=`${LBJOBREG} -m ${EDG_WL_QUERY_SERVER} -s application | grep "new jobid" | awk '{ print $3 }'`
+printf "Testing credentials"
 
-if [ -z $jobid  ]; then
+proxysubject=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^subject" | ${SYS_SED} "s/subject\s*:\s//"`
+if [ "$proxysubject" = "" ]; then
 	test_failed
-	print_error "Failed to register job"
+	print_error "No credentials"
 else
 	test_done
-	printf "\nRegistered job: $jobid\n"
-fi
 
-# log events:
-printf "Logging events resulting in READY state\n"
-glite-lb-ready.sh -j ${jobid} > /dev/null 2> /dev/null
 
-printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+	# Register job:
+	printf "Registering testing job "
+	jobid=`${LBJOBREG} -m ${EDG_WL_QUERY_SERVER} -s application | grep "new jobid" | awk '{ print $3 }'`
 
-sleep 10
+	if [ -z $jobid  ]; then
+		test_failed
+		print_error "Failed to register job"
+	else
+		test_done
+		printf "\nRegistered job: $jobid\n"
+	fi
 
-jobstate=`${LBJOBSTATUS} ${jobid} | grep "state :" | awk '{print $3}'`
-printf "Is the testing job ($jobid) in a correct state? $jobstate"
+	# log events:
+	printf "Logging events resulting in READY state\n"
+	glite-lb-ready.sh -j ${jobid} > /dev/null 2> /dev/null
 
-if [ "${jobstate}" = "Ready" ]; then
-        test_done
-else
-        test_failed
-        print_error "Job is not in appropriate state"
-fi
+	printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
 
-printf "Logging events resulting in RUNNING state\n"
-glite-lb-running.sh -j ${jobid} > /dev/null 2> /dev/null
+	sleep 10
 
-printf "Logging events resulting in DONE state\n"
-glite-lb-done.sh -j ${jobid} > /dev/null 2> /dev/null
+	jobstate=`${LBJOBSTATUS} ${jobid} | grep "state :" | awk '{print $3}'`
+	printf "Is the testing job ($jobid) in a correct state? $jobstate"
 
-printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+	if [ "${jobstate}" = "Ready" ]; then
+		test_done
+	else
+		test_failed
+		print_error "Job is not in appropriate state"
+	fi
 
-sleep 10
+	printf "Logging events resulting in RUNNING state\n"
+	glite-lb-running.sh -j ${jobid} > /dev/null 2> /dev/null
 
-jobstate=`${LBJOBSTATUS} ${jobid} | grep "state :" | awk '{print $3}'`
-printf "Testing job ($jobid) is in state: $jobstate\n"
+	printf "Logging events resulting in DONE state\n"
+	glite-lb-done.sh -j ${jobid} > /dev/null 2> /dev/null
 
-if [ "${jobstate}" = "Done" ]; then
-        test_done
-else
-        test_failed
-        print_error "Job is not in appropriate state"
+	printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+
+	sleep 10
+
+	jobstate=`${LBJOBSTATUS} ${jobid} | grep "state :" | awk '{print $3}'`
+	printf "Testing job ($jobid) is in state: $jobstate\n"
+
+	if [ "${jobstate}" = "Done" ]; then
+		test_done
+	else
+		test_failed
+		print_error "Job is not in appropriate state"
+	fi
+
 fi
 
 test_end
