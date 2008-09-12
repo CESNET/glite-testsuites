@@ -77,7 +77,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LB_READY_SH $LB_RUNNING_SH $LB_DONE_SH $SYS_AWK 
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -86,64 +86,69 @@ fi
 
 printf "Testing credentials"
 
-proxysubject=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^subject" | ${SYS_SED} "s/subject\s*:\s//"`
-if [ "$proxysubject" = "" ]; then
+timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+
+if [ "$timeleft" = "" ]; then
 	test_failed
 	print_error "No credentials"
 else
-	test_done
-
-
-	# Register job:
-	printf "Registering testing job "
-	jobid=`${LBJOBREG} -m ${EDG_WL_QUERY_SERVER} -s application | grep "new jobid" | awk '{ print $3 }'`
-
-	if [ -z $jobid  ]; then
+	if [ "$timeleft" = "0:00:00" ]; then
 		test_failed
-		print_error "Failed to register job"
+		print_error "Credentials expired"
 	else
 		test_done
-		printf "\nRegistered job: $jobid\n"
+
+
+		# Register job:
+		printf "Registering testing job "
+		jobid=`${LBJOBREG} -m ${EDG_WL_QUERY_SERVER} -s application | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+
+		if [ -z $jobid  ]; then
+			test_failed
+			print_error "Failed to register job"
+		else
+			test_done
+			printf "\nRegistered job: $jobid\n"
+		fi
+
+		# log events:
+		printf "Logging events resulting in READY state\n"
+		$LB_READY_SH -j ${jobid} > /dev/null 2> /dev/null
+
+		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+
+		sleep 10
+
+		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+		printf "Is the testing job ($jobid) in a correct state? $jobstate"
+
+		if [ "${jobstate}" = "Ready" ]; then
+			test_done
+		else
+			test_failed
+			print_error "Job is not in appropriate state"
+		fi
+
+		printf "Logging events resulting in RUNNING state\n"
+		$LB_RUNNING_SH -j ${jobid} > /dev/null 2> /dev/null
+
+		printf "Logging events resulting in DONE state\n"
+		$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
+
+		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+
+		sleep 10
+
+		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+		printf "Testing job ($jobid) is in state: $jobstate\n"
+
+		if [ "${jobstate}" = "Done" ]; then
+			test_done
+		else
+			test_failed
+			print_error "Job is not in appropriate state"
+		fi
 	fi
-
-	# log events:
-	printf "Logging events resulting in READY state\n"
-	glite-lb-ready.sh -j ${jobid} > /dev/null 2> /dev/null
-
-	printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
-
-	sleep 10
-
-	jobstate=`${LBJOBSTATUS} ${jobid} | grep "state :" | awk '{print $3}'`
-	printf "Is the testing job ($jobid) in a correct state? $jobstate"
-
-	if [ "${jobstate}" = "Ready" ]; then
-		test_done
-	else
-		test_failed
-		print_error "Job is not in appropriate state"
-	fi
-
-	printf "Logging events resulting in RUNNING state\n"
-	glite-lb-running.sh -j ${jobid} > /dev/null 2> /dev/null
-
-	printf "Logging events resulting in DONE state\n"
-	glite-lb-done.sh -j ${jobid} > /dev/null 2> /dev/null
-
-	printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
-
-	sleep 10
-
-	jobstate=`${LBJOBSTATUS} ${jobid} | grep "state :" | awk '{print $3}'`
-	printf "Testing job ($jobid) is in state: $jobstate\n"
-
-	if [ "${jobstate}" = "Done" ]; then
-		test_done
-	else
-		test_failed
-		print_error "Job is not in appropriate state"
-	fi
-
 fi
 
 test_end

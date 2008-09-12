@@ -76,7 +76,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries
+check_binaries $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS $SYS_MYSQLADMIN $SYS_PIDOF
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -143,7 +143,7 @@ fi
 
 # Interlogger running:
 printf "Testing if Interlogger is running"
-if [ "$(pidof ${LB_INTERLOGD})" ]; then
+if [ "$(${SYS_PIDOF} ${LB_INTERLOGD})" ]; then
 	test_done
 else
 	test_failed

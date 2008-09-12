@@ -37,7 +37,11 @@ LB_LOGD=glite-lb-logd
 LB_INTERLOGD=glite-lb-interlogd
 LB_SERVER=glite-lb-bkserverd
 
-#grid binaries
+LB_READY_SH=glite-lb-ready.sh
+LB_RUNNING_SH=glite-lb-running.sh
+LB_DONE_SH=glite-lb-done.sh
+
+#general grid binaries
 GRIDPROXYINFO=grid-proxy-info
 
 # default LB ports
@@ -60,6 +64,7 @@ SYS_PIDOF=pidof
 SYS_MYSQLD=mysqld
 SYS_MYSQLADMIN=mysqladmin
 SYS_PING=ping
+SYS_AWK=awk
 
 # not used at the moment
 DEBUG=2
@@ -73,7 +78,7 @@ function ping_host()
 	fi
 	PING_HOST=$1
 	# XXX: there might be a better way to test the network reachability
-	result=`ping -c 3 $PING_HOST 2>/dev/null | grep " 0% packet loss"| wc -l`
+	result=`${SYS_PING} -c 3 $PING_HOST 2>/dev/null | ${SYS_GREP} " 0% packet loss"| wc -l`
 	if [ $result -gt 0 ]; then
 		return $TEST_OK
 	else 
@@ -102,7 +107,7 @@ function check_binaries()
 {
 # TODO: test only the binaries that are needed - it can differ in each test
 	local ret=$TEST_OK
-	for file in $LBLOGEVENT $LBJOBLOG $LBJOBREG $LBUSERJOBS $LBJOBSTATUS $LBCHANGEACL $TEST_SOCKET $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS
+	for file in $@
 	do	
 		check_exec $file 
 		if [ $? -gt 0 ]; then
@@ -180,3 +185,9 @@ function check_socket_listener()
 }
 
 #df /var/lib/mysql/ | tail -n 1 | awk '{ print $4 }'
+
+function test_args()
+{
+        echo $@
+}
+

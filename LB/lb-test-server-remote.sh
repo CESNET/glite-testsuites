@@ -83,7 +83,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries
+check_binaries $TEST_SOCKET $SYS_PING $SYS_GREP
 if [ $? -gt 0 ]; then
 	test_failed
 	print_error "Some binaries are missing"

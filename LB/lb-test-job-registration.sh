@@ -73,7 +73,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -82,35 +82,39 @@ fi
 
 printf "Testing credentials"
 
-proxysubject=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^subject" | ${SYS_SED} "s/subject\s*:\s//"`
-if [ "$proxysubject" = "" ]; then
-	test_failed
-	print_error "No credentials"
+timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+
+if [ "$timeleft" = "" ]; then
+        test_failed
+        print_error "No credentials"
 else
-	test_done
+        if [ "$timeleft" = "0:00:00" ]; then
+                test_failed
+                print_error "Credentials expired"
+        else
+                test_done
 
+		# Register job:
+		printf "Registering testing job "
+		jobid=`${LBJOBREG} -m ${EDG_WL_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
 
-	# Register job:
-	printf "Registering testing job "
-	jobid=`${LBJOBREG} -m ${EDG_WL_QUERY_SERVER} -s application | grep "new jobid" | awk '{ print $3 }'`
+		if [ -z $jobid  ]; then
+			test_failed
+			print_error "Failed to register job"
+		else
+			test_done
+		fi
 
-	if [ -z $jobid  ]; then
-		test_failed
-		print_error "Failed to register job"
-	else
-		test_done
+		jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+		printf "Is the testing job ($jobid) in a correct state? $jobstate"
+
+		if [ "${jobstate}" = "Submitted" ]; then
+			test_done
+		else
+			test_failed
+			print_error "Job has not been submitted"
+		fi
 	fi
-
-	jobstate=`${LBJOBSTATUS} ${jobid} | grep "state :" | awk '{print $3}'`
-	printf "Is the testing job ($jobid) in a correct state? $jobstate"
-
-	if [ "${jobstate}" = "Submitted" ]; then
-		test_done
-	else
-		test_failed
-		print_error "Job has not been submitted"
-	fi
-
 fi
 
 test_end
