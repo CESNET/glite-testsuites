@@ -1,5 +1,8 @@
 #Defining arguments for the test scripts
 
+#LB hostname
 LB_HOST="lxbra2303.cern.ch"
 
+#hostname:port
+export GLITE_WMS_QUERY_SERVER="lxbra2303.cern.ch:9000"
 

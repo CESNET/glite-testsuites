@@ -61,6 +61,10 @@ if [ -z "$LB_HOST" ]; then
   exitFailure
 fi
 
+if [ -z "$GLITE_WMS_QUERY_SERVER" ]; then
+  echo "You need to set GLITE_WMS_QUERY_SERVER in order to run the tests"
+  exitFailure
+fi
 #########
 # START #
 #########
