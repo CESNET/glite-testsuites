@@ -149,7 +149,7 @@ job_id=0
                 testStatus=`cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}|wc -l`
                 i=$[$i+1]
         done
-        if [$testStatus -eq 1 ] ; then
+        if [ $testStatus -eq 1 ] ; then
                 echo "Job: $job_id ..Logged state:${SAMPLE_JOBS_STATES[$job_id]}-Recorded `cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`.......[OK]"
         else
                 echo "Job: $job_id ..Logged state:${SAMPLE_JOBS_STATES[$job_id]}-Recorded `cat status |grep -i state.*${SAMPLE_JOBS_STATES[$job_id]}`.......[FAILED]"
