@@ -52,7 +52,7 @@ function set_test()
 {
 test_done="${spacefill}${begin_green}done${end_green}"
 test_running="${spacefill}${begin_green}running${end_green}"
-test_failed="${spacefill}${begin_red}failed${end_red}"
+test_failed="${spacefill}${begin_red}-TEST FAILED-${end_red}"
 test_missed="${spacefill}${begin_red}missing${end_red}"
 test_skipped="${spacefill}${begin_yellow}skipped${end_yellow}"
 test_dead="${spacefill}${begin_red}dead${end_red}"
@@ -115,7 +115,7 @@ function setOutputColor()
 local esc=`echo -en "\033"`
 local normal="${esc}[0m" # unsets color to term's fg color
 lf="\n"
-spacefill=`echo -en "\015${esc}[${COLUMNS}C${esc}[10D"`
+spacefill=`echo -en "\015${esc}[${COLUMNS}C${esc}[15D"`
 
 begin_bold="${esc}[0;1m"
 begin_black="${esc}[0;30m"
