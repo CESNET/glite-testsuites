@@ -1,0 +1,5 @@
+#Defining arguments for the test scripts
+
+LB_HOST="lxbra2303.cern.ch"
+
+
