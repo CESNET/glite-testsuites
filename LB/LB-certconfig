@@ -3,6 +3,8 @@
 #LB hostname
 LB_HOST="lxbra2303.cern.ch"
 
-#hostname:port
+#address of the glite-lb-bkserver daemon host:port
 export GLITE_WMS_QUERY_SERVER="lxbra2303.cern.ch:9000"
 
+#address of the glite-lb-logd daemon host:port
+export GLITE_WMS_LOG_DESTINATION="lxbra2303.cern.ch:9002"

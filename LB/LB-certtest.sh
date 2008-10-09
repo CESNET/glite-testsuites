@@ -76,20 +76,20 @@ echo "------------------------------------------------"
 # Checking if there is valid proxy #
 ####################################
 
-ProxyExist=`voms-proxy-info 2>/dev/null | grep timeleft | wc -l`
+#ProxyExist=`voms-proxy-info 2>/dev/null | grep timeleft | wc -l`
 
-ProxyExpired=`voms-proxy-info 2>/dev/null | grep  "timeleft  : 0:00:00" | wc -l`
+#ProxyExpired=`voms-proxy-info 2>/dev/null | grep  "timeleft  : 0:00:00" | wc -l`
 
-if [ $ProxyExist -gt 0 -a $ProxyExpired -eq 0 ]; then
+#if [ $ProxyExist -gt 0 -a $ProxyExpired -eq 0 ]; then
   #nop
   :
-else
-  echo "Valid proxy is needed for this test!"
-  if [ $ProxyExpired -gt 0 ]; then
-    echo "Proxy credential expired!"
-  fi
-  exitFailure
-fi
+#else
+#  echo "Valid proxy is needed for this test!"
+#  if [ $ProxyExpired -gt 0 ]; then
+#    echo "Proxy credential expired!"
+#  fi
+#  exitFailure
+#fi
 
 ########################
 # Launch all the tests #

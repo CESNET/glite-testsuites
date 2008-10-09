@@ -71,6 +71,7 @@ DEBUG=2
 {
 test_start
 
+
 # check_binaries
 printf "Testing if all binaries are available"
 check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK
