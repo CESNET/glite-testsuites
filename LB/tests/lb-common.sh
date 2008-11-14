@@ -32,6 +32,8 @@ LBJOBSTATUS=glite-lb-job_status
 LBPURGE=glite-lb-purge
 LBCHANGEACL=glite-lb-change_acl
 LBMON=glite-lb-lbmon
+LBNOTIFY=glite-lb-notify
+LBPURGE=glite-lb-purge
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd

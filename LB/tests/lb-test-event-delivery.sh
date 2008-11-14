@@ -12,7 +12,7 @@ Prerequisities:
    - environment variables set:
 
      GLITE_LB_SERVER_PORT - if nondefault port (9000) is used
-     GLITE_LB_IL_SOCK - if nondevailt socket at /tmp/interlogger.sock is used
+     GLITE_LB_IL_SOCK - if nondefault socket at /tmp/interlogger.sock is used
      GLITE_LB_LOGGER_PORT - if nondefault port (9002) is used 	
 
 Tests called:

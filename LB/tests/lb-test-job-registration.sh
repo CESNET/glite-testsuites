@@ -104,17 +104,33 @@ else
 			print_error "Failed to register job"
 		else
 			test_done
+
+			# Check result
+			jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+			printf "Is the testing job ($jobid) in a correct state? $jobstate"
+
+			if [ "${jobstate}" = "Submitted" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Job has not been submitted"
+			fi
+
+			#Purge test job
+			joblist=$$_jobs_to_purge.txt
+			echo $jobid > ${joblist}
+
+			printf "Purging test job (Trying the best, result will not be tested)\n"
+
+			${LBPURGE} -j ${joblist}
+
+			rm ${joblist}
+
+
 		fi
 
-		jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
-		printf "Is the testing job ($jobid) in a correct state? $jobstate"
-
-		if [ "${jobstate}" = "Submitted" ]; then
-			test_done
-		else
-			test_failed
-			print_error "Job has not been submitted"
-		fi
+		
+		
 	fi
 fi
 
