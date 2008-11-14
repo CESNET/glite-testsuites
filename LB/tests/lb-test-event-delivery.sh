@@ -148,6 +148,12 @@ else
 			test_failed
 			print_error "Job is not in appropriate state"
 		fi
+
+		#Purge test job
+		joblist=$$_jobs_to_purge.txt
+		echo $jobid > ${joblist}
+		try_purge ${joblist}
+
 	fi
 fi
 

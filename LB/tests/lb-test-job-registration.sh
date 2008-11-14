@@ -119,13 +119,7 @@ else
 			#Purge test job
 			joblist=$$_jobs_to_purge.txt
 			echo $jobid > ${joblist}
-
-			printf "Purging test job (Trying the best, result will not be tested)\n"
-
-			${LBPURGE} -j ${joblist}
-
-			rm ${joblist}
-
+			try_purge ${joblist}
 
 		fi
 

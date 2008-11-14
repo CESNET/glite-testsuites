@@ -188,8 +188,22 @@ function check_socket_listener()
 
 #df /var/lib/mysql/ | tail -n 1 | awk '{ print $4 }'
 
+function try_purge()
+{
+                        #Purge test job
+                        joblist=$1
+                        echo $jobid > ${joblist}
+
+                        printf "Purging test job (Trying the best, result will not be tested)\n"
+
+                        ${LBPURGE} -j ${joblist}
+
+                        rm ${joblist}
+	
+}
+
 function test_args()
 {
-        echo $@
+        gcho $@
 }
 
