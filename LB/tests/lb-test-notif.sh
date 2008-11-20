@@ -161,6 +161,10 @@ else
 				print_error "Failed to drop notification ${dropresult}"
 			fi
 
+			#Purge test job
+			joblist=$$_jobs_to_purge.txt
+			echo $jobid > ${joblist}
+			try_purge ${joblist}
 
 		fi
 	fi
