@@ -34,6 +34,7 @@ LBCHANGEACL=glite-lb-change_acl
 LBMON=glite-lb-lbmon
 LBNOTIFY=glite-lb-notify
 LBPURGE=glite-lb-purge
+LBPARSEEFILE=glite-lb-parse_eventsfile
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd
@@ -67,6 +68,7 @@ SYS_MYSQLD=mysqld
 SYS_MYSQLADMIN=mysqladmin
 SYS_PING=ping
 SYS_AWK=awk
+SYS_ECHO=echo
 
 # not used at the moment
 DEBUG=2
@@ -192,7 +194,7 @@ function try_purge()
 {
                         #Purge test job
                         joblist=$1
-                        echo $jobid > ${joblist}
+                        $SYS_ECHO $jobid > ${joblist}
 
                         printf "Purging test job (Trying the best, result will not be tested)\n"
 

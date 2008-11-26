@@ -26,14 +26,36 @@ Returned values:
 
 EndHelpHeader
 
-	echo "Usage: $progname [OPTIONS]"
+	echo "Usage: $progname [OPTIONS] [event file prefix]"
 	echo "Options:"
 	echo " -h | --help            Show this help message."
 	echo " -o | --output 'file'   Redirect all output to the 'file' (stdout by default)."
 	echo " -t | --text            Format output as plain ASCII text."
 	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
 	echo " -x | --html            Format output as html."
+	echo ""
+	echo "Give the same prefix you pass to your local logger on startup (-f or --file-prefix option)"
+	echo "If no event file prefix is given, the default will be used (/var/glite/log/dglogd.log)."
 }
+
+
+generate_reference_file()
+{
+        echo "line 1: edg_wll_ParseEvent() o.k. (event Accepted), edg_wll_UnparseEvent() o.k." > $1
+        echo "line 2: edg_wll_ParseEvent() o.k. (event EnQueued), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 3: edg_wll_ParseEvent() o.k. (event DeQueued), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 4: edg_wll_ParseEvent() o.k. (event HelperCall), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 5: edg_wll_ParseEvent() o.k. (event Match), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 6: edg_wll_ParseEvent() o.k. (event HelperReturn), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 7: edg_wll_ParseEvent() o.k. (event EnQueued), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 8: edg_wll_ParseEvent() o.k. (event DeQueued), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 9: edg_wll_ParseEvent() o.k. (event Transfer), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 10: edg_wll_ParseEvent() o.k. (event Accepted), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 11: edg_wll_ParseEvent() o.k. (event Transfer), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 12: edg_wll_ParseEvent() o.k. (event Running), edg_wll_UnparseEvent() o.k." >> $1
+        echo "line 13: edg_wll_ParseEvent() o.k. (event Done), edg_wll_UnparseEvent() o.k." >> $1
+}
+
 
 # read common definitions and functions
 COMMON=lb-common.sh
@@ -53,6 +75,7 @@ do
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
 		"-x" | "--html")  setOutputHTML ;;
+		*) EVENTFILE=$1 ;;
 	esac
 	shift
 done
@@ -217,6 +240,49 @@ else
 			test_failed
 		fi
 
+		UNIQUE=`$SYS_ECHO ${jobid} | ${SYS_SED} 's/.*\///'`
+
+		if [ -z $EVENTFILE ]; then
+			#Set the default event file prefix if none has been supplied
+			EVENTFILE=/var/glite/log/dglogd.log
+		fi
+
+		printf "Testing if event file exists ($EVENTFILE.$UNIQUE) "
+		if [ -f $EVENTFILE.$UNIQUE ]; then
+			test_done
+
+			#Test the contents of the file
+
+			#process events file
+			$LBPARSEEFILE -f $EVENTFILE.$UNIQUE 2>&1 | $SYS_GREP -v "Parsing file" > events.tested.$$.txt 
+
+			generate_reference_file events.reference.$$.txt
+
+			printf "Comparing results (<) with expectations (>) ... "
+			diff events.tested.$$.txt events.reference.$$.txt
+			if [ $? = 0 ]; then
+				printf "(MATCH)"
+				test_done
+			else
+				printf "Comparison failed, details above"
+				test_failed
+			fi
+
+			echo Cleaning up
+			rm events.tested.$$.txt
+			rm events.reference.$$.txt
+		else
+			test_failed
+			echo ""
+			echo "* Test file not found. Possible reasons:"
+			echo "*   - Local logger is not running and the file was never created."
+			echo "*   - You have not specified a correct event file prefix."
+			echo "*     Note that you need to give the same prefix used to start"
+			echo "*     the local logger daemon."
+			#echo "*   - Interlogger is running and has already processed and removed"
+			#echo "*     the file. Stop the interlogger for this test."
+			echo ""
+		fi
 
 		#Purge test job
 		joblist=$$_jobs_to_purge.txt
