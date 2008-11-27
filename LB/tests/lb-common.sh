@@ -69,6 +69,7 @@ SYS_MYSQLADMIN=mysqladmin
 SYS_PING=ping
 SYS_AWK=awk
 SYS_ECHO=echo
+SYS_DOMAINNAME=domainname
 
 # not used at the moment
 DEBUG=2
