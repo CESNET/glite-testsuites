@@ -103,7 +103,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LB_READY_SH $LB_RUNNING_SH $LB_DONE_SH $SYS_AWK $SYS_DOMAINNAME
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $SYS_DOMAINNAME $LBJOBSTATUS
 if [ $? -gt 0 ]; then
 	test_failed
 else
