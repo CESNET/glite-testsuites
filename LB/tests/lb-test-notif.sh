@@ -129,7 +129,7 @@ else
 			test_done
 
 			#Start listening for notifications
-			${LBNOTIFY} receive -i 1 ${notifid} > $$_notifications.txt &
+			${LBNOTIFY} receive -i 5 ${notifid} > $$_notifications.txt &
 			recpid=$!
 
 			printf "Logging events resulting in DONE state\n"

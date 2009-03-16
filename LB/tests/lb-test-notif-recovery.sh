@@ -134,7 +134,7 @@ else
 			sleep 10
 
 			#Start listening for notifications
-			${LBNOTIFY} receive -i 1 ${notifid} > $$_notifications.txt &
+			${LBNOTIFY} receive -i 5 ${notifid} > $$_notifications.txt &
 			recpid=$!
 
 			sleep 10

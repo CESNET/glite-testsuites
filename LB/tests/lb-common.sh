@@ -179,7 +179,7 @@ function check_socket_listener()
                 return $TEST_ERROR
         fi
 
-	pid=`lsof -F p $req_socket | sed "s/^p//"`
+	pid=`lsof -F p $req_socket | sed "s/^p//" | head -n 1`
 	if [ -z $pid ]; then
 		return $TEST_ERROR
 	fi
