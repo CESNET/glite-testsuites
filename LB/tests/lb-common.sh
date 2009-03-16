@@ -26,9 +26,11 @@ export PATH
 # LB binaries
 LBLOGEVENT=glite-lb-logevent
 LBJOBLOG=glite-lb-job_log
+LBWSJOBLOG=glite-lb-ws_joblog
 LBJOBREG=glite-lb-job_reg
 LBUSERJOBS=glite-lb-user_jobs
 LBJOBSTATUS=glite-lb-job_status
+LBWSJOBSTATUS=glite-lb-ws_jobstat
 LBPURGE=glite-lb-purge
 LBCHANGEACL=glite-lb-change_acl
 LBMON=glite-lb-lbmon
