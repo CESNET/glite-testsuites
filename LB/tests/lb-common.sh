@@ -59,6 +59,9 @@ fi
 
 GLITE_LB_LOGGER_PORT=${GLITE_LB_LOGGER_PORT:-9002}
 
+# default sockets
+GLITE_WMS_LBPROXY_STORE_SOCK=${GLITE_WMS_LBPROXY_STORE_SOCK:-/tmp/lb proxy store.sock}
+
 # other binaries
 TEST_SOCKET=$SAME_SENSOR_HOME/tests/testSocket
 SYS_LSOF=lsof
