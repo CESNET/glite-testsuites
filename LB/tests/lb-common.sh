@@ -212,6 +212,6 @@ function try_purge()
 
 function test_args()
 {
-        gcho $@
+        echo $@
 }
 
