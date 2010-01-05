@@ -112,6 +112,16 @@ if (!logit \%new,"${prefix}_new") {
 
 test_done();
 
+$drain = $delay/10;
+print "** draining other $drain seconds ...\n";
+sleep $drain;
+
+print "** test jobs:\n";
+
+for (qw/aborted cleared cancelled other/) {
+	print "$_:\n\t$old{$_}\n\t$new{$_}\n";
+} 
+
 print "** Dry run\n";
 $failed = 0;
 
@@ -126,7 +136,7 @@ for (qw/aborted cleared cancelled other/) {
 		test_failed();
 	}
 	else {
-		print "$_ $id ";
+		print "${half}s $_ $id ";
 		test_done();
 	}
 	$id = <LIST>;
@@ -150,7 +160,7 @@ for (qw/aborted cleared cancelled other/) {
 			test_failed();
 		}
 		else {
-			print "$_ $id ";
+			print "0s $_ $id ";
 			test_done();
 		}
 		$cnt++;
@@ -239,6 +249,22 @@ close LIST;
 die "!! Yes, but should not\n" if $id;
 print "No, OK ";
 test_done();
+
+print "** Check zombies\n";
+$failed = 0;
+
+for (values(%old),values(%new)) {
+		$stat = 'nic moc';
+		$stat = `$status $_ | head -2 | tail -1`;
+		chomp $stat;
+		$stat =~ s/state :\s*//;
+
+		print "$_ $stat ";
+		if ($stat ne 'Purged') { $failed = 1; test_failed(); }
+		else { test_done(); }
+}
+
+die "Jobs should be known and purged\n" if $failed;
 
 print "\n** All tests passed **";
 test_done();
