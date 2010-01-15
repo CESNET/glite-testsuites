@@ -171,7 +171,7 @@ else
 			$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
 			$LB_DONE_SH -j ${otherjobid} > /dev/null 2> /dev/null
 
-			sleep 10
+			sleep 20
 
 			kill $recpid
 
