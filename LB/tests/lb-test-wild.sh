@@ -275,7 +275,7 @@ EOF
 function check_status() {
 	prev_status=${stats[$1]}
 	jobid=${jobs[$1]}
-	glite-wms-job-status -v 0 $jobid >stat.log || fail 2 "Can't get job status"
+	glite-wms-job-status -v 0 $jobid >stat.log || fatal 2 "Can't get job status"
 	status=`cat stat.log | $SYS_GREP '^Current Status: ' | $SYS_SED -e 's/^Current Status: [ \t]*\([a-zA-Z]*\).*/\1/'`
 	if [ x"$status" != x"$prev_status" ]; then
 		date '+%Y-%m-%d %H:%M:%S' >> log
@@ -310,6 +310,7 @@ fail=$TEST_OK
 
 # -- launch the beast --
 
+touch $$.err
 {
 test_start
 
@@ -348,7 +349,7 @@ while test $quit -eq 0; do
 	quit=1
 	for ((i=0;i<n;i++)); do
 		check_status $i
-		if test x"$status" != x'Aborted' -a x"$status" != x'Done' -a x"$status" != x'Cleared' -a x"$status" != x"Cancelled"; then
+		if test x"$status" != x'Aborted' -a x"$status" != x'Done' -a x"$status" != x'Cleared' -a x"$status" != x"Cancelled" -a x"$status" != x"Purged"; then
 			quit=0
 		fi
 	done
@@ -371,7 +372,7 @@ for ((i=0;i<n;i++)); do
 	status="${stats[$i]}"
 
 	$GLITE_LOCATION/examples/glite-lb-job_log "$jobid" > ulm.log || fatal $TEST_ERROR "Can't query events for '$jobid'"
-	components=`cat ulm.log | head -n -1 | $SYS_GREP -v '^$' | $SYS_SED -e 's/.*DG\.SOURCE="\([^"]*\)".*/\1/' | sort | uniq | tr '\n' ' ' | $SYS_SED 's/ $//'`
+	components=`cat ulm.log | head -n -1 | $SYS_GREP -v '^$' | $SYS_SED -e 's/.*DG\.SOURCE="\([^"]*\)".*/\1/' | sort -f | uniq | tr '\n' ' ' | $SYS_SED 's/ $//'`
 	rm -f ulm.log
 
 	expected_status=''
@@ -413,7 +414,7 @@ for ((i=0;i<n;i++)); do
 		if test x"$expected_status" = x"$status"; then
 			printf "[wild] $jobid: '$status' OK (${job_cats[$i]})" && test_done
 		else
-			test_failed && print_error "$jobid: expected '$expected_status', got '$status'!"
+			print_error "$jobid: expected '$expected_status', got '$status'!" && test_failed
 			fail=$TEST_ERROR
 		fi
 
@@ -425,7 +426,7 @@ for ((i=0;i<n;i++)); do
 				echo "[wild]     components: $components ?"
 				;;
 			*)
-				test_failed && print_error "    components: $components DIFFERS"
+				print_error "    components: $components DIFFERS " && test_failed
 				fail=$TEST_ERROR
 				;;
 			esac
@@ -448,14 +449,14 @@ for ((i=0; i<${#job_cats[*]}; i++)); do
 		if test "$?" = "0"; then
 			printf "[wild] output of '$jobid' fetched" && test_done
 		else
-			test_failed && print_error "can't fetch output from $jobid!"
+			print_error "can't fetch output from $jobid!" && test_failed
 			fail=$TEST_ERROR
 		fi
 		;;
 	done_coll)
 		glite-wms-job-status -v 0 "$jobid" | $SYS_GREP '^ .*https:' | $SYS_SED 's/.*https:/https:/' > subjobs.log
-		if test x"`wc -l subjobs.log`" != x"5"; then
-			test_failed && print_error "error, some offspring of $jobid were spawned or eaten!"
+		if test x"`wc -l subjobs.log | $SYS_SED 's/\s*\([0-9]*\).*/\1/'`" != x"5"; then
+			print_error "error, some offspring of $jobid were spawned or eaten!" && test_failed
 			fail=$TEST_ERROR
 		fi
 		j=1
@@ -464,7 +465,7 @@ for ((i=0; i<${#job_cats[*]}; i++)); do
 			if test "$?" = "0"; then
 				printf "[wild] output of $j. offspring of $jobid fetched" && test_done
 			else
-				test_failed && print_error "can't fetch output from $subjobid!"
+				print_error "can't fetch output from $subjobid!" && test_failed
 				fail=$TEST_ERROR
 			fi
 			j=$((j+1))
@@ -487,12 +488,12 @@ while test $quit -eq 0; do
 			check_status $i
 			case "$status" in
 			'Cleared')
-				quit=0
 				;;
-			'Cancelled'|'Aborted')
+			'Cancelled'|'Aborted'|'Purged')
 				cleared_fail=1
 				;;
 			*)
+				quit=0
 				;;
 			esac
 		fi
@@ -502,7 +503,7 @@ done
 if test x"$cleared_fail" = x"0"; then
 	printf "[wild] all jobs in done cleared" && test_done
 else
-	test_failed && print_error "not all expected jobs in cleared state"
+	print_error "not all expected jobs in cleared state!" && test_failed
 	fail=$TEST_ERROR
 fi
 
