@@ -75,6 +75,7 @@ SYS_PING=ping
 SYS_AWK=awk
 SYS_ECHO=echo
 SYS_DOMAINNAME=domainname
+SYS_CURL=curl
 
 # not used at the moment
 DEBUG=2
