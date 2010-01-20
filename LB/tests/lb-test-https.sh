@@ -12,6 +12,8 @@ Prerequisities:
    - environment variables set:
 
      GLITE_LB_SERVER_PORT - if nondefault port (9000) is used
+     GLITE_WMS_QUERY_SERVER
+     GLITE_WMS_NOTIF_SERVER
 
 Tests called:
 
@@ -173,6 +175,65 @@ else
 				joblist=$$_jobs_to_purge.txt
 				echo $jobid > ${joblist}
 				try_purge ${joblist}
+
+			fi
+
+	                # Register notification:
+	                printf "Registering notification "
+
+	                notifid=`${LBNOTIFY} new -j ${jobid} | $SYS_GREP "notification ID" | ${SYS_AWK} '{ print $3 }'`
+			echo ${LBNOTIFY} new -j ${jobid}
+	
+        	        if [ -z $notifid ]; then
+                	        test_failed 
+                        	print_error "Failed to register notification"
+	                else
+        	                printf "(${notifid}) "
+                	        test_done
+
+				# Get notification status
+				printf "Evaluating notification status listing... "
+
+				$SYS_CURL -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp "${notifid}"
+
+				if [ "$?" != "0" ]; then
+					test_failed
+					print_error "Job status not returned"
+				else
+					test_done
+
+					printf "Checking for jobid (verifying content)..."
+
+					notifunique=`${SYS_ECHO} ${notifid} | ${SYS_SED} 's/^.*NOTIF://'`
+
+					$SYS_GREP $notifunique https.$$.tmp > /dev/null 2> /dev/null
+
+					if [ "$?" != "0" ]; then
+						test_failed
+						print_error "Notification ID not found among data returned"
+					else
+						test_done
+					fi
+
+					rm https.$$.tmp
+
+                                fi
+
+				#Drop notification
+	                        printf "Dropping the test notification (${notifid})"
+        	                dropresult=`${LBNOTIFY} drop ${notifid} 2>&1`
+                	        if [ -z $dropresult ]; then
+                        	        test_done
+	                        else
+        	                        test_failed
+                	                print_error "Failed to drop notification ${dropresult}"
+                        	fi
+
+	                        #Purge test job
+         	                joblist=$$_jobs_to_purge.txt
+                	        echo $jobid > ${joblist}
+                        	try_purge ${joblist}
+
 
 			fi
 
