@@ -141,7 +141,7 @@ else
 						test_done
 					fi
 
-					rm https.$$.tmp
+					$SYS_RM https.$$.tmp
 
 				fi
 
@@ -167,7 +167,7 @@ else
 						test_done
 					fi
 
-					rm https.$$.tmp
+					$SYS_RM https.$$.tmp
 
 				fi
 
@@ -215,7 +215,7 @@ else
 						test_done
 					fi
 
-					rm https.$$.tmp
+					$SYS_RM https.$$.tmp
 
                                 fi
 
@@ -249,7 +249,7 @@ test_end
 
 if [ $flag -ne 1 ]; then
  	cat $logfile
- 	rm $logfile
+ 	$SYS_RM $logfile
 fi
 exit $TEST_OK
 

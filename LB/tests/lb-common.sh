@@ -76,6 +76,8 @@ SYS_AWK=awk
 SYS_ECHO=echo
 SYS_DOMAINNAME=domainname
 SYS_CURL=curl
+SYS_RM="rm -f"
+SYS_CHMOD=chmod
 
 # not used at the moment
 DEBUG=2
@@ -207,7 +209,7 @@ function try_purge()
 
                         ${LBPURGE} -j ${joblist}
 
-                        rm ${joblist}
+                        $SYS_RM ${joblist}
 	
 }
 

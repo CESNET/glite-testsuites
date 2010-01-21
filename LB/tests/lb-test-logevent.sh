@@ -269,8 +269,8 @@ else
 			fi
 
 			echo Cleaning up
-			rm events.tested.$$.txt
-			rm events.reference.$$.txt
+			$SYS_RM events.tested.$$.txt
+			$SYS_RM events.reference.$$.txt
 		else
 			test_failed
 			echo ""
@@ -297,7 +297,7 @@ test_end
 
 if [ $flag -ne 1 ]; then
  	cat $logfile
- 	rm $logfile
+ 	$SYS_RM $logfile
 fi
 exit $TEST_OK
 

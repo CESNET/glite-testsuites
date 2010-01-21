@@ -149,7 +149,7 @@ else
 				test_failed
 			fi
 
-			rm $$_notifications.txt
+			$SYS_RM $$_notifications.txt
 
 			#Drop notification
 			printf "Dropping the test notification (${notifid})"
@@ -175,7 +175,7 @@ test_end
 
 if [ $flag -ne 1 ]; then
  	cat $logfile
- 	rm $logfile
+ 	$SYS_RM $logfile
 fi
 exit $TEST_OK
 

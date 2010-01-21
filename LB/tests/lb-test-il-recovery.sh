@@ -157,6 +157,10 @@ else
 			# log events:
 			printf "Generating events resulting in CLEARED state\n"
 
+			#Make sure the il is able to access the file, whatever account it is running under. 
+			$SYS_TOUCH $EVENTFILE.$UNIQUE
+			$SYS_CHMOD 666 $EVENTFILE.$UNIQUE
+
 			generate_done_events "$EVENTFILE.$UNIQUE" "$USERIDENTITY" "$DOMAINNAME" $jobid
 
 			#Stopping interlogger (if required)
@@ -197,7 +201,7 @@ test_end
 
 if [ $flag -ne 1 ]; then
  	cat $logfile
- 	rm $logfile
+ 	$SYS_RM $logfile
 fi
 exit $TEST_OK
 
