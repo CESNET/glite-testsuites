@@ -39,8 +39,16 @@ EndHelpHeader
 	echo " -n | --number          Number of batches (default: 2)."
 	echo " -v | --vo              Virtual organization (default: 'voce')"
 	echo " -w | --world           World test (by default limited on CESNET node)"
+	echo " -t | --test            Type of test (default: all). Possible tests:"
+	echo "                        done fail cancel done_coll fail_coll cancel_coll all"
+	echo " -f | --format          output format (default: color), color/html/text"
 	echo ""
 	echo "where HOST is the LB server host, it must be specified everytime."
+	echo ""
+	echo "Example for low intrusive test (one job only per test and sequentially):"
+	echo "  for t in done fail cancel done_coll fail_coll cancel_coll; do"
+	echo "    ./lb-test-wild.sh -n 1 -w -f html --test $t"
+	echo "  done"
 }
 
 
@@ -55,6 +63,19 @@ do
 		"-n" | "--number") shift && N=$1 ;;
 		"-v" | "--vo") shift && VO="$1" ;;
 		"-w" | "--world") NOREQ='#' ;;
+		"-t" | "--test")
+			shift
+			TEST="$1"
+			if test x"$TEST" = x"all"; then unset TEST; fi
+			;;
+		"-f" | "--format")
+			shift
+			case "$1" in
+				"text") setOutputASCII ;;
+				"color") setOutputColor ;;
+				"html") setOutputHTML ;;
+			esac
+			;;
 		-*) ;;
 		*) LB_HOST=$1 ;;
 	esac
@@ -77,18 +98,6 @@ function fatal() {
 	shift
 	print_error " $@"
 	exit $ret
-}
-
-
-function load() {
-	[ ! -f jobs.txt ] && return 0
-	jobs=(`cat jobs.txt`)
-}
-
-
-function save() {
-	mv -f jobs.txt jobs-backup.txt
-	echo ${jobs[*]} | tr ' ' '\n' > jobs.txt
 }
 
 
@@ -298,36 +307,26 @@ function check_status() {
 
 rm -f log
 rm -rf jobOutput
+touch $$.err
 voms-proxy-info >/dev/null || fatal 2 "No VOMS proxy certificate!"
 [ ! -z "${LB_HOST}" ] || fatal 2 "No L&B server specified!"
 
-# check_binaries
 check_binaries $SYS_GREP $SYS_SED || fatal 2 "not all needed system binaries available"
 
-#load
-#trap '{ save; exit 0; }' INT
 fail=$TEST_OK
 
 # -- launch the beast --
 
-touch $$.err
 {
 test_start
 
 for ((pass=0;pass<N;pass++)); do
-	submit_done
-
-	submit_fail
-
-	submit_collection_fail
-
-	submit_collection_done
-
-	submit_done
-	job_cats[$i]='cancel'
-
-	submit_collection_done
-	job_cats[$i]='cancel_coll'
+	test -z "$TEST" -o x"$TEST" = x"done" && submit_done
+	test -z "$TEST" -o x"$TEST" = x"fail" && submit_fail
+	test -z "$TEST" -o x"$TEST" = x"fail_coll" && submit_collection_fail
+	test -z "$TEST" -o x"$TEST" = x"done_coll" && submit_collection_done
+	test -z "$TEST" -o x"$TEST" = x"cancel" && submit_done && job_cats[$i]='cancel'
+	test -z "$TEST" -o x"$TEST" = x"cancel_coll" && submit_collection_done && job_cats[$i]='cancel_coll'
 done
 
 echo "[wild] sleep before cancel..."
@@ -508,6 +507,6 @@ else
 fi
 
 test_end
-}
+} &2> $$.err
 
 exit $fail
