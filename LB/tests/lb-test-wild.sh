@@ -3,7 +3,7 @@
 # read common definitions and functions
 COMMON=lb-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	echo -en "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -37,7 +37,7 @@ EndHelpHeader
 	echo "Options:"
 	echo " -h | --help            Show this help message."
 	echo " -n | --number          Number of batches (default: 2)."
-	echo " -v | --vo              Virtual organization (default: 'voce')"
+	echo " -v | --vo              Virtual organization (default: \`voms-proxy-info --vo\`)"
 	echo " -w | --world           World test (by default limited on CESNET node)"
 	echo " -t | --test            Type of test (default: all). Possible tests:"
 	echo "                        done fail cancel done_coll fail_coll cancel_coll all"
@@ -47,8 +47,16 @@ EndHelpHeader
 	echo ""
 	echo "Example for low intrusive test (one job only per test and sequentially):"
 	echo "  for t in done fail cancel done_coll fail_coll cancel_coll; do"
-	echo "    ./lb-test-wild.sh -n 1 -w -f html --test $t"
+	echo "    ./lb-test-wild.sh -n 1 -w -f html --test \$t"
 	echo "  done"
+}
+
+
+function fatal() {
+	ret=$1
+	shift
+	print_error " $@"
+	exit $ret
 }
 
 
@@ -84,21 +92,19 @@ done
 
 
 N=${N:-2}
-VO=${VO:-"voce"}
+if test -z "$VO"; then
+	voms-proxy-info >/dev/null || fatal 2 "No VOMS proxy certificate!"
+	VO=`voms-proxy-info --vo`
+fi
+if test -z "$VO"; then
+	fatal 2 "No VO!"
+fi
 
 JDL_HEADER="LBAddress = \"$LB_HOST\";
 VirtualOrganisation = \"$VO\";
 ${NOREQ}Requirements = other.GlueCEInfoHostname==\"ce2.egee.cesnet.cz\";
 
 RetryCount=2;"
-
-
-function fatal() {
-	ret=$1
-	shift
-	print_error " $@"
-	exit $ret
-}
 
 
 # $1 - description
@@ -109,7 +115,7 @@ function submit() {
 	date '+%Y-%m-%d %H:%M:%S' >> log
 	cat "submit-$2.log" >> log
 	jobid=`cat "submit-$2.log" | $SYS_GREP ^https:`
-	echo "$jobid"
+	echo -en "$jobid${lf}"
 	echo "$jobid	$2"  >> wild-joblist.txt
 	rm -f "submit-$2.log"
 
@@ -121,7 +127,7 @@ function submit() {
 
 # $2 - jobid
 function cancel() {
-	echo "[wild] cancel $1"
+	echo -en "[wild] cancel $1${lf}"
 	echo "y" | glite-wms-job-cancel $1 >>log || fatal $TEST_ERROR "Can't cancel job $1"
 }
 
@@ -192,6 +198,11 @@ $JDL_HEADER
 
 InputSandbox = "launch.sh";
 OutputSandbox = { "std1.out", "std1.err", "std2.out", "std2.err", "std4.out", "std4.err" };
+OutputSandboxDestURI = {
+	"joburi1/std1.out", "joburi1/std1.err",
+	"joburi2/std2.out", "joburi2/std2.out",
+	"joburi4/std4.out", "joburi4/std4.out"
+};
 
 Nodes = {
 	[
@@ -245,6 +256,11 @@ $JDL_HEADER
 
 InputSandbox = "launch.sh";
 OutputSandbox = { "std1.out", "std1.err", "std2.out", "std2.err", "std4.out", "std4.err" };
+OutputSandboxDestURI = {
+	"joburi1/std1.out", "joburi1/std1.err",
+	"joburi2/std2.out", "joburi2/std2.out",
+	"joburi4/std4.out", "joburi4/std4.out"
+};
 
 Nodes = {
 	[
@@ -284,11 +300,11 @@ EOF
 function check_status() {
 	prev_status=${stats[$1]}
 	jobid=${jobs[$1]}
-	glite-wms-job-status -v 0 $jobid >stat.log || fatal 2 "Can't get job status"
-	status=`cat stat.log | $SYS_GREP '^Current Status: ' | $SYS_SED -e 's/^Current Status: [ \t]*\([a-zA-Z]*\).*/\1/'`
+	glite-wms-job-status -v 0 $jobid >$$.stat.log || fatal 2 "Can't get job status"
+	status=`cat $$.stat.log | $SYS_GREP '^Current Status: ' | $SYS_SED -e 's/^Current Status: [ \t]*\([a-zA-Z]*\).*/\1/'`
 	if [ x"$status" != x"$prev_status" ]; then
 		date '+%Y-%m-%d %H:%M:%S' >> log
-		cat stat.log >> log
+		cat $$.stat.log >> log
 
 		if [ x"${job_cats[$1]}" != x"" ]; then
 			desc=" (${job_cats[$1]} test)";
@@ -296,19 +312,17 @@ function check_status() {
 			desc=""
 		fi
 		date '+[wild] %Y-%m-%d %H:%M:%S ' | tr -d '\n'
-		echo "$jobid $status$desc"
+		echo -en "$jobid $status$desc${lf}"
 		stats[$1]="$status"
 	fi
-	rm -f stat.log
+	rm -f $$.stat.log
 }
 
 
 # -- init --
 
 rm -f log
-rm -rf jobOutput
 touch $$.err
-voms-proxy-info >/dev/null || fatal 2 "No VOMS proxy certificate!"
 [ ! -z "${LB_HOST}" ] || fatal 2 "No L&B server specified!"
 
 check_binaries $SYS_GREP $SYS_SED || fatal 2 "not all needed system binaries available"
@@ -329,7 +343,7 @@ for ((pass=0;pass<N;pass++)); do
 	test -z "$TEST" -o x"$TEST" = x"cancel_coll" && submit_collection_done && job_cats[$i]='cancel_coll'
 done
 
-echo "[wild] sleep before cancel..."
+echo -en "[wild] sleep before cancel...${lf}"
 sleep 10
 for ((i=0; i<${#job_cats[*]}; i++)); do
 	if test x"${job_cats[$i]}" = x"cancel" -o x"${job_cats[$i]}" = x"cancel_coll" ; then
@@ -337,7 +351,7 @@ for ((i=0; i<${#job_cats[*]}; i++)); do
 	fi
 done
 printf "[wild] submitted" && test_done
-echo "[wild] ================================"
+echo -en "[wild] ================================${lf}"
 
 
 # -- wait for terminal states --
@@ -352,10 +366,10 @@ while test $quit -eq 0; do
 			quit=0
 		fi
 	done
-	sleep 20
+	sleep 30
 done
 printf "[wild] all jobs finished" && test_done
-echo "[wild] ================================"
+echo -en "[wild] ================================${lf}"
 
 
 # -- log full states --
@@ -370,9 +384,9 @@ for ((i=0;i<n;i++)); do
 	jobid="${jobs[$i]}"
 	status="${stats[$i]}"
 
-	$GLITE_LOCATION/examples/glite-lb-job_log "$jobid" > ulm.log || fatal $TEST_ERROR "Can't query events for '$jobid'"
-	components=`cat ulm.log | head -n -1 | $SYS_GREP -v '^$' | $SYS_SED -e 's/.*DG\.SOURCE="\([^"]*\)".*/\1/' | sort -f | uniq | tr '\n' ' ' | $SYS_SED 's/ $//'`
-	rm -f ulm.log
+	$GLITE_LOCATION/examples/glite-lb-job_log "$jobid" > $$.ulm.log || fatal $TEST_ERROR "Can't query events for '$jobid'"
+	components=`cat $$.ulm.log | head -n -1 | $SYS_GREP -v '^$' | $SYS_SED -e 's/.*DG\.SOURCE="\([^"]*\)".*/\1/' | sort -f | uniq | tr '\n' ' ' | $SYS_SED 's/ $//'`
+	rm -f $$.ulm.log
 
 	expected_status=''
 	expected_components=''
@@ -422,7 +436,7 @@ for ((i=0;i<n;i++)); do
 		else
 			case "${job_cats[$i]}" in
 			cancel|cancel_coll)
-				echo "[wild]     components: $components ?"
+				echo -en "[wild]     components: $components ?${lf}"
 				;;
 			*)
 				print_error "    components: $components DIFFERS " && test_failed
@@ -432,19 +446,19 @@ for ((i=0;i<n;i++)); do
 		fi
 	fi
 done
-echo "[wild] ================================"
+echo -en "[wild] ================================${lf}"
 
 
 # -- only for done jobs: fetch output --
 
-echo "[wild] job output test"
-mkdir -p "jobOutput" 2>/dev/null
+echo -en "[wild] job output test${lf}"
+mkdir -p "jobOutput.$$" 2>/dev/null
 for ((i=0; i<${#job_cats[*]}; i++)); do
 	jobid="${jobs[$i]}"
 	case "${job_cats[$i]}" in
 	done)
-		echo "[wild] fetching output from $jobid"
-		echo "y" | glite-wms-job-output --dir "jobOutput/$i" "$jobid" >> log
+		echo -en "[wild] fetching output from $jobid${lf}"
+		echo "y" | glite-wms-job-output --dir "jobOutput.$$/$i" "$jobid" >> log
 		if test "$?" = "0"; then
 			printf "[wild] output of '$jobid' fetched" && test_done
 		else
@@ -453,23 +467,24 @@ for ((i=0; i<${#job_cats[*]}; i++)); do
 		fi
 		;;
 	done_coll)
-		glite-wms-job-status -v 0 "$jobid" | $SYS_GREP '^ .*https:' | $SYS_SED 's/.*https:/https:/' > subjobs.log
-		if test x"`wc -l subjobs.log | $SYS_SED 's/\s*\([0-9]*\).*/\1/'`" != x"5"; then
+		echo -en "[wild] fetching output from $jobid${lf}"
+		glite-wms-job-status -v 0 "$jobid" | $SYS_GREP '^ .*https:' | $SYS_SED 's/.*https:/https:/' > $$.subjobs.log
+		if test x"`wc -l $$.subjobs.log | $SYS_SED 's/\s*\([0-9]*\).*/\1/'`" != x"5"; then
 			print_error "error, some offspring of $jobid were spawned or eaten!" && test_failed
 			fail=$TEST_ERROR
 		fi
 		j=1
-		for subjobid in `cat subjobs.log`; do
-			echo "y" | glite-wms-job-output --dir "jobOutput/$i-$j" "$subjobid" >> log
+		for subjobid in `cat $$.subjobs.log`; do
+			echo "y" | glite-wms-job-output --dir "jobOutput.$$/$i-$j" "$subjobid" >> log
 			if test "$?" = "0"; then
-				printf "[wild] output of $j. offspring of $jobid fetched" && test_done
+				printf "[wild] output of $subjobid ($j. offspring of $jobid) fetched" && test_done
 			else
 				print_error "can't fetch output from $subjobid!" && test_failed
 				fail=$TEST_ERROR
 			fi
 			j=$((j+1))
 		done
-		rm -f subjobs.log
+		rm -f $$.subjobs.log
 		;;
 	esac
 done
@@ -506,7 +521,11 @@ else
 	fail=$TEST_ERROR
 fi
 
+echo -n "[wild] outputs: "
+find "jobOutput.$$" -type f
+echo -en "${lf}"
+
 test_end
-} &2> $$.err
+}
 
 exit $fail
