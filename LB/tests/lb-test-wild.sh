@@ -197,12 +197,6 @@ Type = "Collection";
 $JDL_HEADER
 
 InputSandbox = "launch.sh";
-OutputSandbox = { "std1.out", "std1.err", "std2.out", "std2.err", "std4.out", "std4.err" };
-OutputSandboxDestURI = {
-	"joburi1/std1.out", "joburi1/std1.err",
-	"joburi2/std2.out", "joburi2/std2.out",
-	"joburi4/std4.out", "joburi4/std4.out"
-};
 
 Nodes = {
 	[
@@ -210,12 +204,14 @@ Nodes = {
 		Arguments = "Ahoj, svete!";
 		StdOutput = "std1.out";
 		StdError = "std1.err";
+		OutputSandbox = { "std1.out", "std1.err" };
 	],
 	[
 		Executable = "launch.sh";
 		Arguments = "Ahoj, svete!";
 		StdOutput = "std2.out";
 		StdError = "std2.err";
+		OutputSandbox = { "std2.out", "std2.err" };
 	],
 	[
 		Executable = "launch.sh";
@@ -226,6 +222,7 @@ Nodes = {
 		Arguments = "Ahoj, svete!";
 		StdOutput = "std4.out";
 		StdError = "std4.err";
+		OutputSandbox = { "std4.out", "std4.err" };
 	],
 	[
 		Executable = "launch.sh";
@@ -255,12 +252,6 @@ Type = "Collection";
 $JDL_HEADER
 
 InputSandbox = "launch.sh";
-OutputSandbox = { "std1.out", "std1.err", "std2.out", "std2.err", "std4.out", "std4.err" };
-OutputSandboxDestURI = {
-	"joburi1/std1.out", "joburi1/std1.err",
-	"joburi2/std2.out", "joburi2/std2.out",
-	"joburi4/std4.out", "joburi4/std4.out"
-};
 
 Nodes = {
 	[
@@ -268,12 +259,14 @@ Nodes = {
 		Arguments = "Ahoj, svete!";
 		StdOutput = "std1.out";
 		StdError = "std1.err";
+		OutputSandbox = { "std1.out", "std1.err" };
 	],
 	[
 		Executable = "launch.sh";
 		Arguments = "Ahoj, svete!";
 		StdOutput = "std2.out";
 		StdError = "std2.err";
+		OutputSandbox = { "std2.out", "std2.err" };
 	],
 	[
 		Executable = "launch.sh";
@@ -284,6 +277,7 @@ Nodes = {
 		Arguments = "Ahoj, svete!";
 		StdOutput = "std4.out";
 		StdError = "std4.err";
+		OutputSandbox = { "std4.out", "std4.err" };
 	],
 	[
 		Executable = "launch.sh";
