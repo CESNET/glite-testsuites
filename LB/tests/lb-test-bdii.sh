@@ -113,6 +113,15 @@ else
 		test_done
 	fi
 
+	printf "Checking Glue 2.0 entry with 'o=glue'... "
+	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' > ldap.$$.out
+	if [ $? -gt 0 ]; then	
+		test_failed
+		print_error "No reply"
+	else
+		test_done
+	fi
+
 	rm ldap.$$.out
 
 fi		
