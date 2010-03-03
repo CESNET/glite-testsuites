@@ -78,6 +78,7 @@ SYS_DOMAINNAME=domainname
 SYS_CURL=curl
 SYS_RM="rm -f"
 SYS_CHMOD=chmod
+SYS_LDAPSEARCH=ldapsearch
 
 # not used at the moment
 DEBUG=2
