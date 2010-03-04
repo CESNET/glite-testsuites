@@ -74,12 +74,40 @@ test_start
 
 
 # check_binaries
-printf "Testing if all binaries are available"
+printf "Testing if all essential binaries are available"
 check_binaries $SYS_GREP $SYS_SED $SYS_AWK $SYS_LDAPSEARCH
 if [ $? -gt 0 ]; then
 	test_failed
 else
 	test_done
+
+	printf "Testing optional WS client binary"
+	check_binaries $LBWSGETVERSION
+	if [ $? -gt 0 ]; then
+		printf " ... not present. Some tests will be skipped\n"
+		WSBIN="no"
+	else
+		test_done
+
+		printf "Testing credentials"
+
+		timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+
+		if [ "$timeleft" = "" ]; then
+			printf "No credentials, not critical\n"
+			WSBIN="no"
+		else
+			if [ "$timeleft" = "0:00:00" ]; then
+				printf "Credentials expired, not critical\n"
+				WSBIN="no"
+			else
+				test_done
+				WSBIN="yes"
+			fi
+
+		fi
+
+	fi
 
 	# Register job:
 
@@ -111,6 +139,27 @@ else
 	else
 		printf "$glservver"
 		test_done
+
+		printf "Reading version through WS... "
+		if [ "$WSBIN" == "yes" ]; then
+			servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
+			wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
+			if [ "$wsglservver" == "" ]; then	
+				test_failed
+			else
+				printf "$wsglservver"
+				test_done
+
+				printf "Comparing versions: $glservver == $wsglservver"
+				if [ "$glservver" == "$wsglservver" ]; then
+					test_done
+				else
+					test_failed
+				fi
+			fi
+		else
+			test_skipped
+		fi
 	fi
 
 	printf "Checking Glue 2.0 entry with 'o=glue'... "

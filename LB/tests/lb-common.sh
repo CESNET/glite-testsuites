@@ -31,6 +31,7 @@ LBJOBREG=glite-lb-job_reg
 LBUSERJOBS=glite-lb-user_jobs
 LBJOBSTATUS=glite-lb-job_status
 LBWSJOBSTATUS=glite-lb-ws_jobstat
+LBWSGETVERSION=glite-lb-ws_getversion
 LBPURGE=glite-lb-purge
 LBCHANGEACL=glite-lb-change_acl
 LBMON=glite-lb-lbmon
