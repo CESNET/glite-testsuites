@@ -56,6 +56,7 @@ LBPURGE=glite-lb-purge
 LBPARSEEFILE=glite-lb-parse_eventsfile
 LB4AGUACTINFO=glite-lb-ws_lb4agu_GetActivityInfo
 LB4AGUACTSTATUS=glite-lb-ws_lb4agu_GetActivityStatus
+LBREGSANDBOX=glite-lb-register_sandbox
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd
@@ -98,6 +99,7 @@ SYS_CURL=curl
 SYS_RM="rm -f"
 SYS_CHMOD=chmod
 SYS_LDAPSEARCH=ldapsearch
+SYS_CAT=cat
 
 # not used at the moment
 DEBUG=2
