@@ -54,6 +54,8 @@ LBMON=glite-lb-lbmon
 LBNOTIFY=glite-lb-notify
 LBPURGE=glite-lb-purge
 LBPARSEEFILE=glite-lb-parse_eventsfile
+LB4AGUACTINFO=glite-lb-ws_lb4agu_GetActivityInfo
+LB4AGUACTSTATUS=glite-lb-ws_lb4agu_GetActivityStatus
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd
