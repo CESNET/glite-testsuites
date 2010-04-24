@@ -108,8 +108,8 @@ done
 
 
 N=${N:-2}
+voms-proxy-info >/dev/null || fatal 2 "No VOMS proxy certificate!"
 if test -z "$VO"; then
-	voms-proxy-info >/dev/null || fatal 2 "No VOMS proxy certificate!"
 	VO=`voms-proxy-info --vo`
 fi
 if test -z "$VO"; then
@@ -500,11 +500,18 @@ for ((i=0; i<${#job_cats[*]}; i++)); do
 done
 
 
+# -- result data --
+echo -n "[wild] outputs: "
+find "jobOutput.$$" -type f
+echo -en "${lf}"
+
+
 # -- only for done jobs: wait for cleared --
 
 n=${#jobs[*]}
 quit=0
 cleared_fail=0
+echo -en "[wild] waiting for cleared states...${lf}"
 while test $quit -eq 0; do
 	quit=1
 	for ((i=0;i<n;i++)); do
@@ -530,10 +537,6 @@ else
 	print_error "not all expected jobs in cleared state!" && test_failed
 	fail=$TEST_ERROR
 fi
-
-echo -n "[wild] outputs: "
-find "jobOutput.$$" -type f
-echo -en "${lf}"
 
 test_end
 }
