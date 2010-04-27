@@ -90,7 +90,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $LB4AGUACTINFO $LBJOBREG $LBWSJOBSTATUS $LBWSJOBLOG
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $LBJOBREG $LBWSJOBSTATUS $LBWSJOBLOG
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -145,23 +145,27 @@ else
 			fi
 
 			printf "Is it possible to retrieve AGU activity info?"
-
-			${LB4AGUACTINFO} -j ${jobid} -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_GREP "${jobid}" >> /dev/null
-	                if [ $? = 0 ]; then
-				test_done
+			check_binaries ${LB4AGUACTINFO} ${LB4AGUACTSTATUS}
+			if [ $? -gt 0 ]; then
+				test_missed
 			else
-				test_failed
-				print_error "Job Activity Info returned"
-			fi
+				${LB4AGUACTINFO} -j ${jobid} -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_GREP "${jobid}" >> /dev/null
+		                if [ $? = 0 ]; then
+					test_done
+				else
+					test_failed
+					print_error "Job Activity Info returned"
+				fi
 
-			printf "Does AGU activity status return correct state?"
+				printf "Does AGU activity status return correct state?"
 
-			${LB4AGUACTSTATUS} -j ${jobid} -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_GREP "urn:org.glite.lb:Submitted" >> /dev/null
-	                if [ $? = 0 ]; then
-				test_done
-			else
-				test_failed
-				print_error "Reported status is Running"
+				${LB4AGUACTSTATUS} -j ${jobid} -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_GREP "urn:org.glite.lb:Submitted" >> /dev/null
+		                if [ $? = 0 ]; then
+					test_done
+				else
+					test_failed
+					print_error "Reported status is Running"
+				fi
 			fi
 
 			#Purge test job
