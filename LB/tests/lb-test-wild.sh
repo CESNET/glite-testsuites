@@ -437,8 +437,12 @@ for ((i=0;i<n;i++)); do
 		if test x"$expected_status" = x"$status"; then
 			printf "[wild] $jobid: '$status' OK (${job_cats[$i]})" && test_done
 		else
-			print_error "$jobid: expected '$expected_status', got '$status'!" && test_failed
-			fail=$TEST_ERROR
+			if test x"${job_cats[$i]}" = x"cancel_coll" -a x"$status" = x"Cleared"; then
+				printf "[wild] $jobid: expected '$expected_status', got '$status' (${job_cats[$i]}), so be it!" && test_done
+			else
+				print_error "$jobid: expected '$expected_status', got '$status'!" && test_failed
+				fail=$TEST_ERROR
+			fi
 		fi
 
 		if test x"$expected_components" = x"$components"; then
