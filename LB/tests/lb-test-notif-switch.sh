@@ -145,16 +145,15 @@ else
 			printf "(${notifid}) "
 			test_done
 
+
 			#Start listening for notifications
-			${LBNOTIFY} receive -i 5 ${notifid} > $$_notifications.txt &
+			${LBNOTIFY} receive -i 15 ${notifid} > $$_notifications.txt &
 			recpid=$!
 
 			printf "Logging events resulting in RUNNING state\n"
 			$LB_RUNNING_SH -j ${jobid} > /dev/null 2> /dev/null
 
 			sleep 10
-
-			kill $recpid
 
 			$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
 
@@ -168,8 +167,10 @@ else
 
 			$SYS_RM $$_notifications.txt
 
+
 			printf "Changing notification ... "
 			$LBNOTIFY change ${notifid} ${otherjobid}
+			sleep 5
 
 			if [ $? = 0 ]; then
 				printf "$LBNOTIFY change returned OK"
@@ -179,15 +180,17 @@ else
 				test_failed
 			fi
 
+			kill $recpid
+
 			#Start listening for notifications
-			${LBNOTIFY} receive -i 5 ${notifid} > $$_notifications.txt &
+			${LBNOTIFY} receive -i 10 ${notifid} > $$_notifications.txt &
 			recpid=$!
 
 			printf "Logging events resulting in DONE state for both jobs\n"
 			$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
 			$LB_DONE_SH -j ${otherjobid} > /dev/null 2> /dev/null
 
-			sleep 20
+			sleep 10
 
 			kill $recpid
 
