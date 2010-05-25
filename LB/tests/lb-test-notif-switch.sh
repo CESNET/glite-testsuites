@@ -155,6 +155,8 @@ else
 
 			sleep 10
 
+			#$SYS_CAT $$_notifications.txt
+
 			$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
 
 			if [ $? = 0 ]; then
@@ -194,8 +196,19 @@ else
 
 			kill $recpid
 
+			#$SYS_CAT $$_notifications.txt
+
+			#There may be old notifications still arriving for the 1st job
+			$SYS_GREP ${jobid} $$_notifications.txt > $$_notifications_old.txt
+			$SYS_GREP -E "Waiting|Ready|Scheduled|Running" $$_notifications_old.txt >> /dev/null
+
+			if [ $? = 0 ]; then
+				printf "Old notifications for the 1st job still arriving."
+				test_running
+			fi
+
 			#There should be no notifications for the 1st job
-			$SYS_GREP ${jobid} $$_notifications.txt >> /dev/null 
+			$SYS_GREP ${jobid} $$_notifications_old.txt | $SYS_GREP -w "Done">> /dev/null 
 
 			if [ $? = 0 ]; then
 				printf "Notifications for the old job were delivered"
@@ -217,6 +230,7 @@ else
 			fi
 
 			$SYS_RM $$_notifications.txt
+			$SYS_RM $$_notifications_old.txt
 
 			#Drop notification
 			printf "Dropping the test notification (${notifid})"
