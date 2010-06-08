@@ -205,7 +205,10 @@ function update_error()
 function print_error()
 {
 	printf "${begin_red}Error${end_red}: %s ${lf}" "$*"
-	printf "${begin_red}Error${end_red}: %s ${lf}" "`cat $testerrfile`"
+
+	if [ -f $testerrfile ]; then
+		printf "${begin_red}Error${end_red}: %s ${lf}" "`cat $testerrfile`"
+	fi
 	reset_error
 }
 

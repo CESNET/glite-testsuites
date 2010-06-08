@@ -132,10 +132,75 @@ else
 				print_error "Job has not been submitted"
 			fi
 
+			printf "Trying to re-register job with the same jobid..."
+			${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid > /dev/null
+
+			noofevents=`${LBHISTORY} $jobid | $SYS_NL | $SYS_TAIL -n 1 | ${SYS_AWK} '{print $1}'`
+
+			printf "(Event No. $noofevents)..."		
+	
+			if [ "${noofevents}" = "2" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Second registration did not take place"
+			fi
+
+
+			printf "Trying to re-register job with the same jobid, 'exclusive' flag on..."
+			${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid -E > /dev/null
+
+			noofevents=`${LBHISTORY} $jobid | $SYS_NL | $SYS_TAIL -n 1 | ${SYS_AWK} '{print $1}'`
+
+			printf "(Event No. $noofevents)..."		
+	
+			if [ "${noofevents}" = "2" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Wrong number of registration events"
+			fi
+
+
 			#Purge test job
 			joblist=$$_jobs_to_purge.txt
 			echo $jobid > ${joblist}
-			try_purge ${joblist}
+			${LBPURGE} -j ${joblist} > /dev/null
+			$SYS_RM ${joblist}
+
+			jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+                        printf "Test job purged. Testing state... ($jobstate)"
+
+                        if [ "${jobstate}" = "Purged" ]; then
+                                test_done
+
+
+				${LBJOBREG} -h 2>&1 | $SYS_GREP '\-E' > /dev/null
+
+				if [ $? = 0 ]; then
+					printf "Trying to re-register. Same JobID, exclusive flag..."
+					${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid -E > /dev/null
+					jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+
+					if [ "${jobstate}" = "Purged" ]; then
+						test_done
+					else
+						test_failed
+						print_error "Job has not remained in purged state"
+					fi
+
+				else
+					printf "Client does not support the 'exclusive' flag."
+					test_skipped
+				fi
+
+
+                        else
+                                printf "Job has not been purged, re-registration test will be skipped"
+
+				test_skipped
+                        fi
+
 
 		fi
 
