@@ -119,11 +119,12 @@ else
 			test_failed
 			print_error "Failed to register job"
 		else
+			printf "($jobid)"
 			test_done
 
 			# Check result
 			jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
-			printf "Is the testing job ($jobid) in a correct state? $jobstate"
+			printf "Is the job in a correct state? $jobstate"
 
 			if [ "${jobstate}" = "Submitted" ]; then
 				test_done
@@ -185,8 +186,26 @@ else
 					if [ "${jobstate}" = "Purged" ]; then
 						test_done
 					else
+						printf " Option may be off on server side"
+						test_skipped
+
+						echo $jobid > ${joblist}
+			                        ${LBPURGE} -j ${joblist} > /dev/null
+                        			$SYS_RM ${joblist}
+					fi
+
+					printf "Trying to re-register same JobID, exclusive flag off."
+					${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid > /dev/null
+					jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+
+					if [ "${jobstate}" = "Submitted" ]; then
+						test_done
+						echo $jobid > ${joblist}
+			                        ${LBPURGE} -j ${joblist} > /dev/null
+                        			$SYS_RM ${joblist}
+					else
 						test_failed
-						print_error "Job has not remained in purged state"
+						print_error "Falied to re-register a purged JobID event with the 'exclusive' flag off."
 					fi
 
 				else
