@@ -67,6 +67,9 @@ LB_READY_SH=glite-lb-ready.sh
 LB_RUNNING_SH=glite-lb-running.sh
 LB_DONE_SH=glite-lb-done.sh
 
+LB_STATS=glite-lb-stats
+LB_FROMTO=glite-lb-stats-duration-fromto
+
 #general grid binaries
 GRIDPROXYINFO=grid-proxy-info
 
@@ -103,6 +106,9 @@ SYS_LDAPSEARCH=ldapsearch
 SYS_CAT=cat
 SYS_NL=nl
 SYS_TAIL=tail
+SYS_DATE=date
+SYS_EXPR=expr
+SYS_BC=bc
 
 # not used at the moment
 DEBUG=2
@@ -228,7 +234,6 @@ function try_purge()
 {
                         #Purge test job
                         joblist=$1
-                        $SYS_ECHO $jobid > ${joblist}
 
                         printf "Purging test job (Trying the best, result will not be tested)\n"
 
