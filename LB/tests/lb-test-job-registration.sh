@@ -149,11 +149,20 @@ else
 
 
 			printf "Trying to re-register job with the same jobid, 'exclusive' flag on..."
-			${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid -E > /dev/null
+			${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid -E > /dev/null 2> /dev/null
 
+			if [ "$?" = "0" ]; then
+				test_failed
+				print_error "Registration should not have returned 0"
+			else
+				printf " Returned $?"
+				test_done
+			fi
+
+			printf "Checking events... "
 			noofevents=`${LBHISTORY} $jobid | $SYS_NL | $SYS_TAIL -n 1 | ${SYS_AWK} '{print $1}'`
 
-			printf "(Event No. $noofevents)..."		
+			printf "(There are $noofevents events)..."		
 	
 			if [ "${noofevents}" = "2" ]; then
 				test_done
@@ -180,7 +189,16 @@ else
 
 				if [ $? = 0 ]; then
 					printf "Trying to re-register. Same JobID, exclusive flag..."
-					${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid -E > /dev/null
+					${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid -E > /dev/null 2> /dev/null
+					if [ "$?" = "0" ]; then
+						test_failed
+						print_error "Registration should not have returned 0"
+					else
+						printf " Returned $?"
+						test_done
+					fi
+
+					printf "Checking state (expecting state 'Purged'). "
 					jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
 
 					if [ "${jobstate}" = "Purged" ]; then
@@ -196,6 +214,15 @@ else
 
 					printf "Trying to re-register same JobID, exclusive flag off."
 					${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid > /dev/null
+					if [ "$?" = "0" ]; then
+						printf " Returned $?"
+						test_done
+					else
+						test_failed
+						print_error "Registration should not have returned 0"
+					fi
+
+					printf "Checking state (expecting state 'Submitted'). "
 					jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
 
 					if [ "${jobstate}" = "Submitted" ]; then
