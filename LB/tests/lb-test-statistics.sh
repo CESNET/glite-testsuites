@@ -172,7 +172,7 @@ else
 		done
 		test_done
 
-		sleep 10
+		sleep 20
 
 #		printf "Sending events for all test jobs, Running => Done" 
 #		for i in $SEQUENCE
@@ -183,7 +183,8 @@ else
 
 		expected_rate=`echo "scale=7;$NOOFJOBS/$SEC_COVERAGE" | bc`
 		printf "Getting job rate (should be around $expected_rate, testing if > 0): "
-		rate=`$LB_STATS -n $SEC_COVERAGE CE$datestr$$ 5 | ${SYS_GREP} "Average" | ${SYS_AWK} '{ print $6 }'`
+		#rate=`$LB_STATS -n $SEC_COVERAGE CE$datestr$$ 5 | ${SYS_GREP} "Average" | ${SYS_AWK} '{ print $6 }'`
+		rate=`$LB_STATS CE$datestr$$ 5 | ${SYS_GREP} "Average" | ${SYS_AWK} '{ print $6 }'`
 		cresult=`$SYS_EXPR $rate \> 0`
 		printf "$rate"
 		if [ "$cresult" -eq "1" ]; then
@@ -193,7 +194,8 @@ else
 			print_error "Rate other than expected"
 		fi
 		printf "Getting average duration (should be a number > 10): "
-		average=`$LB_FROMTO CE$datestr$$ 1 5 | ${SYS_GREP} "Average duration" | ${SYS_AWK} '{ print $5 }'`
+		$LB_FROMTO CE$datestr$$ 1 5 > fromto.out.$$
+		average=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_AWK} '{ print $5 }'`
 		cresult=`$SYS_EXPR $average \> 10`
 		printf "$average"
 		if [ "$cresult" -eq "1" ]; then
@@ -203,6 +205,18 @@ else
 			print_error "Average value other than expected"
 		fi
 
+		printf "Getting the dispersion index (should be a number >= 0): "
+		dispersion=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Dispersion index" | ${SYS_AWK} '{ print $3 }'`
+		cresult=`$SYS_EXPR $dispersion \>= 0`
+		printf "$dispersion"
+		if [ "$cresult" -eq "1" ]; then
+			test_done
+		else
+			test_failed
+			print_error "Dispersion index value other than expected"
+		fi
+
+		$SYS_RM fromto.out.$$
 
 		#Purge test job
 		joblist=$$_jobs_to_purge.txt
