@@ -55,7 +55,11 @@ if [ -z "${LINES}" -o -z "${COLUMNS}" ]; then
 		COLUMNS=`echo ${stty_size} | awk '{print $2}'`
 	else
 		LINES=24
-		COLUMNS=80
+		if [ -z $LBTSTCOLS ]; then
+			COLUMNS=$LBTSTCOLS
+		else		
+			COLUMNS=80
+		fi
 	fi
 fi
 if [ ! $LINES -ge 0 ]; then LINES=24; fi
@@ -246,8 +250,7 @@ function dprintf()
 }
 
 # by default set output to color if possible
-#if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" && stty size <&1 > /dev/null 2>&1 ; then
-if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" ; then
+if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" && stty size <&1 > /dev/null 2>&1 ; then
 	setOutputColor
 else
 	setOutputASCII
