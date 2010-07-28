@@ -246,7 +246,8 @@ function dprintf()
 }
 
 # by default set output to color if possible
-if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" && stty size <&1 > /dev/null 2>&1 ; then
+#if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" && stty size <&1 > /dev/null 2>&1 ; then
+if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" ; then
 	setOutputColor
 else
 	setOutputASCII
