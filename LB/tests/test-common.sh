@@ -49,7 +49,7 @@ export LC_ALL
 
 # Seek for terminal size and, if needed, set default size
 if [ -z "${LINES}" -o -z "${COLUMNS}" ]; then
-	stty_size=`stty size`
+	stty_size=`stty size 2> /dev/null`
 	if [ $? = 0 ]; then  
 		LINES=`echo ${stty_size} | awk '{print $1}'`
 		COLUMNS=`echo ${stty_size} | awk '{print $2}'`
