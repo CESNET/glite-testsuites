@@ -109,6 +109,7 @@ SYS_TAIL=tail
 SYS_DATE=date
 SYS_EXPR=expr
 SYS_BC=bc
+SYS_SCP=bc
 
 # not used at the moment
 DEBUG=2

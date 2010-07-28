@@ -50,8 +50,13 @@ export LC_ALL
 # Seek for terminal size and, if needed, set default size
 if [ -z "${LINES}" -o -z "${COLUMNS}" ]; then
 	stty_size=`stty size`
-	LINES=`echo ${stty_size} | awk '{print $1}'`
-	COLUMNS=`echo ${stty_size} | awk '{print $2}'`
+	if [ $? = 0 ]; then  
+		LINES=`echo ${stty_size} | awk '{print $1}'`
+		COLUMNS=`echo ${stty_size} | awk '{print $2}'`
+	else
+		LINES=24
+		COLUMNS=80
+	fi
 fi
 if [ ! $LINES -ge 0 ]; then LINES=24; fi
 if [ ! $COLUMNS -ge 0 ]; then COLUMNS=80; fi
