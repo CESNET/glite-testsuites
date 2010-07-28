@@ -55,7 +55,7 @@ if [ -z "${LINES}" -o -z "${COLUMNS}" ]; then
 		COLUMNS=`echo ${stty_size} | awk '{print $2}'`
 	else
 		LINES=24
-		if [ -z $LBTSTCOLS ]; then
+		if [ $LBTSTCOLS -gt 0 ]; then
 			COLUMNS=$LBTSTCOLS
 		else		
 			COLUMNS=80
