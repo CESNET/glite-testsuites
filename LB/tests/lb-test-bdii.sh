@@ -147,10 +147,19 @@ else
 		test_done
 	fi
 
+	printf "Checking Glue 2.0 entry with 'o=glue'... "
+	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' > ldap.$$.out
+	if [ $? -gt 0 ]; then	
+		test_failed
+		print_error "No reply"
+	else
+		test_done
+	fi
+
 	printf "Checking GlueServiceVersion... "
-	glservver=`$SYS_GREP GlueServiceVersion: ldap.$$.out | $SYS_SED 's/^.*GlueServiceVersion:\s*//'`
+	glservver=`$SYS_GREP GLUE2EndpointImplementationVersion ldap.$$.out | $SYS_SED 's/^.*GLUE2EndpointImplementationVersion:\s*//'`
 	if [ "$glservver" == "" ]; then	
-		print_error "GlueServiceVersion not specified"
+		print_error "GLUE2EndpointImplementationVersion not specified"
 		test_failed
 	else
 		printf "$glservver"
@@ -166,7 +175,7 @@ else
 				printf "$wsglservver"
 				test_done
 
-				printf "Comparing versions: $glservver == $wsglservver"
+				printf "Comparing versions: '$glservver' == '$wsglservver'"
 				if [ "$glservver" == "$wsglservver" ]; then
 					test_done
 				else
@@ -176,15 +185,6 @@ else
 		else
 			test_skipped
 		fi
-	fi
-
-	printf "Checking Glue 2.0 entry with 'o=glue'... "
-	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' > ldap.$$.out
-	if [ $? -gt 0 ]; then	
-		test_failed
-		print_error "No reply"
-	else
-		test_done
 	fi
 
 	rm ldap.$$.out
