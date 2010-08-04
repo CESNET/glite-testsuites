@@ -116,7 +116,7 @@ else
 
 		# Register job:
 		printf "Registering testing job "
-		jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+		jobid=`${LBJOBREG} -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -m ${GLITE_WMS_QUERY_SERVER} -s application | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
 
 		if [ -z $jobid  ]; then
 			test_failed
