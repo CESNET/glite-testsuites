@@ -63,7 +63,7 @@ sub logit {
 
 	for (qw/aborted cleared cancelled waiting/) {
 		my $key = $_ eq waiting ? 'other' : $_;
-		$id = `$test/glite-lb-$_.sh -m $server`;
+		$id = `$test/glite-lb-$_.sh -m $server 2> /dev/null`;
 		chomp $id;
 		if ($?) {
 			test_failed();
