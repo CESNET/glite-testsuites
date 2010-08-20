@@ -147,14 +147,15 @@ echo cd LB_testing >> arrange_lb_test_user.sh
 echo cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB >> arrange_lb_test_user.sh
 echo ls >> arrange_lb_test_user.sh
 echo cd org.glite.testsuites.ctb/LB/tests >> arrange_lb_test_user.sh
-echo 'export GLITE_WMS_QUERY_SERVER=\$HOSTNAME:9000' >> arrange_lb_test_user.sh
-echo 'export GLITE_WMS_NOTIF_SERVER=\$HOSTNAME:9000' >> arrange_lb_test_user.sh
-echo 'export GLITE_WMS_LOG_DESTINATION=\$HOSTNAME:9002' >> arrange_lb_test_user.sh
+echo 'export HNAME=\`hostname -f\`' >> arrange_lb_test_user.sh
+echo 'export GLITE_WMS_QUERY_SERVER=\$HNAME:9000' >> arrange_lb_test_user.sh
+echo 'export GLITE_WMS_NOTIF_SERVER=\$HNAME:9000' >> arrange_lb_test_user.sh
+echo 'export GLITE_WMS_LOG_DESTINATION=\$HNAME:9002' >> arrange_lb_test_user.sh
 echo export GLITE_LB_SERVER_WPORT=9003 >> arrange_lb_test_user.sh
 echo export GLITE_LB_SERVER_PORT=9000 >> arrange_lb_test_user.sh
 echo export GLITE_LB_LOGGER_PORT=9002 >> arrange_lb_test_user.sh
 echo export GLITE_WMS_LBPROXY_STORE_SOCK=/tmp/lb_proxy_ >> arrange_lb_test_user.sh
-echo 'env | egrep "GLITE|\$HOSTNAME"' >> arrange_lb_test_user.sh
+echo 'env | egrep "GLITE|\$HNAME"' >> arrange_lb_test_user.sh
 echo pwd >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh
 echo echo "  REAL TESTS START HERE" >> arrange_lb_test_user.sh
