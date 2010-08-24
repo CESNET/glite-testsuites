@@ -32,6 +32,7 @@ if [ ! -r ${TEST_COMMON} ]; then
 fi
 source ${TEST_COMMON}
 
+ulimit -c unlimited
 
 # define variables
 GLITE_LOCATION=${GLITE_LOCATION:-/opt/glite}
