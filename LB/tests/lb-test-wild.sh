@@ -223,26 +223,11 @@ Nodes = {
 		OutputSandbox = { "std1.out", "std1.err" };
 	],
 	[
-		Executable = "launch.sh";
+		Executable = "/bin/something-that-does-not-exist-$$";
 		Arguments = "Ahoj, svete!";
 		StdOutput = "std2.out";
 		StdError = "std2.err";
 		OutputSandbox = { "std2.out", "std2.err" };
-	],
-	[
-		Executable = "launch.sh";
-		Arguments = "Ahoj, svete!";
-	],
-	[
-		Executable = "/bin/something-that-does-not-exist";
-		Arguments = "Ahoj, svete!";
-		StdOutput = "std4.out";
-		StdError = "std4.err";
-		OutputSandbox = { "std4.out", "std4.err" };
-	],
-	[
-		Executable = "launch.sh";
-		Arguments = "Ahoj, svete!";
 	]
 }
 
@@ -276,24 +261,6 @@ Nodes = {
 		StdOutput = "std1.out";
 		StdError = "std1.err";
 		OutputSandbox = { "std1.out", "std1.err" };
-	],
-	[
-		Executable = "launch.sh";
-		Arguments = "Ahoj, svete!";
-		StdOutput = "std2.out";
-		StdError = "std2.err";
-		OutputSandbox = { "std2.out", "std2.err" };
-	],
-	[
-		Executable = "launch.sh";
-		Arguments = "Ahoj, svete!";
-	],
-	[
-		Executable = "launch.sh";
-		Arguments = "Ahoj, svete!";
-		StdOutput = "std4.out";
-		StdError = "std4.err";
-		OutputSandbox = { "std4.out", "std4.err" };
 	],
 	[
 		Executable = "launch.sh";
@@ -483,7 +450,7 @@ for ((i=0; i<${#job_cats[*]}; i++)); do
 	done_coll)
 		echo -en "[wild] fetching output from $jobid${lf}"
 		glite-wms-job-status -v 0 "$jobid" | $SYS_GREP '^ .*https:' | $SYS_SED 's/.*https:/https:/' > $$.subjobs.log
-		if test x"`wc -l $$.subjobs.log | $SYS_SED 's/\s*\([0-9]*\).*/\1/'`" != x"5"; then
+		if test x"`wc -l $$.subjobs.log | $SYS_SED 's/\s*\([0-9]*\).*/\1/'`" != x"2"; then
 			print_error "error, some offspring of $jobid were spawned or eaten!" && test_failed
 			fail=$TEST_ERROR
 		fi
