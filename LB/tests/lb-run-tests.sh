@@ -161,21 +161,21 @@ echo echo ======================== >> arrange_lb_test_user.sh
 echo echo "  REAL TESTS START HERE" >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh
 echo sh ./lb-test-event-delivery.sh  \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-il-recovery.sh -f /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-job-registration.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-il-recovery.sh -f /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-job-registration.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-https.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-job-states.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-logevent.sh /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-notif-recovery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-notif.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-notif-switch.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-proxy-delivery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-ws.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-bdii.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-sandbox-transfer.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-changeacl.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-statistics.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo perl ./lb-test-purge.pl --i-want-to-purge delwin.fi.muni.cz:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-notif-recovery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-notif.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-notif-switch.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-proxy-delivery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-ws.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-bdii.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-sandbox-transfer.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-changeacl.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo sh ./lb-test-statistics.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+#echo perl ./lb-test-purge.pl --i-want-to-purge delwin.fi.muni.cz:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
 echo echo "  TESTS END HERE" >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh

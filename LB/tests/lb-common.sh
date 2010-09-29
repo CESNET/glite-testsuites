@@ -67,6 +67,7 @@ LB_SERVER=glite-lb-bkserverd
 LB_READY_SH=glite-lb-ready.sh
 LB_RUNNING_SH=glite-lb-running.sh
 LB_DONE_SH=glite-lb-done.sh
+LB_CLEARED_SH=glite-lb-cleared.sh
 
 LB_STATS=glite-lb-stats
 LB_FROMTO=glite-lb-stats-duration-fromto

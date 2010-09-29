@@ -142,13 +142,12 @@ else
 			print_error "Job is not in appropriate state"
 		fi
 
-		printf "Logging events resulting in RUNNING state\n"
+		printf "Logging events for subjobs\n"
 		$LB_RUNNING_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${jobid} > /dev/null 2> /dev/null
-
-		printf "Logging events resulting in DONE state\n"
 		$LB_DONE_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${jobid} > /dev/null 2> /dev/null
 
 		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+		sleep 10
 
 		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
 		printf "Testing job ($jobid) is in state: $jobstate\n"
@@ -163,7 +162,82 @@ else
 		#Purge test job
 		joblist=$$_jobs_to_purge.txt
 		echo $jobid > ${joblist}
+
+		printf "Registering collection "
+		${LBJOBREG} -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 2 > $$_test_coll_registration.txt
+		jobid=`$SYS_CAT $$_test_coll_registration.txt | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+		if [ -z $jobid  ]; then
+			test_failed
+			print_error "Failed to register job"
+		else
+			test_done
+			subjobs=( $(cat $$_test_coll_registration.txt | $SYS_GREP EDG_WL_SUB_JOBID | $SYS_SED 's/EDG_WL_SUB_JOBID.*="//' | $SYS_SED 's/"$//') )
+			printf "Collection ID: $jobid\n    Subjob 1: ${subjobs[0]}\n    Subjob 2: ${subjobs[1]}\n"
+
+			printf "Logging events for test jobs\n"
+			$LB_READY_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[0]} > /dev/null 2> /dev/null
+			$LB_DONE_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[1]} > /dev/null 2> /dev/null
+			
+			printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+			sleep 10
+
+			jobstate=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+			printf "Is the testing job (${subjobs[0]}) in a correct state? $jobstate"
+	
+			if [ "${jobstate}" = "Ready" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Job is not in appropriate state"
+			fi
+
+			jobstate=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+			printf "Is the testing job (${subjobs[1]}) in a correct state? $jobstate"
+	
+			if [ "${jobstate}" = "Done" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Job is not in appropriate state"
+			fi
+
+
+			jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+			printf "Is the collection ($jobid) in a correct state? $jobstate"
+	
+			if [ "${jobstate}" = "Waiting" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Job is not in appropriate state"
+			fi
+
+			printf "Logging events to clear subjobs\n"
+			$LB_CLEARED_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[0]} > /dev/null 2> /dev/null
+			$LB_CLEARED_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[1]} > /dev/null 2> /dev/null
+
+			sleep 10
+
+			jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+			printf "Is the collection ($jobid) in a correct state? $jobstate"
+
+			if [ "${jobstate}" = "Cleared" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Job is not in appropriate state"
+			fi
+		fi
+
+
+
+
+		echo ${subjobs[0]} >> ${joblist}
+		echo ${subjobs[1]} >> ${joblist}
+		echo $jobid >> ${joblist}
 		try_purge ${joblist}
+
+		$SYS_RM $$_test_coll_registration.txt
 
 	fi
 fi
