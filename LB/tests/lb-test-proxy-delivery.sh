@@ -75,11 +75,11 @@ do
 done
 
 # redirecting all output to $logfile
-touch $logfile
-if [ ! -w $logfile ]; then
-	echo "Cannot write to output file $logfile"
-	exit $TEST_ERROR
-fi
+#touch $logfile
+#if [ ! -w $logfile ]; then
+#	echo "Cannot write to output file $logfile"
+#	exit $TEST_ERROR
+#fi
 
 DEBUG=2
 
@@ -126,37 +126,47 @@ else
 			printf "\nRegistered job: $jobid\n"
 		fi
 
-		# log events:
-		printf "Logging events resulting in READY state\n"
-		$LB_READY_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${jobid} > /dev/null 2> /dev/null
-
-		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
-
 		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
 		printf "Is the testing job ($jobid) in a correct state? $jobstate"
 
+		if [ "${jobstate}" = "Submitted" ]; then
+			test_done
+		else
+			test_failed
+			print_error "State ${jobstate}: Job is not in appropriate state (Submitted)"
+		fi
+
+		# log events:
+		printf "Logging events resulting in READY state... "
+		$LB_READY_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${jobid} > /dev/null 2> /dev/null
+
+		printf "Sleeping for 10 seconds... \n"
+		sleep 10
+
+		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+		printf "Is the testing job ($jobid) in a correct state? $jobstate" 
 		if [ "${jobstate}" = "Ready" ]; then
 			test_done
 		else
 			test_failed
-			print_error "Job is not in appropriate state"
+			print_error "State ${jobstate}: Job is not in appropriate state (Ready)"
 		fi
 
-		printf "Logging events for subjobs\n"
+		printf "Logging events for the testing job... "
 		$LB_RUNNING_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${jobid} > /dev/null 2> /dev/null
 		$LB_DONE_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${jobid} > /dev/null 2> /dev/null
 
-		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+		printf "Sleeping for 10 seconds...\n"
 		sleep 10
 
 		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
-		printf "Testing job ($jobid) is in state: $jobstate\n"
+		printf "Testing job ($jobid) is in state: $jobstate"
 
 		if [ "${jobstate}" = "Done" ]; then
 			test_done
 		else
 			test_failed
-			print_error "Job is not in appropriate state"
+			print_error "State ${jobstate}: Job is not in appropriate state (Done)"
 		fi
 
 		#Purge test job
@@ -164,7 +174,7 @@ else
 		echo $jobid > ${joblist}
 
 		printf "Registering collection "
-		${LBJOBREG} -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 2 > $$_test_coll_registration.txt
+		${LBJOBREG} -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 2 -S > $$_test_coll_registration.txt
 		jobid=`$SYS_CAT $$_test_coll_registration.txt | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
 		if [ -z $jobid  ]; then
 			test_failed
@@ -172,9 +182,18 @@ else
 		else
 			test_done
 			subjobs=( $(cat $$_test_coll_registration.txt | $SYS_GREP EDG_WL_SUB_JOBID | $SYS_SED 's/EDG_WL_SUB_JOBID.*="//' | $SYS_SED 's/"$//') )
-			printf "Collection ID: $jobid\n    Subjob 1: ${subjobs[0]}\n    Subjob 2: ${subjobs[1]}\n"
+			printf "Collection ID: $jobid\n     Subjob 1: ${subjobs[0]}\n     Subjob 2: ${subjobs[1]}\nChecking if subjob registration worked... "
 
-			printf "Logging events for test jobs\n"
+			job1jdl=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} -E "^jdl :" | ${SYS_AWK} '{print $3}'`
+			if [ "${job1jdl}" = "(null)" ]; then
+				test_failed
+				print_error "Subjob registration did not work (JDL not present: "${job1jdl}")"
+			else
+				printf "JDL present"
+				test_done
+			fi
+
+			printf "Logging events for subjobs... "
 			$LB_READY_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[0]} > /dev/null 2> /dev/null
 			$LB_DONE_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[1]} > /dev/null 2> /dev/null
 			
@@ -188,7 +207,7 @@ else
 				test_done
 			else
 				test_failed
-				print_error "Job is not in appropriate state"
+				print_error "State ${jobstate}: Job is not in appropriate state (Ready)"
 			fi
 
 			jobstate=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
@@ -198,7 +217,7 @@ else
 				test_done
 			else
 				test_failed
-				print_error "Job is not in appropriate state"
+				print_error "State ${jobstate}: Job is not in appropriate state (Done)"
 			fi
 
 
@@ -209,13 +228,14 @@ else
 				test_done
 			else
 				test_failed
-				print_error "Job is not in appropriate state"
+				print_error "State ${jobstate}: Job is not in appropriate state (Waiting)"
 			fi
 
-			printf "Logging events to clear subjobs\n"
+			printf "Logging events to clear subjobs... "
 			$LB_CLEARED_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[0]} > /dev/null 2> /dev/null
 			$LB_CLEARED_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[1]} > /dev/null 2> /dev/null
 
+			printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
 			sleep 10
 
 			jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
@@ -225,7 +245,7 @@ else
 				test_done
 			else
 				test_failed
-				print_error "Job is not in appropriate state"
+				print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
 			fi
 		fi
 
@@ -243,7 +263,8 @@ else
 fi
 
 test_end
-} &> $logfile
+}
+#} &> $logfile
 
 if [ $flag -ne 1 ]; then
  	cat $logfile
