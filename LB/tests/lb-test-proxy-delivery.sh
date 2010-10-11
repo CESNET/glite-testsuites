@@ -266,9 +266,9 @@ test_end
 }
 #} &> $logfile
 
-if [ $flag -ne 1 ]; then
- 	cat $logfile
- 	$SYS_RM $logfile
-fi
+#if [ $flag -ne 1 ]; then
+# 	cat $logfile
+# 	$SYS_RM $logfile
+#fi
 exit $TEST_OK
 
