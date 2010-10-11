@@ -76,11 +76,11 @@ do
 done
 
 # redirecting all output to $logfile
-touch $logfile
-if [ ! -w $logfile ]; then
-	echo "Cannot write to output file $logfile"
-	exit $TEST_ERROR
-fi
+#touch $logfile
+#if [ ! -w $logfile ]; then
+#	echo "Cannot write to output file $logfile"
+#	exit $TEST_ERROR
+#fi
 
 DEBUG=2
 
@@ -116,22 +116,22 @@ else
 
 
 		# Register job:
-		printf "Registering testing job "
+		printf "Registering testing job... "
 		jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
 
 		if [ -z $jobid  ]; then
 			test_failed
 			print_error "Failed to register job"
 		else
+			printf "Registered job: $jobid"
 			test_done
-			printf "\nRegistered job: $jobid\n"
 		fi
 
 		# log events:
-		printf "Logging events resulting in READY state\n"
+		printf "Logging events resulting in READY state... "
 		$LB_READY_SH -j ${jobid} > /dev/null 2> /dev/null
 
-		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+		printf "Sleeping for 10 seconds...\n"
 
 		sleep 10
 
@@ -145,18 +145,18 @@ else
 			print_error "Job is not in appropriate state"
 		fi
 
-		printf "Logging events resulting in RUNNING state\n"
-		$LB_RUNNING_SH -j ${jobid} > /dev/null 2> /dev/null
+#		printf "Logging events resulting in RUNNING state\n"
+#		$LB_RUNNING_SH -j ${jobid} > /dev/null 2> /dev/null
 
-		printf "Logging events resulting in DONE state\n"
+		printf "Logging events resulting in DONE state... "
 		$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
 
-		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+		printf "Sleeping for 10 seconds...\n"
 
 		sleep 10
 
 		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
-		printf "Testing job ($jobid) is in state: $jobstate\n"
+		printf "Testing job ($jobid) is in state: $jobstate"
 
 		if [ "${jobstate}" = "Done" ]; then
 			test_done
@@ -168,17 +168,100 @@ else
 		#Purge test job
 		joblist=$$_jobs_to_purge.txt
 		echo $jobid > ${joblist}
-		try_purge ${joblist}
+
+                printf "Registering collection "
+                ${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 2 -S > $$_test_coll_registration.txt
+                jobid=`$SYS_CAT $$_test_coll_registration.txt | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+                if [ -z $jobid  ]; then
+                        test_failed
+                        print_error "Failed to register job"
+                else
+                        test_done
+                        subjobs=( $(cat $$_test_coll_registration.txt | $SYS_GREP EDG_WL_SUB_JOBID | $SYS_SED 's/EDG_WL_SUB_JOBID.*="//' | $SYS_SED 's/"$//') )
+                        printf "Collection ID: $jobid\n     Subjob 1: ${subjobs[0]}\n     Subjob 2: ${subjobs[1]}\nChecking if subjob registration worked... "
+
+                        job1jdl=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} -E "^jdl :" | ${SYS_AWK} '{print $3}'`
+                        if [ "${job1jdl}" = "(null)" ]; then
+                                test_failed
+                                print_error "Subjob registration did not work (JDL not present: "${job1jdl}")"
+                        else
+                                printf "JDL present"
+                                test_done
+                        fi
+
+                        printf "Logging events for subjobs... "
+                        $LB_READY_SH -j ${subjobs[0]} > /dev/null 2> /dev/null
+                        $LB_DONE_SH -j ${subjobs[1]} > /dev/null 2> /dev/null
+
+                        printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+                        sleep 10
+
+                        jobstate=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+                        printf "Is the testing job (${subjobs[0]}) in a correct state? $jobstate"
+
+                        if [ "${jobstate}" = "Ready" ]; then
+                                test_done
+                        else
+                                test_failed
+                                print_error "State ${jobstate}: Job is not in appropriate state (Ready)"
+                        fi
+                        jobstate=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+                        printf "Is the testing job (${subjobs[1]}) in a correct state? $jobstate"
+
+                        if [ "${jobstate}" = "Done" ]; then
+                                test_done
+                        else
+                                test_failed
+                                print_error "State ${jobstate}: Job is not in appropriate state (Done)"
+                        fi
+
+
+                        jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+                        printf "Is the collection ($jobid) in a correct state? $jobstate"
+
+                        if [ "${jobstate}" = "Waiting" ]; then
+                                test_done
+                        else
+                                test_failed
+                                print_error "State ${jobstate}: Job is not in appropriate state (Waiting)"
+                        fi
+
+                        printf "Logging events to clear subjobs... "
+                        $LB_CLEARED_SH -j ${subjobs[0]} > /dev/null 2> /dev/null
+                        $LB_CLEARED_SH -j ${subjobs[1]} > /dev/null 2> /dev/null
+
+                        printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+                        sleep 10
+
+                        jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+                        printf "Is the collection ($jobid) in a correct state? $jobstate"
+
+                        if [ "${jobstate}" = "Cleared" ]; then
+                                test_done
+                        else
+                                test_failed
+                                print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
+                        fi
+                fi
+
+                echo ${subjobs[0]} >> ${joblist}
+                echo ${subjobs[1]} >> ${joblist}
+                echo $jobid >> ${joblist}
+                try_purge ${joblist}
+
+                $SYS_RM $$_test_coll_registration.txt
+
 
 	fi
 fi
 
 test_end
-} &> $logfile
+#} &> $logfile
+}
 
-if [ $flag -ne 1 ]; then
- 	cat $logfile
- 	$SYS_RM $logfile
-fi
+#if [ $flag -ne 1 ]; then
+# 	cat $logfile
+# 	$SYS_RM $logfile
+#fi
 exit $TEST_OK
 
