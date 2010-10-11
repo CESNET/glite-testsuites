@@ -93,7 +93,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LB_READY_SH $LB_RUNNING_SH $LB_DONE_SH $SYS_AWK 
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LB_READY_SH $LB_RUNNING_SH $LB_DONE_SH $SYS_AWK $LBJOBLOG
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -180,7 +180,17 @@ else
                         subjobs=( $(cat $$_test_coll_registration.txt | $SYS_GREP EDG_WL_SUB_JOBID | $SYS_SED 's/EDG_WL_SUB_JOBID.*="//' | $SYS_SED 's/"$//') )
                         printf "Collection ID: $jobid\n     Subjob 1: ${subjobs[0]}\n     Subjob 2: ${subjobs[1]}\nChecking if subjob registration worked... "
 
-                        job1jdl=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} -E "^jdl :" | ${SYS_AWK} '{print $3}'`
+			${LBJOBLOG} ${subjobs[0]} | $SYS_GREP 'DG.EVNT="RegJob"' >> /dev/null
+                        if [ $? = 0 ]; then
+				printf "Registration event recorded"
+                                test_done
+                        else
+                                test_failed
+                                print_error "Subjob registration did not work (Registration event not recorded)"
+                        fi
+
+
+                        job1jdl=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} -E "^jdl :" | ${SYS_AWK} '{print $3}'`
                         if [ "${job1jdl}" = "(null)" ]; then
                                 test_failed
                                 print_error "Subjob registration did not work (JDL not present: "${job1jdl}")"
