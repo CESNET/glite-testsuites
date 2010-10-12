@@ -252,6 +252,51 @@ else
                                 test_failed
                                 print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
                         fi
+
+			echo $jobid > $$_jobs_to_purge_test.txt
+
+			printf "Purging collection... " 
+
+			$LBPURGE -j $$_jobs_to_purge_test.txt
+
+			printf "Sleeping for 10 seconds... " 
+
+			sleep 10
+
+			printf "Checking state of collection... " 
+
+                        jobstate=`${LBJOBSTATUS} $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+                        if [ "${jobstate}" = "Purged" ]; then
+				printf "${jobstate}"
+                                test_done
+
+				printf "Checking state of subjob #1... "
+                        	jobstate=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+	                        if [ "${jobstate}" = "Purged" ]; then
+					printf "${jobstate}"
+        	                        test_done
+                	        else
+                        	        test_failed
+                                	print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
+	                        fi
+
+				printf "Checking state of subjob #2... "
+                        	jobstate=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+	                        if [ "${jobstate}" = "Purged" ]; then
+					printf "${jobstate}"
+        	                        test_done
+                	        else
+                        	        test_failed
+                                	print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
+	                        fi
+
+                        else
+				printf "${jobstate}"
+                                test_skipped
+                        fi
+
+			$SYS_RM $$_jobs_to_purge_test.txt
+			
                 fi
 
                 echo ${subjobs[0]} >> ${joblist}
