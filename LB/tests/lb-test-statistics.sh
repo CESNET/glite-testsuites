@@ -108,11 +108,11 @@ do
 done
 
 # redirecting all output to $logfile
-touch $logfile
-if [ ! -w $logfile ]; then
-	echo "Cannot write to output file $logfile"
-	exit $TEST_ERROR
-fi
+#touch $logfile
+#if [ ! -w $logfile ]; then
+#	echo "Cannot write to output file $logfile"
+#	exit $TEST_ERROR
+#fi
 
 DEBUG=2
 
@@ -160,17 +160,21 @@ else
 				print_error "Failed to register job"
 			fi
 		done
-		printf "Test jobs registered"
+		printf "Test jobs registered."
 		test_done
+
+		printf "Sleeping for 10 seconds... "
 
 		sleep 10
 
-		printf "Sending events for all test jobs, Submitted => Running" 
+		printf "Sending events for all test jobs, Submitted => Running " 
 		for i in $SEQUENCE
 		do
 			submitted_to_running ${jobid[$i]}
 		done
 		test_done
+
+		printf "Sleeping for 20 seconds... "
 
 		sleep 20
 
@@ -193,7 +197,7 @@ else
 			test_failed
 			print_error "Rate other than expected"
 		fi
-		printf "Getting average duration (should be a number > 10): "
+		printf "Getting average 'Submitted' -> 'Running' transfer time (should be a number > 10): "
 		$LB_FROMTO CE$datestr$$ 1 5 > fromto.out.$$
 		average=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_AWK} '{ print $5 }'`
 		cresult=`$SYS_EXPR $average \> 10`
@@ -218,6 +222,28 @@ else
 
 		$SYS_RM fromto.out.$$
 
+		printf "Long term: Getting average 'Submitted' -> 'Running' transfer times (should be numbers > 0): "
+		$LB_FROMTO ALL 1 5 > fromto.out.$$
+		averages=( $($SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_SED} 's/^.*": //' | ${SYS_SED} 's/ s.*$//') )
+		$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | $SYS_SED 's/":.*$//' | $SYS_SED 's/^.*"//' > fromto.out.ces.$$
+		printf "\n"
+
+		let i=0 
+		$SYS_CAT fromto.out.ces.$$ | while read ce; do
+			printf "$i.\t$ce:\t${averages[$i]}"
+			cresult=`$SYS_EXPR ${averages[$i]} \>= 0`
+			if [ "$cresult" -eq "1" ]; then
+				test_done
+			else
+				test_failed
+				print_error "Bad average value"
+			fi
+			let i++
+		done 
+
+		$SYS_RM fromto.out.$$
+		$SYS_RM fromto.out.ces.$$
+
 		#Purge test job
 		joblist=$$_jobs_to_purge.txt
 		for i in $SEQUENCE
@@ -230,11 +256,12 @@ else
 fi
 
 test_end
-} &> $logfile
+}
+#} &> $logfile
 
-if [ $flag -ne 1 ]; then
- 	cat $logfile
- 	$SYS_RM $logfile
-fi
+#if [ $flag -ne 1 ]; then
+# 	cat $logfile
+# 	$SYS_RM $logfile
+#fi
 exit $TEST_OK
 
