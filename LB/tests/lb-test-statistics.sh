@@ -222,27 +222,59 @@ else
 
 		$SYS_RM fromto.out.$$
 
-		printf "Long term: Getting average 'Submitted' -> 'Running' transfer times (should be numbers > 0): "
+		printf "Long term: Getting average 'Submitted' -> 'Running' transfer times (should be numbers >= 0): "
 		$LB_FROMTO ALL 1 5 > fromto.out.$$
 		averages=( $($SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_SED} 's/^.*": //' | ${SYS_SED} 's/ s.*$//') )
 		$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | $SYS_SED 's/":.*$//' | $SYS_SED 's/^.*"//' > fromto.out.ces.$$
+		dispersions=( $($SYS_CAT fromto.out.$$ | ${SYS_GREP} "Dispersion index" | ${SYS_AWK} '{ print $3 }') )
 		printf "\n"
 
 		let i=0 
 		$SYS_CAT fromto.out.ces.$$ | while read ce; do
-			printf "$i.\t$ce:\t${averages[$i]}"
+			printf "$i.\t$ce:\t${averages[$i]}\t${dispersions[$i]}"
 			cresult=`$SYS_EXPR ${averages[$i]} \>= 0`
+			if [ "$cresult" -ne "1" ]; then
+				test_failed
+				print_error "Bad average value"
+			fi
+			# Also check dispersion
+			cresult=`$SYS_EXPR ${dispersions[$i]} \>= 0`
 			if [ "$cresult" -eq "1" ]; then
 				test_done
 			else
 				test_failed
-				print_error "Bad average value"
+				print_error "Bad dispersion value"
 			fi
+
 			let i++
 		done 
 
 		$SYS_RM fromto.out.$$
 		$SYS_RM fromto.out.ces.$$
+
+                printf "Long term: Getting average job rates (should be numbers >= 0): "
+		$LB_STATS -n 7200 ALL 5 > rates.out.$$
+                rates=( $(${SYS_GREP} "Average" rates.out.$$ | ${SYS_SED} 's/^.*": //' | ${SYS_SED} 's/ jobs.*$//') )
+                $SYS_CAT rates.out.$$ | ${SYS_GREP} "Average" | $SYS_SED 's/":.*$//' | $SYS_SED 's/^.*"//' > rates.out.ces.$$
+                printf "\n"
+
+                let i=0 
+                $SYS_CAT rates.out.ces.$$ | while read ce; do
+                        printf "$i.\t$ce:\t${rates[$i]}"
+                        cresult=`$SYS_EXPR ${rates[$i]} \>= 0`
+                        if [ "$cresult" -eq "1" ]; then
+                                test_done
+                        else
+                                test_failed
+                                print_error "Bad dispersion value"
+                        fi
+
+                        let i++
+                done 
+
+                $SYS_RM rates.out.$$
+                $SYS_RM rates.out.ces.$$
+
 
 		#Purge test job
 		joblist=$$_jobs_to_purge.txt
