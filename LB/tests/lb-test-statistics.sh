@@ -222,7 +222,7 @@ else
 
 		$SYS_RM fromto.out.$$
 
-		printf "Long term: Getting average 'Submitted' -> 'Running' transfer times (should be numbers >= 0): "
+		printf "Long term: Getting average 'Submitted' -> 'Running' transfer times (should be numbers >= 0):"
 		$LB_FROMTO ALL 1 5 > fromto.out.$$
 		averages=( $($SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_SED} 's/^.*": //' | ${SYS_SED} 's/ s.*$//') )
 		$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | $SYS_SED 's/":.*$//' | $SYS_SED 's/^.*"//' > fromto.out.ces.$$
@@ -252,7 +252,7 @@ else
 		$SYS_RM fromto.out.$$
 		$SYS_RM fromto.out.ces.$$
 
-                printf "Long term: Getting average job rates (should be numbers >= 0): "
+                printf "Long term: Getting average job rates (should be numbers >= 0):"
 		$LB_STATS -n 7200 ALL 5 > rates.out.$$
                 rates=( $(${SYS_GREP} "Average" rates.out.$$ | ${SYS_SED} 's/^.*": //' | ${SYS_SED} 's/ jobs.*$//') )
                 $SYS_CAT rates.out.$$ | ${SYS_GREP} "Average" | $SYS_SED 's/":.*$//' | $SYS_SED 's/^.*"//' > rates.out.ces.$$
