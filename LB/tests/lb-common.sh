@@ -112,6 +112,7 @@ SYS_DATE=date
 SYS_EXPR=expr
 SYS_BC=bc
 SYS_SCP=scp
+SYS_TOUCH=touch
 
 # not used at the moment
 DEBUG=2

@@ -174,9 +174,20 @@ else
 		done
 		test_done
 
-		printf "Sleeping for 20 seconds... "
+		printf "Sleeping for 10 seconds... "
 
-		sleep 20
+		sleep 10
+
+		printf "Sending events for all test jobs, Running => Done " 
+		for i in $SEQUENCE
+		do
+			running_to_done ${jobid[$i]}
+		done
+		test_done
+
+		printf "Sleeping for 10 seconds... "
+
+		sleep 10
 
 #		printf "Sending events for all test jobs, Running => Done" 
 #		for i in $SEQUENCE
@@ -197,6 +208,7 @@ else
 			test_failed
 			print_error "Rate other than expected"
 		fi
+
 		printf "Getting average 'Submitted' -> 'Running' transfer time (should be a number > 10): "
 		$LB_FROMTO CE$datestr$$ 1 5 > fromto.out.$$
 		average=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_AWK} '{ print $5 }'`
@@ -221,6 +233,30 @@ else
 		fi
 
 		$SYS_RM fromto.out.$$
+
+
+		printf "Getting average 'Submitted' -> 'Done/OK' transfer time (should be a number > 20): "
+		$LB_FROMTO CE$datestr$$ 1 6 0 > fromto.out.$$
+		doneaverage=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_AWK} '{ print $5 }'`
+		donecresult=`$SYS_EXPR $doneaverage \> 20`
+		printf "$doneaverage"
+		if [ "$donecresult" -eq "1" ]; then
+			test_done
+		else
+			test_failed
+			print_error "Average value other than expected"
+		fi
+
+		printf "Comparing. 'Submitted' -> 'Running' should take longer than 'Submitted' -> 'Done/OK': "
+
+		donecresult=`$SYS_EXPR $doneaverage \> $average`
+		if [ "$donecresult" -eq "1" ]; then
+			printf "OK"
+			test_done
+		else
+			test_failed
+			print_error "Done earlier than Running"
+		fi
 
 		printf "Long term: Getting average 'Submitted' -> 'Running' transfer times (should be numbers >= 0):"
 		$LB_FROMTO ALL 1 5 > fromto.out.$$
@@ -252,7 +288,7 @@ else
 		$SYS_RM fromto.out.$$
 		$SYS_RM fromto.out.ces.$$
 
-                printf "Long term: Getting average job rates (should be numbers >= 0):"
+                printf "Long term: Getting average 'Running' rates (should be numbers >= 0):"
 		$LB_STATS -n 7200 ALL 5 > rates.out.$$
                 rates=( $(${SYS_GREP} "Average" rates.out.$$ | ${SYS_SED} 's/^.*": //' | ${SYS_SED} 's/ jobs.*$//') )
                 $SYS_CAT rates.out.$$ | ${SYS_GREP} "Average" | $SYS_SED 's/":.*$//' | $SYS_SED 's/^.*"//' > rates.out.ces.$$

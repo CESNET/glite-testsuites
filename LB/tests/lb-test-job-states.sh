@@ -111,11 +111,11 @@ do
 done
 
 # redirecting all output to $logfile
-touch $logfile
-if [ ! -w $logfile ]; then
-	echo "Cannot write to output file $logfile"
-	exit $TEST_ERROR
-fi
+#touch $logfile
+#if [ ! -w $logfile ]; then
+#	echo "Cannot write to output file $logfile"
+#	exit $TEST_ERROR
+#fi
 
 DEBUG=2
 
@@ -231,11 +231,12 @@ else
 fi
 
 test_end
-} &> $logfile
+}
+#} &> $logfile
 
-if [ $flag -ne 1 ]; then
- 	cat $logfile
- 	$SYS_RM $logfile
-fi
+#if [ $flag -ne 1 ]; then
+# 	cat $logfile
+# 	$SYS_RM $logfile
+#fi
 exit $TEST_OK
 
