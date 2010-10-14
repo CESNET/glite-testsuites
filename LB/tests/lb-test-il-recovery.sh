@@ -179,8 +179,6 @@ else
 
 			generate_done_events "$EVENTFILE.$UNIQUE" "$USERIDENTITY" "$DOMAINNAME" $jobid
 
-			cat $EVENTFILE.$UNIQUE
-
 			#Stopping interlogger (if required)
 	                if [ -z "$STARTCOMMAND" ]; then
 				$SYS_ECHO Info: No command to start was given
