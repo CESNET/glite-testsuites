@@ -22,7 +22,8 @@ showHelp()
 {
 cat << EndHelpHeader
 Script for testing correct reporting of LB server properties over BDII/LDAP.
-This should also be thought of as a regression test for bug #55482.
+This should also be thought of as a regression test for bug #55482,
+and ggus ticket #62737.
 
 Prerequisities:
    - LB server
@@ -184,6 +185,20 @@ else
 			fi
 		else
 			test_skipped
+		fi
+	fi
+
+	printf "Checking HealthStatus... "
+	health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
+	if [ "$health" == "" ]; then
+		print_error "GLUE2EndpointHealthState not specified"
+		test_failed
+	else
+		printf "$health"
+		if [ "$health" == "ok" ]; then
+			test_done
+		else
+			test_failed
 		fi
 	fi
 
