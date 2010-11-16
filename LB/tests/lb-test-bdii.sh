@@ -139,13 +139,27 @@ else
 		test_done
 	fi
 
-	printf "Checking Glue 2.0 root entry... "
+	printf "Checking Glue 1 root entry... "
 	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=grid' > ldap.$$.out
 	if [ $? -gt 0 ]; then	
 		test_failed
 		print_error "No reply"
 	else
 		test_done
+	fi
+
+	printf "Checking ServiceStatus... "
+	health=`$SYS_GREP GlueServiceStatus: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
+	if [ "$health" == "" ]; then
+		print_error "GlueServiceStatus not specified"
+		test_failed
+	else
+		printf "$health"
+		if [ "$health" == "OK" ]; then
+			test_done
+		else
+			test_failed
+		fi
 	fi
 
 	printf "Checking Glue 2.0 entry with 'o=glue'... "
@@ -155,6 +169,20 @@ else
 		print_error "No reply"
 	else
 		test_done
+	fi
+
+	printf "Checking GLUE2 HealthStatus... "
+	health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
+	if [ "$health" == "" ]; then
+		print_error "GLUE2EndpointHealthState not specified"
+		test_failed
+	else
+		printf "$health"
+		if [ "$health" == "ok" ]; then
+			test_done
+		else
+			test_failed
+		fi
 	fi
 
 	printf "Checking GlueServiceVersion... "
@@ -185,20 +213,6 @@ else
 			fi
 		else
 			test_skipped
-		fi
-	fi
-
-	printf "Checking HealthStatus... "
-	health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
-	if [ "$health" == "" ]; then
-		print_error "GLUE2EndpointHealthState not specified"
-		test_failed
-	else
-		printf "$health"
-		if [ "$health" == "ok" ]; then
-			test_done
-		else
-			test_failed
 		fi
 	fi
 
