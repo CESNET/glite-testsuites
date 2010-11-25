@@ -29,6 +29,7 @@ EndHelpHeader
 	echo " -t | --text            Format output as plain ASCII text."
 	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
 	echo " -x | --html            Format output as html."
+	echo " -f | --config          Apache config file."
 }
 
 # read common definitions and functions
@@ -49,6 +50,7 @@ do
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
 		"-x" | "--html")  setOutputHTML ;;
+		"-f" | "--config") shift; apache_config_arg="-f $1" ;;
 	esac
 	shift
 done
@@ -71,7 +73,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS $SYS_PIDOF
+check_binaries $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS $SYS_PIDOF $SYS_APACHECTL
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -89,9 +91,9 @@ fi
 
 # GridSite module loaded:
 printf "Testing if GridSite is loaded"
-${SYS_APACHECTL} -t -D DUMP_MODULES 2>&1| grep mod_gridsite >/dev/null 2>&1
+${SYS_APACHECTL} ${apache_config_arg} -t -D DUMP_MODULES 2>&1| grep gridsite_module >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-	test done
+	test_done
 else
 	test_failed
 	print_error "GridSite is not loaded in Apache"

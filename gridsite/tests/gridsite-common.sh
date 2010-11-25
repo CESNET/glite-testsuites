@@ -47,8 +47,16 @@ SYS_GREP=grep
 SYS_SED=sed
 SYS_PS=ps
 SYS_PIDOF=pidof
-SYS_APACHE=apache2
-SYS_APACHECTL=apache2ctl
+if test -f /usr/sbin/apache2; then
+	SYS_APACHE=apache2
+else
+	SYS_APACHE=httpd
+fi
+if test -f /usr/sbin/apache2ctl; then
+	SYS_APACHECTL=apache2ctl
+else
+	SYS_APACHECTL=apachectl
+fi
 SYS_PING=ping
 SYS_AWK=awk
 SYS_ECHO=echo
@@ -147,8 +155,8 @@ function check_listener()
                 return $TEST_ERROR
         fi
 
-	pid=`lsof -F p -i TCP:$req_port | sed "s/^p//"`
-	if [ -z $pid ]; then
+	pid=`lsof -F p -i TCP:$req_port | sed "s/^p//" | head -n 1`
+	if [ -z "$pid" ]; then
 		return $TEST_ERROR
 	fi
 	program=`ps -p ${pid} -o args= | grep -E "[\/]*$req_program[ \t]*"`
