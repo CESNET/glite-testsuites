@@ -90,6 +90,11 @@ else
 	test_done
 fi
 
+
+	if [ ! -e /var/www/htdocs ]; then
+		mkdir /var/www/htdocs
+	fi
+
 	printf "READ (Read Permissions)\n"
 
 cat >/var/www/htdocs/test.html <<EOF
