@@ -43,7 +43,7 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=lb-common.sh
+COMMON=gridsite-common.sh
 if [ ! -r ${COMMON} ]; then
 	printf "Common definitions '${COMMON}' missing!"
 	exit 2
