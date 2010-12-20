@@ -47,6 +47,7 @@ LBWSJOBLOG=glite-lb-ws_joblog
 LBJOBREG=glite-lb-job_reg
 LBUSERJOBS=glite-lb-user_jobs
 LBJOBSTATUS=glite-lb-job_status
+LBTHRJOBSTATUS=glite-lb-job_status_threaded
 LBWSJOBSTATUS=glite-lb-ws_jobstat
 LBWSGETVERSION=glite-lb-ws_getversion
 LBPURGE=glite-lb-purge

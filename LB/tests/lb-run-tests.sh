@@ -175,6 +175,7 @@ echo sh ./lb-test-bdii.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-sandbox-transfer.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-changeacl.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-statistics.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo sh ./lb-test-threaded.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo perl ./lb-test-purge.pl --i-want-to-purge delwin.fi.muni.cz:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
 echo echo "  TESTS END HERE" >> arrange_lb_test_user.sh
