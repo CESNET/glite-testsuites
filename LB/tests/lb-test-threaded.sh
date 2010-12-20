@@ -118,6 +118,7 @@ else
 		printf "Registering testing jobs "
 		for i in {0..30}
 		do
+			printf " $i"
 			jobid[$i]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
 
 			if [ -z ${jobid[$i]}  ]; then
@@ -138,7 +139,7 @@ else
 
 
 			#echo $LBTHRJOBSTATUS $jobids
-			$LBTHRJOBSTATUS $jobids > threads.$$.tmp
+			$LBTHRJOBSTATUS $jobids > threads.$$.tmp 2>/dev/null
 			test_done
 
 			printf "Checking if states were returned for all jobs..."
