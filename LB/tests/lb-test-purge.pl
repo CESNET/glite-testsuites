@@ -19,7 +19,7 @@
 use Term::ANSIColor;
 
 BEGIN{
-$inst = $ENV{GLITE_PREFIX};
+$inst = $ENV{GLITE_LOCATION};
 $inst = "/opt/glite" unless $inst;
 $sbin = "$inst/sbin";
 $bin = "$inst/bin";
