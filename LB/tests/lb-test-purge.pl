@@ -29,12 +29,16 @@ $status = "$test/glite-lb-job_status";
 $log = "$test/glite-lb-job_log";
 $prefix = "/tmp/purge_test_$$";
 $delay = 60;
+$html_output = 0;
 
 $ENV{PATH} .= ":$bin";
 }
 
 $option = shift;
 $server = shift;
+$moreopts = shift;
+
+if ($moreopts =~ m/-x/) { $html_output = 1; }
 
 die qq{
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -54,7 +58,7 @@ Good luck!
 	
 } unless $option eq '--i-want-to-purge';
 
-die "usage: $0 --i-want-to-purge server:port\n" unless $server;
+die "usage: $0 --i-want-to-purge server:port [-x]\n" unless $server;
 
 sub logit {
 	my $ids = shift;
@@ -92,14 +96,21 @@ sub print_result {
 	print color 'reset';
 } 
 sub test_done() {
-	print_result ('bold green','done');
+	if ($html_output) { printf ("<font color=\"green\"><B>done</B></font><BR>\n"); }
+	else { print_result ('bold green','done'); }
 }
 sub test_failed() {
-	print_result ('bold red','-TEST FAILED-');
+	if ($html_output) { printf ("<font color=\"red\"><B>-TEST FAILED-</B></font><BR>\n"); }
+	else { print_result ('bold red','-TEST FAILED-'); }
+}
+sub test_printf {
+	if ($html_output) { printf("<BR><B>"); }
+	printf "@_\n";
+	if ($html_output) { printf("</B><BR>"); }
 }
 
 
-printf "** Hey, purging the whole database...";
+test_printf ("** Hey, purging the whole database...");
 system "$purge --server $server --return-list --aborted=0 --cleared=0 --cancelled=0 --other=0";
 if ($!) {
 	test_failed();
@@ -108,19 +119,19 @@ if ($!) {
 
 test_done();
 
-printf "** Logging test jobs\n";
+test_printf ("** Logging test jobs\n");
 
 if (!logit \%old,"${prefix}_old") {
 	test_failed();
 	die "!! failed\n";
 }
 
-print "** So far so good ";
+test_printf ("** So far so good ");
 test_done();
 
-print "** sleeping $delay seconds...\n";
+test_printf ("** sleeping $delay seconds...\n");
 sleep $delay;
-print "** OK, another set of jobs";
+test_printf ("** OK, another set of jobs");
 if (!logit \%new,"${prefix}_new") {
 	test_failed();
 	die "!! failed\n";
@@ -129,16 +140,16 @@ if (!logit \%new,"${prefix}_new") {
 test_done();
 
 $drain = $delay/10;
-print "** draining other $drain seconds ...\n";
+test_printf ("** draining other $drain seconds ...\n");
 sleep $drain;
 
-print "** test jobs:\n";
+test_printf ("** test jobs:\n");
 
 for (qw/aborted cleared cancelled other/) {
 	print "$_:\n\t$old{$_}\n\t$new{$_}\n";
 } 
 
-print "** Dry run\n";
+test_printf ("** Dry run\n");
 $failed = 0;
 
 $half = $delay/2;
@@ -195,7 +206,7 @@ if ($failed) {
 	test_failed();
 	die "!! failed!"; }
 
-print "** Server defaults\n";
+test_printf ("** Server defaults\n");
 
 open LIST,"$purge --server $server --dry-run --return-list | grep '^https://'|" or die "!! run $purge\n";
 
@@ -213,7 +224,7 @@ if ($failed) {
 print "Nothing purged as expected ";
 test_done();
 
-print "** Purge the first set of jobs\n";
+test_printf ("** Purge the first set of jobs\n");
 
 open DUMP,"$purge --server $server --server-dump --aborted=${half}s --cleared=${half}s --cancelled=${half}s --other=${half}s | grep '^Server dump:'|"
 	or die "!! run $purge\n";
@@ -237,7 +248,7 @@ die "!! aggregate log and dump differ\n" if $? & 0xff00;
 print "diff OK ";
 test_done();
 
-print "** Purge the rest\n";
+test_printf ("** Purge the rest\n");
 open DUMP,"$purge --server $server --server-dump --aborted=0 --cleared=0 --cancelled=0 --other=0 | grep '^Server dump:'|"
 	or die "!! run $purge\n";
 
@@ -257,7 +268,7 @@ print "diff OK ";
 test_done();
 
 
-print "** Anything left?\n";
+test_printf ("** Anything left?\n");
 open LIST,"$purge --server $server --return-list --dry-run --aborted=0 --cleared=0 --cancelled=0 --other=0 | grep '^https://'|" or die "!! $purge\n";
 
 $id = <LIST>;
@@ -266,7 +277,7 @@ die "!! Yes, but should not\n" if $id;
 print "No, OK ";
 test_done();
 
-print "** Check zombies\n";
+test_printf ("** Check zombies\n");
 $failed = 0;
 
 for (values(%old),values(%new)) {
@@ -282,7 +293,7 @@ for (values(%old),values(%new)) {
 
 die "Jobs should be known and purged\n" if $failed;
 
-print "\n** All tests passed **";
+test_printf ("\n** All tests passed **");
 test_done();
 exit 0;
 
