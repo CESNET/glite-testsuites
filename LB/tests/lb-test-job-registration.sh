@@ -178,12 +178,12 @@ else
 			${LBPURGE} -j ${joblist} > /dev/null
 			$SYS_RM ${joblist}
 
-			jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
-                        printf "Test job purged. Testing state... ($jobstate)"
-
-                        if [ "${jobstate}" = "Purged" ]; then
+                        printf "Test job purged. Testing state..."
+                        ${LBJOBSTATUS} $jobid > $$_jobreg.tmp 2> $$_jobreg_err.tmp
+                        jobstate=`$SYS_CAT $$_jobreg.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_jobreg.tmp`
+                        $SYS_GREP "Identifier removed" $$_jobreg_err.tmp > /dev/null
+                        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
                                 test_done
-
 
 				${LBJOBREG} -h 2>&1 | $SYS_GREP '\-E' > /dev/null
 
@@ -198,10 +198,11 @@ else
 						test_done
 					fi
 
-					printf "Checking state (expecting state 'Purged'). "
-					jobstate=`${LBJOBSTATUS} ${jobid} | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
-
-					if [ "${jobstate}" = "Purged" ]; then
+					printf "Checking state (expecting state 'Purged' or EIDRM). "
+                        		${LBJOBSTATUS} $jobid > $$_jobreg.tmp 2> $$_jobreg_err.tmp
+		                        jobstate=`$SYS_CAT $$_jobreg.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_jobreg.tmp`
+                		        $SYS_GREP "Identifier removed" $$_jobreg_err.tmp > /dev/null
+		                        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
 						test_done
 					else
 						printf " Option may be off on server side"
@@ -247,6 +248,8 @@ else
 				test_skipped
                         fi
 
+                        $SYS_RM $$_jobreg.tmp
+                        $SYS_RM $$_jobreg_err.tmp
 
 		fi
 
@@ -256,11 +259,12 @@ else
 fi
 
 test_end
-} &> $logfile
+}
+#} &> $logfile
 
-if [ $flag -ne 1 ]; then
- 	cat $logfile
- 	$SYS_RM $logfile
-fi
+#if [ $flag -ne 1 ]; then
+# 	cat $logfile
+# 	$SYS_RM $logfile
+#fi
 exit $TEST_OK
 

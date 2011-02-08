@@ -280,18 +280,25 @@ test_done();
 test_printf ("** Check zombies\n");
 $failed = 0;
 
+$errfile = $prefix . "_stat_err.tmp";
+$statfile = $prefix . "_stat.tmp";
+
 for (values(%old),values(%new)) {
+		$jobid = $_;
 		$stat = 'nic moc';
-		$stat = `$status $_ | head -2 | tail -1`;
+		system("$status $jobid > $statfile 2> $errfile");
+		$stat = `cat $statfile | head -2 | tail -1`;
 		chomp $stat;
 		$stat =~ s/state :\s*//;
-
-		print "$_ $stat ";
-		if ($stat ne 'Purged') { $failed = 1; test_failed(); }
+	
+		$exitcode = system("grep \"Identifier removed\"	$errfile > /dev/null");
+		if ( ! $exitcode ) { print "$jobid returned EIDRM"; }
+		else { print "$jobid $stat "; }
+		if ($stat ne 'Purged' && $exitcode ne 0) { $failed = 1; test_failed(); }
 		else { test_done(); }
 }
 
-die "Jobs should be known and purged\n" if $failed;
+die "EIDRM or state Purged should have been returned for zombies\n" if $failed;
 
 test_printf ("\n** All tests passed **");
 test_done();

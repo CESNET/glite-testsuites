@@ -265,15 +265,28 @@ else
 
 			printf "Checking state of collection... " 
 
-                        jobstate=`${LBJOBSTATUS} $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
-                        if [ "${jobstate}" = "Purged" ]; then
-				printf "${jobstate}"
+			${LBJOBSTATUS} $jobid > $$_collstate.tmp 2> $$_collstate_err.tmp
+                        jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
+			$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
+                        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
+
+				if [ "${jobstate}" = "Purged" ]; then
+					printf "${jobstate}"
+				else
+					printf "Identifier removed"
+				fi
                                 test_done
 
 				printf "Checking state of subjob #1... "
-                        	jobstate=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
-	                        if [ "${jobstate}" = "Purged" ]; then
-					printf "${jobstate}"
+				${LBJOBSTATUS} ${subjobs[0]} > $$_collstate.tmp 2> $$_collstate_err.tmp
+	                        jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
+				$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
+                	        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
+					if [ "${jobstate}" = "Purged" ]; then
+						printf "${jobstate}"
+					else
+						printf "Identifier removed"
+					fi
         	                        test_done
                 	        else
                         	        test_failed
@@ -281,9 +294,15 @@ else
 	                        fi
 
 				printf "Checking state of subjob #2... "
-                        	jobstate=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
-	                        if [ "${jobstate}" = "Purged" ]; then
-					printf "${jobstate}"
+				${LBJOBSTATUS} ${subjobs[1]} > $$_collstate.tmp 2> $$_collstate_err.tmp
+	                        jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
+				$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
+                	        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
+					if [ "${jobstate}" = "Purged" ]; then
+						printf "${jobstate}"
+					else
+						printf "Identifier removed"
+					fi
         	                        test_done
                 	        else
                         	        test_failed
@@ -296,6 +315,8 @@ else
                         fi
 
 			$SYS_RM $$_jobs_to_purge_test.txt
+			$SYS_RM $$_collstate.tmp
+			$SYS_RM $$_collstate_err.tmp
 			
                 fi
 
