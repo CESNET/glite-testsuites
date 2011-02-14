@@ -28,8 +28,8 @@ Prerequisities:
    - environment variables set:
 
      GLITE_WMS_QUERY_SERVER
-     set TEST_TAG_ACL=yes if the you want to test ACL with TAGs
-
+     X509_USER_PROXY_BOB
+     set TEST_TAG_ACL=yes if you want to test ACL with TAGs
 
 Tests called:
 
@@ -52,6 +52,28 @@ EndHelpHeader
 	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
 	echo " -x | --html            Format output as html."
 }
+
+
+check_credentials()
+{
+	my_GRIDPROXYINFO=${GRIDPROXYINFO}
+	if [ "$1" != "" ]; then
+		my_GRIDPROXYINFO="${GRIDPROXYINFO} -f $1"
+	fi
+
+	timeleft=`${my_GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+
+	if [ "$timeleft" = "" ]; then
+        	print_error "No credentials"
+		return 1
+	fi
+        if [ "$timeleft" = "0:00:00" ]; then
+          	print_error "Credentials expired"
+		return 1
+	fi
+	return 0
+}
+
 
 # read common definitions and functions
 COMMON=lb-common.sh
@@ -84,23 +106,10 @@ fi
 
 DEBUG=2
 
-change_acl()
-{
-	jobid=$1; op=$2; perm=$3; id=$4
-
-	$LBLOGEVENT -e ChangeACL -s UserInterface -p -j "$jobid" --user_id "$id" --user_id_type DN --permission "$perm" --permission_type ALLOW --operation "$op" > /dev/null
-	res=$?
-	if [ $res -ne 0 ]; then
-		print_error "Changing ACL ($op $perm) failed"
-	fi
-	return $res
-}
-
 ##
 #  Starting the test
 #####################
 
-identity="ThisIsJustATestingIdentity"
 test_tag_acl=${TEST_TAG_ACL:-"no"}
 
 {
@@ -120,16 +129,19 @@ while [ "$CONT" = "yes" ]; do
 	test_done
 
 	printf "Testing credentials"
-	timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-	if [ "$timeleft" = "" ]; then
-        	test_failed
-        	print_error "No credentials"
+	check_credentials
+	if [ $? -ne 0 ]; then
+		test_failed
 		break
 	fi
-
-        if [ "$timeleft" = "0:00:00" ]; then
-                test_failed
-                print_error "Credentials expired"
+	if [ "$X509_USER_PROXY_BOB" = "" ]; then
+		test_failed
+		print_error "\$X509_USER_PROXY_BOB must be set"
+		break
+	fi
+	check_credentials $X509_USER_PROXY_BOB
+	if [ $? -ne 0 ]; then
+		test_failed
 		break
 	fi
 	test_done
@@ -141,9 +153,12 @@ while [ "$CONT" = "yes" ]; do
 		test_done
 	fi
 
+	identity=`${GRIDPROXYINFO} -f $X509_USER_PROXY_BOB| ${SYS_GREP} -E "^identity" | ${SYS_SED} "s/identity\s*:\s//"`
+
 	# Register job:
 	printf "Registering testing job "
 	jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+
 	if [ -z $jobid  ]; then
 		test_failed
 		print_error "Failed to register job"
@@ -151,69 +166,95 @@ while [ "$CONT" = "yes" ]; do
 	fi
 	test_done
 
-	printf "Changing ACL..."
-	change_acl "$jobid" "ADD" "READ" $identity
+	printf "Checking not-allowed access"
+#try unauthorized read
+	X509_USER_PROXY=$X509_USER_PROXY_BOB $LBJOBSTATUS $jobid 2>&1 >/dev/null| grep -E "edg_wll_JobStatus: Operation not permitted" > /dev/null
+	if [ "$?" != "0" ]; then
+		test_failed
+		print_error "Ungranted READ access allowed!"
+		break
+	fi
+
+#try unauthorized tagging
+	X509_USER_PROXY=$X509_USER_PROXY_BOB $LBLOGEVENT -e UserTag -s Application -j $jobid --name "hokus" --value "pokus" > /dev/null
 	if [ $? -ne 0 ]; then
 		test_failed
-		break;
+		print_error "Sending UserTag failed"
+		break
 	fi
+#	sleep 10
 
-	if [ "$test_tag_acl" = "yes" ]; then
-		change_acl "$jobid" "ADD" "TAG" $identity
-		if [ $? -ne 0 ]; then
-			test_failed
-			break
-		fi
-	fi
-	test_done
-
-
-	printf "Checking ACL for new values... "
-	ops="read"
-	[ "$test_tag_acl" = "yes" ] && ops="$ops write"
-	res=0
-	for operation in $ops; do
-		$LBJOBSTATUS $jobid | grep -E "^acl :.*<entry><cred><auri>dn:${identity}</auri></cred><allow><${operation}/></allow></entry>" > /dev/null
-		if [ $? -ne 0 ]; then
-			res=1
-		fi
-	done
-	if [ $res -ne 0 ]; then
+	res=`$LBJOBSTATUS $jobid 2>/dev/null`
+	if [ $? -ne 0 ]; then
 		test_failed
-		print_error "ACL not modified properly"
-		break;
+		print_error "Server doesn't respond"
+		break
+	fi
+	echo $res | grep "hokus = \"pokus\"" > /dev/null
+	if [ $? -eq 0 ]; then
+		test_failed
+		print_error "Adding UserTag allowed"
+		break
 	fi
 	test_done
 
-
-	printf "Removing ACL entries..."
+	printf "Changing ACL setting "
 	perms="READ"
 	[ "$test_tag_acl" = "yes" ] && perms="$perms TAG"
 	res=0
 	for p in $perms; do
-		change_acl "${jobid}" "REMOVE" $p $identity
+		$LBLOGEVENT -e ChangeACL -s UserInterface -p -j $jobid --user_id "$identity" --user_id_type DN --permission $p --permission_type ALLOW --operation ADD > /dev/null
 		if [ $? -ne 0 ]; then
+			print_error "Adding $p permission to ACL failed"
 			res=1
 		fi
 	done
 	if [ $res -ne 0 ]; then
 		test_failed
-		break;
-	fi
-
-	$LBJOBSTATUS $jobid | grep -E "^acl :<?xml version="1.0"?><gacl version="0.9.0"></gacl>$" > /dev/null
-	if [ $res -ne 0 ]; then
-		test_failed
-		print_error "Entries not removed properly"
+		break
 	fi
 	test_done
 
-		
+	printf "Checking allowed access "
+#try querying status
+	X509_USER_PROXY=$X509_USER_PROXY_BOB $LBJOBSTATUS $jobid 2>/dev/null| grep "^state : Submitted" > /dev/null
+	if [ $? -ne 0 ]; then
+		test_failed
+		print_error "ACL permission doesn't work"
+		break
+	fi
+
+#try adding a usertag
+	if [ "$test_tag_acl" = "yes" ]; then
+		X509_USER_PROXY=$X509_USER_PROXY_BOB $LBLOGEVENT -e UserTag -s Application -j $jobid --name "hokus" --value "pokus" > /dev/null
+		if [ $? -ne 0 ]; then
+			test_failed
+			print_error "Sending UserTag failed"
+			break
+		fi
+
+	#	sleep 10
+
+		res=`$LBJOBSTATUS $jobid 2>/dev/null`
+		if [ $? -ne 0 ]; then
+			test_failed
+			print_error "Server doesn't respond"
+			break
+		fi
+		echo $res | grep "hokus = \"pokus\"" > /dev/null
+		if [ $? -ne 0 ]; then
+			test_failed
+			print_error "Adding UserTag not allowed"
+			break
+		fi
+	fi
+
+	test_done
+
 	#Purge test job
 	joblist=$$_jobs_to_purge.txt
 	echo $jobid > ${joblist}
 	try_purge ${joblist}
-
 done
 
 test_end
