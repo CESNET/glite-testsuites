@@ -253,3 +253,21 @@ function test_args()
         echo $@
 }
 
+function check_credentials()
+{
+	my_GRIDPROXYINFO=${GRIDPROXYINFO}
+	if [ "$1" != "" ]; then
+		my_GRIDPROXYINFO="${GRIDPROXYINFO} -f $1"
+	fi
+
+	timeleft=`${my_GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+	if [ "$timeleft" = "" ]; then
+		print_error "No credentials"
+		return 1
+	fi
+	if [ "$timeleft" = "0:00:00" ]; then
+		print_error "Credentials expired"
+		return 1
+	fi
+	return 0
+}
