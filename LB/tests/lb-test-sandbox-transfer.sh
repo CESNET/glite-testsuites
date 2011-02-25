@@ -308,8 +308,335 @@ else
 
 		fi
 
-		
-		
+		#******************************* Test sandbox collection *********************************
+
+		# Register job:
+                printf "Registering testing job "
+
+                ${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application > sbtestjob.$$.out
+
+                jobid=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+                seqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "EDG_WL_SEQUENCE" | ${SYS_SED} 's/EDG_WL_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
+
+                $SYS_RM sbtestjob.$$.out
+
+                if [ -z $jobid  ]; then
+                        test_failed
+                        print_error "Failed to register job"
+                else
+                        test_done
+			
+			# register sandbox collection 
+
+			printf "Registering input SandBox collection...  "
+
+                        $LBREGSANDBOX --jobid $jobid --input --from http://users.machine/path/to/sandbox.file --to file://where/it/is/sandbox.file --sequence $seqcode -n 2 > sbtestjob.$$.out
+
+                        isbjobid=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_JOBID" | ${SYS_SED} 's/GLITE_LB_ISB_JOBID=//' | ${SYS_SED} 's/"//g'`
+                        isbseqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_SEQUENCE" | ${SYS_SED} 's/GLITE_LB_ISB_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
+                        seqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_WMS_SEQUENCE_CODE" | ${SYS_SED} 's/GLITE_WMS_SEQUENCE_CODE=//' | ${SYS_SED} 's/"//g'`
+			isbsubjobid0=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[0\]" | ${SYS_SED} 's/EDG_WL_SUB_JOBID\[0\]=//' | ${SYS_SED} 's/"//g'`
+			isbsubjobid1=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[1\]" | ${SYS_SED} 's/EDG_WL_SUB_JOBID\[1\]=//' | ${SYS_SED} 's/"//g'`
+
+			printf "Subjobs: " $isbsubjobid0 $isbsubjobid1
+
+                        $SYS_RM sbtestjob.$$.out
+
+                        if [ -z $isbjobid  ]; then
+                                test_failed
+                                print_error "Failed to register job"
+                        else
+                                printf "$isbjobid"
+                                test_done
+
+				# Check relations
+
+				printf "Check ISB transfer JobID for computing job... "
+                                isbjobidreported=`$LBJOBSTATUS $jobid | $SYS_GREP -m 1 "isb_transfer :" | ${SYS_AWK} '{print $3}'`
+                                printf "$isbjobidreported"
+
+                                if [ "$isbjobidreported" = "$isbjobid" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "Not returned or no match"
+                                fi
+
+				printf "Check computing Job ID for ISB... "
+                                jobidreported=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "ft_compute_job :" | ${SYS_AWK} '{print $3}'`
+                                printf "$jobidreported"
+
+                                if [ "$jobidreported" = "$jobid" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "Not returned or no match"
+                                fi
+
+				printf "Check computing Job ID for subjob 0... "
+                                jobidreported=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "ft_compute_job :" | ${SYS_AWK} '{print $3}'`
+                                printf "$jobidreported"
+
+                                if [ "$jobidreported" = "$jobid" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "Not returned or no match"
+                                fi
+
+				printf "Check transfer Job ID for subjob 0... "
+                                jobidreported=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "parent_job :" | ${SYS_AWK} '{print $3}'`
+                                printf "$jobidreported"
+
+                                if [ "$jobidreported" = "$isbjobid" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "Not returned or no match"
+                                fi
+
+
+				# Check states
+				
+				isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
+				printf "Checking state of $isbjobid... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Submitted" ]; then
+                                	test_done
+                                else
+                                	test_failed
+                                        print_error "'Submitted' was expected"
+                                fi
+
+				isbjobstate=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+				printf "Checking state of $isbsubjobid0... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Submitted" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Submitted' was expected"
+                                fi
+
+				isbjobstate=`$LBJOBSTATUS $isbsubjobid1 | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+				printf "Checking state of $isbsubjobid1... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Submitted" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Submitted' was expected"
+                                fi
+
+				# log START for subjob 1
+				printf "Subjob 1 transfer starting... "
+                                isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid1 --sequence $osbseqcode --event FileTransfer --result START`
+
+                                if [ -z $isbseqcode ]; then
+	                                test_failed
+                                        print_error "LogEvent failed"
+                                else
+                                	test_done
+                                fi
+
+				# Check states
+                                sleep 10
+				
+				isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbjobid... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Running" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Running' was expected"
+                                fi
+
+				isbjobstate=`$LBJOBSTATUS $isbsubjobid1 | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbsubjobid1... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Running" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Running' was expected"
+                                fi
+
+				# log OK for subjob 1
+                                printf "Subjob 1 transfer ending... "
+                                isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid1 --sequence $osbseqcode --event FileTransfer --result OK`
+
+                                if [ -z $isbseqcode ]; then
+                                        test_failed
+                                        print_error "LogEvent failed"
+                                else
+                                        test_done
+                                fi
+
+				# Check states
+                                sleep 10
+
+                                isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbjobid... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Waiting" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Waiting' was expected"
+                                fi
+
+                                isbjobstate=`$LBJOBSTATUS $isbsubjobid1 | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbsubjobid1... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Done" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Done' was expected"
+                                fi
+
+				isbjobstate=`$LBJOBSTATUS $isbsubjobid1 | $SYS_GREP "done_code :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking Done Code... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "DONE_CODE_OK" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'DONE_CODE_OK' was expected"
+                                fi
+
+				# log START for subjob 0
+                                printf "Subjob 0 transfer starting... "
+                                isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid0 --sequence $osbseqcode --event FileTransfer --result START` 
+
+                                if [ -z $isbseqcode ]; then
+                                        test_failed
+                                        print_error "LogEvent failed"
+                                else
+                                        test_done
+                                fi
+
+				# Check states
+                                sleep 10
+
+                                isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbjobid... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Running" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Running' was expected"
+                                fi
+
+                                isbjobstate=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbsubjobid0... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Running" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Running' was expected"
+                                fi
+
+				# log FAIL for subjob 0
+                                printf "Subjob 0 transfer ending... "
+                                isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid0 --sequence $osbseqcode --event FileTransfer --result FAIL`
+
+                                if [ -z $isbseqcode ]; then
+                                        test_failed
+                                        print_error "LogEvent failed"
+                                else
+                                        test_done
+                                fi
+
+                                # Check states
+                                sleep 10
+
+                                isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbjobid... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Waiting" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Waiting' was expected"
+                                fi
+
+                                isbjobstate=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbsubjobid0... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Done" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Done' was expected"
+                                fi
+
+				isbjobstate=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "done_code :" | ${SYS_AWK} '{print $3}'`
+				printf "Checking Done Code... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "DONE_CODE_FAILED" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'DONE_CODE_FAILED' was expected"
+                                fi
+
+				# START and OK subjob 0
+
+				printf "Subjob 0 starting and ending..."
+				isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid0 --sequence $osbseqcode --event FileTransfer --result START`
+				isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid0 --sequence $osbseqcode --event FileTransfer --result OK`
+
+				# Check states
+                                sleep 10
+
+                                isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbjobid... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Done" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Done' was expected"
+                                fi
+
+				isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "done_code :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking Done Code... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "DONE_CODE_OK" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'DONE_CODE_OK' was expected"
+                                fi
+
+                                isbjobstate=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking state of $isbsubjobid... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "Done" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'Done' was expected"
+                                fi
+
+				isbjobstate=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "done_code :" | ${SYS_AWK} '{print $3}'`
+                                printf "Checking Done Code... $isbjobstate"
+
+                                if [ "${isbjobstate}" = "DONE_CODE_OK" ]; then
+                                        test_done
+                                else
+                                        test_failed
+                                        print_error "'DONE_CODE_OK' was expected"
+                                fi
+
+
+			fi
+
+		fi
 	fi
 fi
 
