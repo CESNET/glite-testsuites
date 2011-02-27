@@ -334,8 +334,8 @@ else
 
 			$SYS_GREP "invalid option -- n" sbtestjob.$$.err > /dev/null
 
-			if [ ]; then
-				printf "SB collection: capability not detected..."
+			if [ $? -eq 0 ]; then
+				printf "Capability not detected..."
 				test_skipped
 			else
 
