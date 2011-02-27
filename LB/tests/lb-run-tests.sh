@@ -115,7 +115,20 @@ GLITE_USER=\$2
 LBTSTCOLS=\$3
 OUTPUT_OPT=\$4
 
+
 export LBTSTCOLS
+
+yum install -q -y postgresql postgresql-server
+/etc/init.d/postgresql start
+mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
+cat >/var/lib/pgsql/data/pg_hba.conf <<EOF
+local all all trust
+host all all 127.0.0.1 ident sameuser
+host all all ::1/128 ident sameuser
+EOF
+/etc/init.d/postgresql reload
+createuser -U postgres -S -R -D rtm
+
 
 cd /tmp
 
@@ -142,6 +155,7 @@ fi
 
 echo cd > arrange_lb_test_user.sh
 echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
+echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_lb_test_user.sh
 echo mkdir LB_testing >> arrange_lb_test_user.sh
 echo cd LB_testing >> arrange_lb_test_user.sh
 echo cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB >> arrange_lb_test_user.sh
@@ -176,6 +190,7 @@ echo sh ./lb-test-sandbox-transfer.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-changeacl.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-statistics.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-threaded.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo sh ./lb-test-harvester.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo perl ./lb-test-purge.pl --i-want-to-purge delwin.fi.muni.cz:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
 echo echo "  TESTS END HERE" >> arrange_lb_test_user.sh

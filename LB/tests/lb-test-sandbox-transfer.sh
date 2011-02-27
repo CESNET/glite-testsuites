@@ -330,7 +330,7 @@ else
 
 			printf "Registering input SandBox collection...  "
 
-                        $LBREGSANDBOX --jobid $jobid --input --from http://users.machine/path/to/sandbox.file --to file://where/it/is/sandbox.file --sequence $seqcode -n 2 > sbtestjob.$$.out
+                        $LBREGSANDBOX --jobid $jobid --input --from http://users.machine/path/to/sandbox.file --to file://where/it/is/sandbox.file --sequence $seqcode -n 2 > sbtestjob.$$.out 2> sbtestjob.$$.err
 
                         isbjobid=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_JOBID" | ${SYS_SED} 's/GLITE_LB_ISB_JOBID=//' | ${SYS_SED} 's/"//g'`
                         isbseqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_SEQUENCE" | ${SYS_SED} 's/GLITE_LB_ISB_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
@@ -341,6 +341,7 @@ else
 			printf "Subjobs: " $isbsubjobid0 $isbsubjobid1
 
                         $SYS_RM sbtestjob.$$.out
+                        $SYS_RM sbtestjob.$$.err
 
                         if [ -z $isbjobid  ]; then
                                 test_failed
