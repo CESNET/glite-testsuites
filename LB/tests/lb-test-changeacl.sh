@@ -134,8 +134,9 @@ while [ "$CONT" = "yes" ]; do
 	fi
 	test_done
 
-	printf "Testing Tags permissions "
+	printf "Testing Tags permissions... "
 	if [ "$test_tag_acl" != "yes" ]; then
+		printf "Capability not detected..."
         	test_skipped
 	else
 		test_done
