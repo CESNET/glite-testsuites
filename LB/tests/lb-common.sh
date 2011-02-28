@@ -38,6 +38,12 @@ ulimit -c unlimited
 GLITE_LOCATION=${GLITE_LOCATION:-/opt/glite}
 SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
 PATH=$GLITE_LOCATION/bin:$GLITE_LOCATION/examples:$PATH
+for libdir in lib lib64; do
+	examples="$GLITE_LOCATION/$libdir/glite-lb/examples"
+	if test -d "$examples"; then
+		PATH="$examples:$PATH"
+	fi
+done
 export PATH
 
 # LB binaries
