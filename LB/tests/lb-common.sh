@@ -35,7 +35,8 @@ source ${TEST_COMMON}
 ulimit -c unlimited
 
 # define variables
-GLITE_LOCATION=${GLITE_LOCATION:-/opt/glite}
+GLITE_LB_LOCATION=${GLITE_LB_LOCATION:-/opt/glite}
+GLITE_LOCATION=${GLITE_LB_LOCATION}
 SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
 PATH=$GLITE_LOCATION/bin:$GLITE_LOCATION/examples:$PATH
 for libdir in lib lib64; do
