@@ -118,6 +118,7 @@ OUTPUT_OPT=\$4
 
 export LBTSTCOLS
 
+yum install -q -y globus-proxy-utils 
 yum install -q -y postgresql postgresql-server
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
