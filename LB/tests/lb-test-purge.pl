@@ -25,6 +25,8 @@ $inst = "/opt/glite" unless $inst;
 $sbin = "$inst/sbin";
 $bin = "$inst/bin";
 $test = "$inst/examples";
+$t = "$inst/lib/glite-lb/examples"; if (-d $t) { $test = $t; }
+$t = "$inst/lib64/glite-lb/examples"; if (-d $t) { $test = $t; }
 $purge = "glite-lb-purge";
 $status = "$test/glite-lb-job_status";
 $log = "$test/glite-lb-job_log";
