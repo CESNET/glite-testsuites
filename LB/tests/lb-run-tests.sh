@@ -162,6 +162,7 @@ echo cd LB_testing >> arrange_lb_test_user.sh
 echo cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB >> arrange_lb_test_user.sh
 echo ls >> arrange_lb_test_user.sh
 echo cd org.glite.testsuites.ctb/LB/tests >> arrange_lb_test_user.sh
+echo ulimit -c unlimited >> arrange_lb_test_user.sh
 echo 'export HNAME=\`hostname -f\`' >> arrange_lb_test_user.sh
 echo 'export GLITE_WMS_QUERY_SERVER=\$HNAME:9000' >> arrange_lb_test_user.sh
 echo 'export GLITE_WMS_NOTIF_SERVER=\$HNAME:9000' >> arrange_lb_test_user.sh
