@@ -156,6 +156,7 @@ fi
 
 echo cd > arrange_lb_test_user.sh
 echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
+echo export TEST_TAG_ACL=yes >> arrange_lb_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_lb_test_user.sh
 echo mkdir LB_testing >> arrange_lb_test_user.sh
 echo cd LB_testing >> arrange_lb_test_user.sh
