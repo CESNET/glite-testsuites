@@ -193,7 +193,7 @@ else
 				test_done
 			fi
 
-			printf "Checking if subjob has stateEnterTime set... "
+			printf "Checking if subjob has stateEnterTime set and > 0... "
 			j1stateenter=`${LBJOBSTATUS} ${subjobs[0]} | $SYS_GREP "stateEnterTime :" | $SYS_SED 's/stateEnterTime :\s*//' `
 			cresult=`$SYS_EXPR $j1stateenter= \> 0`
 			if [ "$cresult" -eq "1" ]; then
