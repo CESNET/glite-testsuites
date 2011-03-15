@@ -140,7 +140,7 @@ else
 	fi
 
 	printf "Checking Glue 1 root entry... "
-	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=grid' > ldap.$$.out
+	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=grid' 'GlueServiceType=org.glite.lb.Server' > ldap.$$.out
 	if [ $? -gt 0 ]; then	
 		test_failed
 		print_error "No reply"
@@ -163,7 +163,7 @@ else
 	fi
 
 	printf "Checking Glue 2.0 entry with 'o=glue'... "
-	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' > ldap.$$.out
+	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' 'GLUE2EndpointInterfaceName=org.glite.lb.Server' > ldap.$$.out
 	if [ $? -gt 0 ]; then	
 		test_failed
 		print_error "No reply"
