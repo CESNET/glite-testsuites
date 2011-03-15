@@ -193,6 +193,19 @@ else
 				test_done
 			fi
 
+			printf "Checking if subjob has stateEnterTime set... "
+			j1stateenter=`${LBJOBSTATUS} ${subjobs[0]} | $SYS_GREP "stateEnterTime :" | $SYS_SED 's/stateEnterTime :\s*//' `
+			cresult=`$SYS_EXPR $j1stateenter= \> 0`
+			if [ "$cresult" -eq "1" ]; then
+				printf "$j1stateenter (`$SYS_DATE -d @$j1stateenter`)"
+				test_done
+			else
+				test_failed
+				print_error "stateEnterTime not set"
+			fi
+
+			
+
 			printf "Logging events for subjobs... "
 			$LB_READY_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[0]} > /dev/null 2> /dev/null
 			$LB_DONE_SH -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -j ${subjobs[1]} > /dev/null 2> /dev/null
