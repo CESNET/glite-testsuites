@@ -90,7 +90,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $LBJOBREG $LBWSJOBSTATUS $LBWSJOBLOG
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $LBJOBREG $LBWSJOBSTATUS $LBWSJOBLOG $SYS_HOSTNAME
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -174,6 +174,50 @@ else
 			try_purge ${joblist}
 
 		fi
+
+		printf "Getting server version... "
+                servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
+                wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
+                if [ "$wsglservver" == "" ]; then
+	                test_failed
+                else
+        	        printf "$wsglservver"
+                        test_done
+                fi
+
+		printf "Getting WS interface version... "
+                wsglifver=`$LBWSGETVERSION -i -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Interface version:\s*//'`
+                if [ "$wsglifver" == "" ]; then
+	                test_failed
+                else
+        	        printf "$wsglifver"
+                        test_done
+                fi
+
+		printf "Check if test runs on server... "
+		localname=`$SYS_HOSTNAME -f`
+
+                if [ "$servername" == "$localname" ]; then
+			printf "Get rpm version... "
+			rpmversion=`$SYS_RPM -qi glite-lb-ws-interface | $SYS_GREP -E "^Version" | $SYS_SED 's/^Version\s*:\s*//' | $SYS_SED 's/\s.*$//'`
+
+	                if [ "$rpmversion" == "" ]; then
+				printf "Unable to detect rpm version"
+        	                test_skipped
+	                else
+                	        printf "$rpmversion"
+        	                test_done
+
+				printf "Comparing versions ($wsglifver == $rpmversion)... "
+
+		                if [ "$wsglifver" == "$rpmversion" ]; then
+                		        test_done
+		                else
+		                        test_done
+					print_error "Reported version differs from that indicated by RPM"
+		                fi
+	                fi
+                fi
 
 		
 		

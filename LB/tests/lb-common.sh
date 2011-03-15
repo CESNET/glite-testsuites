@@ -121,6 +121,8 @@ SYS_EXPR=expr
 SYS_BC=bc
 SYS_SCP=scp
 SYS_TOUCH=touch
+SYS_HOSTNAME=hostname
+SYS_RPM=rpm
 
 # not used at the moment
 DEBUG=2
