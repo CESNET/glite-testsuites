@@ -213,14 +213,14 @@ else
 		                if [ "$wsglifver" == "$rpmversion" ]; then
                 		        test_done
 		                else
-		                        test_done
+		                        test_failed
 					print_error "Reported version differs from that indicated by RPM"
 		                fi
 	                fi
+		else
+			printf "No"
+                        test_skipped
                 fi
-
-		
-		
 	fi
 fi
 
