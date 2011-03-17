@@ -149,7 +149,6 @@ else
 			if [ $? -gt 0 ]; then
 				test_missed
 			else
-				printf "\n\n${LB4AGUACTINFO} -j ${jobid} -m ${servername}:${GLITE_LB_SERVER_WPORT}\n\n"
 				${LB4AGUACTINFO} -j ${jobid} -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_GREP "${jobid}" >> /dev/null
 		                if [ $? = 0 ]; then
 					test_done
@@ -187,7 +186,6 @@ else
                 fi
 
 		printf "Getting WS interface version... "
-		printf "$LBWSGETVERSION -i -m ${servername}:${GLITE_LB_SERVER_WPORT}"
                 wsglifver=`$LBWSGETVERSION -i -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Interface version:\s*//'`
                 if [ "$wsglifver" == "" ]; then
 	                test_failed
