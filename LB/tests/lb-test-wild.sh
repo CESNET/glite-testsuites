@@ -361,7 +361,7 @@ for ((i=0;i<n;i++)); do
 	jobid="${jobs[$i]}"
 	status="${stats[$i]}"
 
-	$GLITE_LOCATION/examples/glite-lb-job_log "$jobid" > $$.ulm.log || fatal $TEST_ERROR "Can't query events for '$jobid'"
+	glite-lb-job_log "$jobid" > $$.ulm.log || fatal $TEST_ERROR "Can't query events for '$jobid'"
 	components=`cat $$.ulm.log | head -n -1 | $SYS_GREP -v '^$' | $SYS_SED -e 's/.*DG\.SOURCE="\([^"]*\)".*/\1/' | sort -f | uniq | tr '\n' ' ' | $SYS_SED 's/ $//'`
 	rm -f $$.ulm.log
 

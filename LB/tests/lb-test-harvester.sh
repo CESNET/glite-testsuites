@@ -33,7 +33,7 @@ Prerequisities:
   GLITE_RTM_TEST_ADDITIONAL_ARGS ... L&B harvester additional arguments
                                      (--old required for L&B < 2.0)
 
-  For full list of the possible environment variables, see '\$GLITE_LOCATION/examples/glite-lb-harvester.sh --help'.
+  For full list of the possible environment variables, see '`which glite-lb-harvester.sh` --help'.
 
 Tests called (glite-lb-harvester.sh script):
 
@@ -174,17 +174,18 @@ else
 	test_skipped
 fi
 
+printf "L&B harvester test script in PATH"
+if which glite-lb-harvester-test.sh >/dev/null 2>&1; then
+	test_done
+else
+	test_failed
+	print_error "glite-lb-harvester-test.sh not found"
+	exit 2
+fi
 
 ##
 # ==== L&B harvester test ====
 ##
-
-rm -f 'test.sql'
-if [ -f "$GLITE_LOCATION/etc/glite-lb/harvester-test-dbsetup.sql" ]; then
-	ln -s "$GLITE_LOCATION/etc/glite-lb/harvester-test-dbsetup.sql" 'test.sql'
-else
-	wget --quiet -O 'test.sql' 'http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.lb.harvester/examples/test.sql?revision=HEAD'
-fi
 
 printf "Launching the L&B harvester test..."
 print_newline
@@ -194,14 +195,14 @@ if [ -n "$is_html" ]; then
 else
 	local_amp='&'
 fi
-$GLITE_LOCATION/examples/glite-lb-harvester-test.sh stop
-$GLITE_LOCATION/examples/glite-lb-harvester-test.sh 2>&1 | sed "s,&,$local_amp,"
-err=$?
+glite-lb-harvester-test.sh stop
+(glite-lb-harvester-test.sh 2>&1; echo $? > res.$$.txt) | sed "s,&,$local_amp,"
+err=`cat res.$$.txt`; rm -f res.$$.txt
 if [ -n "$is_html" ]; then
 	printf "</pre>"
 fi
 
-if [ $err = 0 ]; then
+if [ "$err" = "0" ]; then
 	test_done
 else
 	test_failed
