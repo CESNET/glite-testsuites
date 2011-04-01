@@ -64,6 +64,7 @@ LB4AGUACTINFO=glite-lb-ws_lb4agu_GetActivityInfo
 LB4AGUACTSTATUS=glite-lb-ws_lb4agu_GetActivityStatus
 LBREGSANDBOX=glite-lb-register_sandbox
 LBHISTORY=glite-lb-state_history
+LBCMSCLIENT=glite-lb-cmsclient
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd
@@ -120,6 +121,7 @@ SYS_SCP=scp
 SYS_TOUCH=touch
 SYS_HOSTNAME=hostname
 SYS_RPM=rpm
+SYS_WC=wc
 
 # not used at the moment
 DEBUG=2

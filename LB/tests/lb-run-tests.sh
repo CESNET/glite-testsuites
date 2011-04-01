@@ -120,6 +120,8 @@ export LBTSTCOLS
 
 yum install -q -y globus-proxy-utils 
 yum install -q -y postgresql postgresql-server
+yum install -q -y activemq java-1.6.0-openjdk
+
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
 cat >/var/lib/pgsql/data/pg_hba.conf <<EOF
@@ -129,6 +131,13 @@ host all all ::1/128 ident sameuser
 EOF
 /etc/init.d/postgresql reload
 createuser -U postgres -S -R -D rtm
+
+if [ -f ~/.activemqrc ]
+	echo ActiveMQ already configured
+else
+	activemq setup ~/.activemqrc
+	activemq start
+fi
 
 
 cd /tmp
