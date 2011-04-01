@@ -163,7 +163,7 @@ else
 
 				printf "Sleep for 10 seconds to give messages time to deliver... "
 
-				sleep 3
+				sleep 10
 				test_done
 
 				kill $recpid
