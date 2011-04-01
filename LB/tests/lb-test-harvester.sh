@@ -81,6 +81,9 @@ do
 			source "site-info.def.tmp.$$"
 			rm -f "site-info.def.tmp.$$"
 			site=1
+			if test -z "$GLITE_MYSQL_ROOT_PASSWORD"; then
+				export GLITE_MYSQL_ROOT_PASSWORD="$MYSQL_PASSWORD"
+			fi
 			;;
 		*) showHelp && exit 2 ;;
 	esac
