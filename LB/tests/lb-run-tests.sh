@@ -132,7 +132,7 @@ EOF
 /etc/init.d/postgresql reload
 createuser -U postgres -S -R -D rtm
 
-if [ -f ~/.activemqrc ]
+if [ -f ~/.activemqrc ]; then
 	echo ActiveMQ already configured
 else
 	activemq setup ~/.activemqrc
