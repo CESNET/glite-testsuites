@@ -144,7 +144,7 @@ else
 			printf "(${notifid}) "
 			test_done
 
-			BROKERLINE=`grep -E "^broker" /etc/glite-lb/glite-lb-msg.conf`
+			BROKERLINE=`grep -E "^broker" /etc/glite-lb/msg.conf`
 
 			if [ $? = 0 ]; then
 
