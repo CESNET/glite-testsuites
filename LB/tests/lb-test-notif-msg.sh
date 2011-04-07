@@ -135,7 +135,7 @@ else
 		# Register notification:
 		printf "Registering notification "
 
-		notifid=`${LBNOTIFY} new -j ${jobid} -a x-msg://lbtest | $SYS_GREP "notification ID" | ${SYS_AWK} '{ print $3 }'`
+		notifid=`${LBNOTIFY} new -j ${jobid} -a x-msg://grid.emi.lbtest | $SYS_GREP "notification ID" | ${SYS_AWK} '{ print $3 }'`
 
 		if [ -z $notifid ]; then
 			test_failed
