@@ -148,7 +148,7 @@ else
 
 			if [ $? = 0 ]; then
 
-				BROKER=`$SYS_ECHO $BROKERLINE | $SYS_AWK '{print $3}' | $SYS_SED 's/^.*\/\///'`
+				BROKER=`$SYS_ECHO $BROKERLINE | $SYS_AWK '{print $3}' | $SYS_SED 's/^.*\/\///' | $SYS_SED 's/\///g'`
 
 				printf "connecting to broker $BROKER... "
 
