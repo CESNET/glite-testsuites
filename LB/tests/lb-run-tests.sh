@@ -195,6 +195,7 @@ echo sh ./lb-test-https.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-job-states.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-logevent.sh /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-notif-recovery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo sh ./lb-test-notif-msg.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-notif.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-notif-switch.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-proxy-delivery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
@@ -205,7 +206,6 @@ echo sh ./lb-test-changeacl.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-statistics.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-threaded.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-harvester.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo sh ./lb-test-notif-msg.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo perl ./lb-test-purge.pl --i-want-to-purge delwin.fi.muni.cz:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo 'echo "</literal>"' >> arrange_lb_test_user.sh
 echo 'echo "<verbatim>"' >> arrange_lb_test_user.sh
