@@ -150,7 +150,7 @@ else
 
 				BROKER=`$SYS_ECHO $BROKERLINE | $SYS_AWK '{print $3}' | $SYS_SED 's/^.*\/\///' | $SYS_SED 's/\///g'`
 
-				printf "connecting to broker $BROKER... "
+				printf "connecting to broker $BROKER, topic grid.emi.lbtest"
 
 				#Start listening for notifications
 				${LBCMSCLIENT} ${BROKER} grid.emi.lbtest > $$_notifications.txt &
