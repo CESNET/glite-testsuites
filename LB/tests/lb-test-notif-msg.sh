@@ -153,7 +153,7 @@ else
 				printf "connecting to broker $BROKER... "
 
 				#Start listening for notifications
-				${LBCMSCLIENT} ${BROKER} > $$_notifications.txt &
+				${LBCMSCLIENT} ${BROKER} grid.emi.lbtest > $$_notifications.txt &
 				recpid=$!
 				test_done
 
