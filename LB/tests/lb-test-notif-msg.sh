@@ -161,9 +161,9 @@ else
 				$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
 				test_done
 
-				printf "Sleep for 10 seconds to give messages time to deliver... "
+				printf "Sleep for 20 seconds to give messages time to deliver... "
 
-				sleep 10
+				sleep 20
 				test_done
 
 				kill $recpid
