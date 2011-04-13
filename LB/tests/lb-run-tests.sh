@@ -183,6 +183,12 @@ echo export GLITE_LB_LOGGER_PORT=9002 >> arrange_lb_test_user.sh
 echo export GLITE_WMS_LBPROXY_STORE_SOCK=/tmp/lb_proxy_ >> arrange_lb_test_user.sh
 echo 'env | egrep "GLITE|\$HNAME|PATH"' >> arrange_lb_test_user.sh
 echo pwd >> arrange_lb_test_user.sh
+if [ "\$OUTPUT_OPT" == "-i" ]; then
+echo echo ======================== >> arrange_lb_test_user.sh
+echo echo "  THE CONSOLE IS YOURS" >> arrange_lb_test_user.sh
+echo echo ======================== >> arrange_lb_test_user.sh
+echo '/bin/bash -i' >> arrange_lb_test_user.sh 
+else
 echo echo ======================== >> arrange_lb_test_user.sh
 echo echo "  REAL TESTS START HERE" >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh
@@ -212,7 +218,7 @@ echo 'echo "<verbatim>"' >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
 echo echo "  TESTS END HERE" >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
-
+fi
 #echo "" >> arrange_lb_test_user.sh
 
 chown \$GLITE_USER:\$GLITE_USER arrange_lb_test_user.sh
