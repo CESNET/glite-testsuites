@@ -204,6 +204,7 @@ echo sh ./lb-test-notif-recovery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-notif-msg.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-notif.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-notif-switch.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo sh ./lb-test-notif-stream.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-proxy-delivery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-ws.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-bdii.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
