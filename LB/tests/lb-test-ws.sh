@@ -134,6 +134,20 @@ else
 				print_error "Job has not been submitted"
 			fi
 
+			#(regresion-test Savannah Bug 77002)
+			printf "Checking if doneCode unset for job not yet done..."
+		
+			doneCode=`${LBWSJOBSTATUS} -m ${servername}:${GLITE_LB_SERVER_WPORT} -j ${jobid} | ${SYS_GREP} status | ${SYS_GREP} doneCode | ${SYS_SED} 's/^.*<doneCode>//' | ${SYS_SED} 's/<\/doneCode>.*$//'`
+
+			printf "($doneCode)"
+
+			if [ "$doneCode" == "" ]; then
+				test_done
+			else
+				test_failed
+				print_error "doneCode value $doneCode unexpected"
+			fi
+
 			printf "Is it possible to retrieve events?"
 
 			${LBWSJOBLOG} -j ${jobid} -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_GREP "<RegJob>" >> /dev/null
