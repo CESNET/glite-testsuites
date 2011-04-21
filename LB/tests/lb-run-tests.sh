@@ -120,7 +120,8 @@ export LBTSTCOLS
 
 yum install -q -y globus-proxy-utils 
 yum install -q -y postgresql postgresql-server
-yum install -q -y activemq java-1.6.0-openjdk
+#Standard setup now uses production brokers. No need to install our own.
+#yum install -q -y activemq java-1.6.0-openjdk
 
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
@@ -132,12 +133,12 @@ EOF
 /etc/init.d/postgresql reload
 createuser -U postgres -S -R -D rtm
 
-if [ -f ~/.activemqrc ]; then
-	echo ActiveMQ already configured
-else
-	activemq setup ~/.activemqrc
-	activemq start
-fi
+#if [ -f ~/.activemqrc ]; then
+#	echo ActiveMQ already configured
+#else
+#	activemq setup ~/.activemqrc
+#	activemq start
+#fi
 
 
 cd /tmp
