@@ -135,17 +135,21 @@ else
 			fi
 
 			#(regresion-test Savannah Bug 77002)
-			printf "Checking if doneCode unset for job not yet done..."
-		
-			doneCode=`${LBWSJOBSTATUS} -m ${servername}:${GLITE_LB_SERVER_WPORT} -j ${jobid} | ${SYS_GREP} status | ${SYS_GREP} doneCode | ${SYS_SED} 's/^.*<doneCode>//' | ${SYS_SED} 's/<\/doneCode>.*$//'`
+			printf "Checking if doneCode unset for job not yet done... "
+                	check_srv_version '>=' "2.2"
+	                if [ $? = 0 ]; then
+				doneCode=`${LBWSJOBSTATUS} -m ${servername}:${GLITE_LB_SERVER_WPORT} -j ${jobid} | ${SYS_GREP} status | ${SYS_GREP} doneCode | ${SYS_SED} 's/^.*<doneCode>//' | ${SYS_SED} 's/<\/doneCode>.*$//'`
 
-			printf "($doneCode)"
+				printf "($doneCode)"
 
-			if [ "$doneCode" == "" ]; then
-				test_done
+				if [ "$doneCode" == "" ]; then
+					test_done
+				else
+					test_failed
+					print_error "doneCode value $doneCode unexpected"
+				fi
 			else
-				test_failed
-				print_error "doneCode value $doneCode unexpected"
+				test_skipped
 			fi
 
 			printf "Is it possible to retrieve events?"
@@ -200,13 +204,18 @@ else
                 fi
 
 		printf "Getting WS interface version... "
-                wsglifver=`$LBWSGETVERSION -i -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Interface version:\s*//'`
-                if [ "$wsglifver" == "" ]; then
-	                test_failed
-                else
-        	        printf "$wsglifver"
-                        test_done
-                fi
+               	check_srv_version '>=' "2.2"
+                if [ $? = 0 ]; then
+	                wsglifver=`$LBWSGETVERSION -i -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Interface version:\s*//'`
+        	        if [ "$wsglifver" == "" ]; then
+	        	        test_failed
+	                else
+        		        printf "$wsglifver"
+                	        test_done
+	                fi
+		else
+			test_skipped
+		fi
 
 		printf "Check if test runs on server... "
 		localname=`$SYS_HOSTNAME -f`
