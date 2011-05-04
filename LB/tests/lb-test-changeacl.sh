@@ -101,7 +101,6 @@ change_acl()
 #####################
 
 identity="ThisIsJustATestingIdentity"
-test_tag_acl=${TEST_TAG_ACL:-"no"}
 
 {
 test_start
@@ -134,6 +133,15 @@ while [ "$CONT" = "yes" ]; do
 	fi
 	test_done
 
+        check_srv_version '>=' "2.2"
+        if [ $? -gt 0 ]; then
+		test_tag_acl="no"
+		test_done
+        else
+		test_tag_acl="yes"
+		test_done
+        fi
+
 	printf "Testing Tags permissions... "
 	if [ "$test_tag_acl" != "yes" ]; then
 		printf "Capability not detected..."
@@ -150,6 +158,7 @@ while [ "$CONT" = "yes" ]; do
 		print_error "Failed to register job"
 		break
 	fi
+	printf " $jobid"
 	test_done
 
 	printf "Changing ACL..."
@@ -167,7 +176,6 @@ while [ "$CONT" = "yes" ]; do
 		fi
 	fi
 	test_done
-
 
 	printf "Checking ACL for new values... "
 	ops="read"

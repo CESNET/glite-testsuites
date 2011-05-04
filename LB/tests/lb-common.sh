@@ -279,3 +279,32 @@ function check_credentials()
 	fi
 	return 0
 }
+
+function check_srv_version()
+{
+        check_binaries $LBWSGETVERSION
+        if [ $? -gt 0 ]; then
+		return 2
+        else
+		servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
+                wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
+                if [ "$wsglservver" == "" ]; then
+               		return 2
+                else
+	
+			SRVVER=`$SYS_ECHO $wsglservver | $SYS_GREP -o -E "^[0-9]+\.[0-9]+"`
+			CHKVER=`$SYS_ECHO $2 | $SYS_GREP -o -E "^[0-9]*\.[0-9*]"`
+
+			printf "Srv. version $SRVVER $1 $CHKVER? "
+		        cresult=`$SYS_EXPR $SRVVER $1 $CHKVER`
+	                if [ "$cresult" -eq "1" ]; then
+				printf "yes "
+				return 0
+                	else
+				printf "no "
+				return 1
+        	        fi
+		fi
+	fi
+	return 0
+}

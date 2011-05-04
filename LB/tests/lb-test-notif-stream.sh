@@ -77,11 +77,11 @@ do
 done
 
 # redirecting all output to $logfile
-touch $logfile
-if [ ! -w $logfile ]; then
-	echo "Cannot write to output file $logfile"
-	exit $TEST_ERROR
-fi
+#touch $logfile
+#if [ ! -w $logfile ]; then
+#	echo "Cannot write to output file $logfile"
+#	exit $TEST_ERROR
+#fi
 
 DEBUG=2
 RETURN=2
@@ -121,6 +121,15 @@ while true; do
 	test_done
 
 	RETURN=1
+
+	check_srv_version '>=' "2.2"
+	if [ $? -gt 0 ]; then
+		printf "Capability not detected. This test will be"
+		test_skipped
+		break
+	else
+		test_done
+	fi
 
 	# Register job:
 	printf "Registering job "
