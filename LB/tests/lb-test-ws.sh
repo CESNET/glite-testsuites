@@ -213,37 +213,37 @@ else
         		        printf "$wsglifver"
                 	        test_done
 	                fi
+
+			printf "Check if test runs on server... "
+			localname=`$SYS_HOSTNAME -f`
+
+			if [ "$servername" == "$localname" ]; then
+				printf "Get rpm version... "
+				rpmversion=`$SYS_RPM -qi glite-lb-ws-interface | $SYS_GREP -E "^Version" | $SYS_SED 's/^Version\s*:\s*//' | $SYS_SED 's/\s.*$//'`
+
+				if [ "$rpmversion" == "" ]; then
+					printf "Unable to detect rpm version"
+					test_skipped
+				else
+					printf "$rpmversion"
+					test_done
+
+					printf "Comparing versions ($wsglifver == $rpmversion)... "
+
+					if [ "$wsglifver" == "$rpmversion" ]; then
+						test_done
+					else
+						test_failed
+						print_error "Reported version differs from that indicated by RPM"
+		                fi
+	                fi
+			else
+				printf "No"
+                	        test_skipped
+	                fi
 		else
 			test_skipped
 		fi
-
-		printf "Check if test runs on server... "
-		localname=`$SYS_HOSTNAME -f`
-
-                if [ "$servername" == "$localname" ]; then
-			printf "Get rpm version... "
-			rpmversion=`$SYS_RPM -qi glite-lb-ws-interface | $SYS_GREP -E "^Version" | $SYS_SED 's/^Version\s*:\s*//' | $SYS_SED 's/\s.*$//'`
-
-	                if [ "$rpmversion" == "" ]; then
-				printf "Unable to detect rpm version"
-        	                test_skipped
-	                else
-                	        printf "$rpmversion"
-        	                test_done
-
-				printf "Comparing versions ($wsglifver == $rpmversion)... "
-
-		                if [ "$wsglifver" == "$rpmversion" ]; then
-                		        test_done
-		                else
-		                        test_failed
-					print_error "Reported version differs from that indicated by RPM"
-		                fi
-	                fi
-		else
-			printf "No"
-                        test_skipped
-                fi
 	fi
 fi
 
