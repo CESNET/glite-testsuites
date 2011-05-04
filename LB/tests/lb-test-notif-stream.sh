@@ -200,7 +200,7 @@ while true; do
 	break
 done
 
-#$SYS_RM $$_notifications.txt
+$SYS_RM $$_notifications.txt
 
 #Drop notification
 if [ ! -z "${notifid}" ]; then
