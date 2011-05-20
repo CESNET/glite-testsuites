@@ -361,6 +361,14 @@ else
 						printf "$isbjobid"
 						test_done
 
+						# Prepare list for future purge
+
+						joblist=$$_jobs_to_purge.txt
+						echo $jobid > ${joblist}
+						echo $isbjobid >> ${joblist}
+						echo $isbsubjobid0 >> ${joblist}
+						echo $isbsubjobid1 >> ${joblist}
+
 						# Check relations
 
 						printf "Check ISB transfer JobID for computing job... "
@@ -645,6 +653,7 @@ else
 							print_error "'DONE_CODE_OK' was expected"
 						fi
 
+						try_purge ${joblist}
 
 					fi
 				fi

@@ -68,7 +68,7 @@ sub logit {
 	my $prefix = shift;
 	my $failed = 0;
 
-	for (qw/aborted cleared cancelled waiting/) {
+	for (qw/aborted cleared cancelled waiting done/) {
 		my $key = $_ eq waiting ? 'other' : $_;
 		$id = `$test/glite-lb-$_.sh -m $server 2> /dev/null`;
 		chomp $id;
@@ -114,7 +114,7 @@ sub test_printf {
 
 
 test_printf ("** Hey, purging the whole database...");
-system "$purge --server $server --return-list --aborted=0 --cleared=0 --cancelled=0 --other=0";
+system "$purge --server $server --return-list --aborted=0 --cleared=0 --cancelled=0 --done=0 --other=0";
 if ($!) {
 	test_failed();
 	die "$purge: $!\n";
@@ -148,7 +148,7 @@ sleep $drain;
 
 test_printf ("** test jobs:\n");
 
-for (qw/aborted cleared cancelled other/) {
+for (qw/aborted cleared cancelled done other/) {
 	print "$_:\n\t$old{$_}\n\t$new{$_}\n";
 } 
 
@@ -156,7 +156,7 @@ test_printf ("** Dry run\n");
 $failed = 0;
 
 $half = $delay/2;
-for (qw/aborted cleared cancelled other/) {
+for (qw/aborted cleared cancelled done other/) {
 	open LIST,"$purge --server $server --dry-run --return-list --$_=${half}s| grep '^https://'|" or die "!! run $purge\n"; 
 
 	$id = <LIST>; chomp $id;
@@ -229,7 +229,7 @@ test_done();
 
 test_printf ("** Purge the first set of jobs\n");
 
-open DUMP,"$purge --server $server --server-dump --aborted=${half}s --cleared=${half}s --cancelled=${half}s --other=${half}s | grep '^Server dump:'|"
+open DUMP,"$purge --server $server --server-dump --aborted=${half}s --cleared=${half}s --cancelled=${half}s --done=${half}s --other=${half}s | grep '^Server dump:'|"
 	or die "!! run $purge\n";
 
 $dump = <DUMP>; chomp $dump; $dump =~ s/Server dump: //;
@@ -252,7 +252,7 @@ print "diff OK ";
 test_done();
 
 test_printf ("** Purge the rest\n");
-open DUMP,"$purge --server $server --server-dump --aborted=0 --cleared=0 --cancelled=0 --other=0 | grep '^Server dump:'|"
+open DUMP,"$purge --server $server --server-dump --aborted=0 --cleared=0 --cancelled=0 --done=0 --other=0 | grep '^Server dump:'|"
 	or die "!! run $purge\n";
 
 $dump = <DUMP>; chomp $dump; $dump =~ s/Server dump: //;
@@ -272,7 +272,7 @@ test_done();
 
 
 test_printf ("** Anything left?\n");
-open LIST,"$purge --server $server --return-list --dry-run --aborted=0 --cleared=0 --cancelled=0 --other=0 | grep '^https://'|" or die "!! $purge\n";
+open LIST,"$purge --server $server --return-list --dry-run --aborted=0 --cleared=0 --cancelled=0 --done=0 --other=0 | grep '^https://'|" or die "!! $purge\n";
 
 $id = <LIST>;
 close LIST;
