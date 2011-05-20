@@ -183,7 +183,7 @@ else
 						test_done
 					fi
 
-					sleep 10
+					sleep 2
 
 					isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
 					printf "Checking state... $isbjobstate"
@@ -205,7 +205,7 @@ else
                                                 test_done
                                         fi
 
-                                        sleep 10
+                                        sleep 2
 
                                         isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
                                         printf "Checking state... $isbjobstate"
@@ -228,7 +228,7 @@ else
 						test_done
 					fi
 
-					sleep 10
+					sleep 2
 
 					osbjobstate=`$LBJOBSTATUS $osbjobid | $SYS_GREP "state :" | ${SYS_AWK} '{print $3}'`
 					printf "Checking state... $osbjobstate"
@@ -250,7 +250,7 @@ else
                                                 test_done
                                         fi
 
-                                        sleep 10
+                                        sleep 2
 
                                         osbjobstate=`$LBJOBSTATUS $osbjobid | $SYS_GREP "done_code :" | ${SYS_AWK} '{print $3}'`
                                         printf "Checking Done Code... $osbjobstate"
@@ -460,7 +460,7 @@ else
 						fi
 
 						# Check states
-						sleep 10
+						sleep 2
 						
 						isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
 						printf "Checking state of $isbjobid... $isbjobstate"
@@ -494,7 +494,7 @@ else
 						fi
 
 						# Check states
-						sleep 10
+						sleep 2
 
 						isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
 						printf "Checking state of $isbjobid... $isbjobstate"
@@ -538,7 +538,7 @@ else
 						fi
 
 						# Check states
-						sleep 10
+						sleep 2
 
 						isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
 						printf "Checking state of $isbjobid... $isbjobstate"
@@ -572,7 +572,7 @@ else
 						fi
 
 						# Check states
-						sleep 10
+						sleep 2
 
 						isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
 						printf "Checking state of $isbjobid... $isbjobstate"
@@ -611,7 +611,7 @@ else
 						isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid0 --sequence $osbseqcode --event FileTransfer --result OK`
 
 						# Check states
-						sleep 10
+						sleep 2
 
 						isbjobstate=`$LBJOBSTATUS $isbjobid | $SYS_GREP -m 1 "state :" | ${SYS_AWK} '{print $3}'`
 						printf "Checking state of $isbjobid... $isbjobstate"
@@ -655,6 +655,29 @@ else
 
 						try_purge ${joblist}
 
+						printf "Check if purging was allowed..."
+						$LBJOBSTATUS $jobid > /dev/null 2>/dev/null
+						if [ $? -gt 0 ]; then
+							test_done
+							printf "Test if FT Collection was purged..."
+							$LBJOBSTATUS $isbjobid > /dev/null 2>/dev/null
+							if [ $? -gt 0 ]; then
+								test_done
+							else
+								test_failed
+							fi
+
+							printf "Test if FT Collection subjob was purged..."
+							$LBJOBSTATUS $isbsubjobid0 > /dev/null 2>/dev/null
+							if [ $? -gt 0 ]; then
+								test_done
+							else
+								test_failed
+							fi
+							
+						else
+							test_skipped								
+						fi
 					fi
 				fi
 				$SYS_RM sbtestjob.$$.err
