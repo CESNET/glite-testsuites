@@ -659,7 +659,7 @@ else
 						$LBJOBSTATUS $jobid > /dev/null 2>/dev/null
 						if [ $? -gt 0 ]; then
 							test_done
-							printf "Test if FT Collection was purged..."
+							printf "Test if SB Collection was purged..."
 							$LBJOBSTATUS $isbjobid > /dev/null 2>/dev/null
 							if [ $? -gt 0 ]; then
 								test_done
@@ -667,7 +667,7 @@ else
 								test_failed
 							fi
 
-							printf "Test if FT Collection subjob was purged..."
+							printf "Test if SB Collection subjob was purged..."
 							$LBJOBSTATUS $isbsubjobid0 > /dev/null 2>/dev/null
 							if [ $? -gt 0 ]; then
 								test_done
