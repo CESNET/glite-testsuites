@@ -74,11 +74,11 @@ do
 done
 
 # redirecting all output to $logfile
-touch $logfile
-if [ ! -w $logfile ]; then
-	echo "Cannot write to output file $logfile"
-	exit $TEST_ERROR
-fi
+#touch $logfile
+#if [ ! -w $logfile ]; then
+#	echo "Cannot write to output file $logfile"
+#	exit $TEST_ERROR
+#fi
 
 DEBUG=2
 
@@ -138,7 +138,7 @@ else
 				# Get list of jobs
 				printf "Evaluating job list... "
 
-				$SYS_CURL -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp https://${GLITE_WMS_QUERY_SERVER}/
+				$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp https://${GLITE_WMS_QUERY_SERVER}/
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -164,7 +164,7 @@ else
 				# Get job status
 				printf "Evaluating job status listing... "
 
-				$SYS_CURL -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp "${jobid}"
+				$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp "${jobid}"
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -210,7 +210,7 @@ else
 				# Get notification status
 				printf "Evaluating notification status listing... "
 
-				$SYS_CURL -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp "${notifid}"
+				$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp "${notifid}"
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -253,6 +253,37 @@ else
 
 			fi
 
+			printf "Trying excessively long request (regression-test bug #80263)..."
+			URL="https://${GLITE_WMS_QUERY_SERVER}/"
+			for i in {1..2000}
+			do
+				URL="${URL}$RANDOM"
+			done
+			printf "${#URL} characters"
+
+			$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
+			$SYS_GREP -E "400.*Bad.*Request" http.header.dump.$$ > /dev/null
+			if [ "$?" != "0" ]; then
+				test_failed
+				print_error "Incorrect HTTP header or header dump failed:"
+				$SYS_CAT http.header.dump.$$
+			else
+				test_done
+			fi
+			$SYS_RM http.header.dump.$$
+
+			printf "Trying request with normal length..."
+			URL="https://${GLITE_WMS_QUERY_SERVER}/$RANDOM"
+			$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
+			$SYS_GREP -E "404.*Not.*Found" http.header.dump.$$ > /dev/null
+			if [ "$?" != "0" ]; then
+				test_failed
+				print_error "Incorrect HTTP header or header dump failed:"
+				$SYS_CAT http.header.dump.$$
+			else
+				test_done
+			fi
+			$SYS_RM http.header.dump.$$
 
 		fi
 		
@@ -261,11 +292,12 @@ else
 fi
 
 test_end
-} &> $logfile
+}
+#} &> $logfile
 
-if [ $flag -ne 1 ]; then
- 	cat $logfile
- 	$SYS_RM $logfile
-fi
+#if [ $flag -ne 1 ]; then
+# 	cat $logfile
+# 	$SYS_RM $logfile
+#fi
 exit $TEST_OK
 
