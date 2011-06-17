@@ -310,8 +310,8 @@ else
 
 		#******************************* Test sandbox collection *********************************
 
-	        check_srv_version '>=' "2.2"
-	        if [ $? = 0 ]; then
+	        #check_srv_version '>=' "2.2"
+	        #if [ $? = 0 ]; then
                 	test_done
 
 
@@ -448,9 +448,47 @@ else
 							print_error "'Submitted' was expected"
 						fi
 
+						# log src/dest for subjob 1
+						printf "Logging source and destination for subjob 1"
+						isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid1 --sequence $isbseqcode --event FileTransferRegister --src  http://users.machine/path/to/sandbox.file.1 --dest file://where/it/is/sandbox.file.1`
+						if [ -z $isbseqcode ]; then
+                                                        test_failed
+                                                        print_error "LogEvent failed"
+                                                else
+                                                        test_done
+                                                fi
+
+						# Check source
+						sleep 10
+
+						isbsubjobsrc1=`$LBJOBSTATUS $isbsubjobid1 | $SYS_GREP "ft_src :" | ${SYS_AWK} '{print $3}'`
+
+						printf "Checking source of $isbsubjobid1... $isbsubjobsrc1"
+
+						if [ "${isbsubjobsrc1}" = "http://users.machine/path/to/sandbox.file.1" ]; then
+							test_done
+						else
+							test_failed
+							printf "http://users.machine/path/to/sandbox.file.1 was expected"
+						fi
+
+						# Check destination
+
+						isbsubjobdest1=`$LBJOBSTATUS $isbsubjobid1 | $SYS_GREP "ft_dest :" | ${SYS_AWK} '{print $3}'`
+
+                                                printf "Checking destination of $isbsubjobid1... $isbsubjobdest1"
+
+                                                if [ "${isbsubjobdest1}" = "file://where/it/is/sandbox.file.1" ]; then
+                                                        test_done
+                                                else
+                                                        test_failed
+                                                        printf "file://where/it/is/sandbox.file.1 was expected"
+                                                fi
+
+
 						# log START for subjob 1
 						printf "Subjob 1 transfer starting... "
-						isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid1 --sequence $osbseqcode --event FileTransfer --result START`
+						isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid1 --sequence $isbseqcode --event FileTransfer --result START`
 
 						if [ -z $isbseqcode ]; then
 							test_failed
@@ -525,6 +563,43 @@ else
 							test_failed
 							print_error "'DONE_CODE_OK' was expected"
 						fi
+
+						# log src/dest for subjob 0
+                                                printf "Logging source and destination for subjob 0"
+                                                isbseqcode=`$LBLOGEVENT --source LRMS --jobid $isbsubjobid0 --sequence $isbseqcode --event FileTransferRegister --src  http://users.machine/path/to/sandbox.file.0 --dest file://where/it/is/sandbox.file.0`
+                                                if [ -z $isbseqcode ]; then
+                                                        test_failed
+                                                        print_error "LogEvent failed"
+                                                else
+                                                        test_done
+                                                fi
+
+                                                # Check source
+                                                sleep 10
+
+                                                isbsubjobsrc0=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "ft_src :" | ${SYS_AWK} '{print $3}'`
+
+                                                printf "Checking source of $isbsubjobid0... $isbsubjobsrc0"
+
+                                                if [ "${isbsubjobsrc0}" = "http://users.machine/path/to/sandbox.file.0" ]; then
+                                                        test_done
+                                                else
+                                                        test_failed
+                                                        printf "http://users.machine/path/to/sandbox.file.1 was expected"
+                                                fi
+
+						# Check destination
+
+						isbsubjobdest0=`$LBJOBSTATUS $isbsubjobid0 | $SYS_GREP "ft_dest :" | ${SYS_AWK} '{print $3}'`
+
+                                                printf "Checking destination of $isbsubjobid0... $isbsubjobdest0"
+
+                                                if [ "${isbsubjobdest0}" = "file://where/it/is/sandbox.file.0" ]; then
+                                                        test_done
+                                                else    
+                                                        test_failed 
+                                                        printf "file://where/it/is/sandbox.file.0 was expected"
+                                                fi
 
 						# log START for subjob 0
 						printf "Subjob 0 transfer starting... "
@@ -682,15 +757,15 @@ else
 				fi
 				$SYS_RM sbtestjob.$$.err
 			fi
-		else
-			printf "SB colection capability not detected..."
-			test_skipped
-		fi
+		#else
+		#	printf "SB colection capability not detected..."
+		#	test_skipped
+		#fi
 	fi
 fi
 
 test_end
-}
+
 #} &> $logfile
 
 #if [ $flag -ne 1 ]; then
@@ -698,4 +773,4 @@ test_end
 # 	$SYS_RM $logfile
 #fi
 exit $TEST_OK
-
+}
