@@ -370,6 +370,55 @@ EOF
 	htproxydestroy --cert /etc/grid-security/hostcert.pem --key /etc/grid-security/hostkey.pem --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi
 
 
+	printf "Test handling of VOMS .lsc files (Regression test for bug #39254 and #82023)\n"
+
+	if [ -e /tmp/x509up_u`id -u` ]; then
+	
+		# Add read permissions for any user to .gacl	
+		sed -i 's/<\/gacl>/<entry><any-user\/><allow><read\/><\/allow><\/entry><\/gacl>/' /var/www/htdocs/.gacl
+	
+		FQAN=`voms-proxy-info --fqan`
+
+		rm -rf /etc/grid-security/vomsdir
+		printf "Trying without vomsdir. GRST_CRED_2 should not be present... "
+		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
+		if [ "$GRST_CRED_2" == "" ]; then
+			test_done
+		else
+			print_error "returned: $GRST_CRED_2\n"
+			test_failed
+		fi
+
+		printf "Setting up .lsf file and trying again"
+		mkdir -p /etc/grid-security/vomsdir/voce/
+
+		cat > /etc/grid-security/vomsdir/voce/voms1.egee.cesnet.cz.lsc <<EOF
+/DC=cz/DC=cesnet-ca/O=CESNET/CN=voms1.egee.cesnet.cz
+/DC=cz/DC=cesnet-ca/CN=CESNET CA
+EOF
+
+		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
+
+		if [ "$GRST_CRED_2" == "" ]; then
+			print_error "GRST_CRED_2 not returned"
+			test_failed
+		else
+			test_done
+
+			printf "Checking for presence of FQAN... "
+			echo "$GRST_CRED_2" | grep $FQAN > /dev/null
+			if [ $? = 0 ]; then
+				test_done
+			else
+				print_error "returned: $GRST_CRED_2"
+				test_failed
+			fi
+		fi
+
+	else
+		printf "No proxy certificate"
+		test_skipped
+	fi
 
 
 test_end
