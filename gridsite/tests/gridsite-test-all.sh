@@ -420,6 +420,30 @@ EOF
 		test_skipped
 	fi
 
+	printf "Test flavours and sonames\n"
+	for prefix in /usr /opt/glite; do
+		for libdir in 'lib64' 'lib'; do
+			if test -f $prefix/$libdir/libgridsite.so.*.*.*; then
+				path="$prefix/$libdir"
+			fi
+		done
+	done
+	for flavour in '' '_nossl' '_globus'; do
+		printf "  flavour '$flavour' "
+		if test -f $path/libgridsite$flavour.so.*.*.*; then
+			printf "$path/libgridsite$flavour.so "
+			readelf -a $path/libgridsite$flavour.so.*.*.* | grep -i soname | grep libgridsite$flavour\.so\. >/dev/null
+			if test $? = 0; then
+				test_done
+			else
+				print_error "bad soname"
+				test_failed
+			fi
+		else
+			print_error "not present"
+			test_failed
+		fi
+	done
 
 test_end
 } 
