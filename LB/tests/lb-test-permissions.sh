@@ -26,7 +26,9 @@ Script for testing permission settings on L&B files
 Prerequisities:
    - L&B installed, configured and running
 
+     GLITE_USER
      GLITE_LOCATION
+     GLITE_LB_LOCATION_ETC
 
 Tests called:
 
@@ -60,7 +62,7 @@ for line in `$SYS_CAT $4`;do
 			FAIL=2
 		fi
 	else
-		printf "File $line does not exist"
+		printf "File $line does not exist. "
 		if [ $FAIL = 0 ]; then
 			FAIL=1
 		fi
@@ -119,6 +121,17 @@ else
 	test_done
 fi
 
+if [ "$GLITE_USER" = "" ]; then
+	GLITE_USER="glite"
+fi
+if [ "$GLITE_LOCATION" = "" ]; then
+	GLITE_LOCATION="/opt/glite"
+fi
+if [ "$GLITE_LB_LOCATION_ETC" = "" ]; then
+	GLITE_LB_LOCATION_ETC="/opt/glite/etc"
+fi
+
+
 #lrwxrwxrwx 1 root root 29 Aug  2 10:31 /etc/glite-lb-dbsetup.sql -> glite-lb/glite-lb-dbsetup.sql
 #lrwxrwxrwx 1 root root 37 Aug  2 10:31 /etc/glite-lb-index.conf.template -> glite-lb/glite-lb-index.conf.template
 #-r--r--r-- 1 root root 990 May 10 07:50 /etc/glite-lb/harvester-test-dbsetup.sql
@@ -130,40 +143,40 @@ EOF
 $SYS_CAT << EOF > 644glite
 /var/log/glite/glite-lb-lcas.log
 /var/log/glite/glite-lb-purger.log
-/home/glite/.bashrc
-/home/glite/.certs/hostcert.pem
-/home/glite/.bash_profile
-/home/glite/.bash_logout
+/home/$GLITE_USER/.bashrc
+/home/$GLITE_USER/.certs/hostcert.pem
+/home/$GLITE_USER/.bash_profile
+/home/$GLITE_USER/.bash_logout
 EOF
 
 $SYS_CAT << EOF > 644root
-/etc/glite-lb/msg.conf
-/usr/interface/lb-job-attrs2.xsd
-/etc/glite-lb/log4crc
-/etc/glite-lb/glite-lb-index.conf.template
-/etc/glite-lb/glite-lb-harvester.conf
-/etc/glite-lb/msg.conf.example
-/etc/glite-lb/glite-lb-dbsetup.sql
-/usr/interface/lb-job-record.xsd
-/etc/glite-lb/lcas.db
-/usr/interface/lb-job-attrs.xsd
-/etc/glite-lb/glite-lb-authz.conf
-/etc/gLiteservices
-/etc/logrotate.d/lb-lcas
-/etc/logrotate.d/lb-purger
+$GLITE_LB_LOCATION_ETC/glite-lb/msg.conf
+$GLITE_LOCATION/interface/lb-job-attrs2.xsd
+$GLITE_LB_LOCATION_ETC/glite-lb/log4crc
+$GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-index.conf.template
+$GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-harvester.conf
+$GLITE_LB_LOCATION_ETC/glite-lb/msg.conf.example
+$GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-dbsetup.sql
+$GLITE_LOCATION/interface/lb-job-record.xsd
+$GLITE_LB_LOCATION_ETC/glite-lb/lcas.db
+$GLITE_LOCATION/interface/lb-job-attrs.xsd
+$GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-authz.conf
+$GLITE_LB_LOCATION_ETC/gLiteservices
+$GLITE_LB_LOCATION_ETC/logrotate.d/lb-lcas
+$GLITE_LB_LOCATION_ETC/logrotate.d/lb-purger
 EOF
 
 $SYS_CAT << EOF > 664glite
-/var/glite/glite-lb-bkserverd.pid
-/var/glite/glite-lb-interlogd.pid
-/var/glite/glite-lb-logd.pid
-/var/glite/glite-lb-notif-interlogd.pid
-/var/glite/glite-lb-proxy-interlogd.pid
+$GLITE_LB_LOCATION_VAR/glite-lb-bkserverd.pid
+$GLITE_LB_LOCATION_VAR/glite-lb-interlogd.pid
+$GLITE_LB_LOCATION_VAR/glite-lb-logd.pid
+$GLITE_LB_LOCATION_VAR/glite-lb-notif-interlogd.pid
+$GLITE_LB_LOCATION_VAR/glite-lb-proxy-interlogd.pid
 EOF
 
 $SYS_CAT << EOF > 755root
-/etc/glite-lb/glite-lb-migrate_db2version20
-/usr/share/glite-lb/msg-brokers-openwire
+$GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-migrate_db2version20
+$GLITE_LOCATION/share/glite-lb/msg-brokers-openwire
 EOF
 
 $SYS_CAT << EOF > s700glite
@@ -175,22 +188,22 @@ $SYS_CAT << EOF > s700glite
 EOF
 
 printf "Checking permissions and ownership for\n  Host key... "
-test_perms "-r..------" glite glite 400glite
+test_perms "-r..------" $GLITE_USER $GLITE_USER 400glite
 
-printf "  glite's home dir files... "
-test_perms ".rw.r-.r-." glite glite 644glite
+printf "  $GLITE_USER's home dir files... "
+test_perms ".rw.r-.r-." $GLITE_USER $GLITE_USER 644glite
 
 printf "  Config files..."
 test_perms ".rw.r-.r-." root root 644root
 
 printf "  PIDs..."
-test_perms "-rw.rw.r-." glite glite 664glite
+test_perms "-rw.rw.r-." $GLITE_USER $GLITE_USER 664glite
 
 printf "  Admin scripts..."
 test_perms "-rwxr-xr-x" root root 755root
 
 printf "  Sockets... "
-test_perms "srw.------" glite glite s700glite
+test_perms "srw.------" $GLITE_USER $GLITE_USER s700glite
 
 
 $SYS_RM 400glite 644glite 644root 664glite 755root s700glite
