@@ -194,7 +194,8 @@ echo echo "  REAL TESTS START HERE" >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh
 echo 'echo "</verbatim>"' >> arrange_lb_test_user.sh
 echo 'echo "<literal>"' >> arrange_lb_test_user.sh
-echo sh ./lb-test-event-delivery.sh  \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo sh ./lb-test-permissions.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo sh ./lb-test-event-delivery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-il-recovery.sh -f /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-job-registration.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo sh ./lb-test-https.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh

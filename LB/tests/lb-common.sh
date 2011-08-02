@@ -122,6 +122,8 @@ SYS_TOUCH=touch
 SYS_HOSTNAME=hostname
 SYS_RPM=rpm
 SYS_WC=wc
+SYS_LS=ls
+SYS_STAT=stat
 
 # not used at the moment
 DEBUG=2
