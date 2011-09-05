@@ -310,3 +310,21 @@ function check_srv_version()
 	fi
 	return 0
 }
+
+function notif_wait() {
+	timeout="$1"
+	jobid="$2"
+	f="$3"
+
+	while ! $SYS_GREP ${jobid} "$f" > /dev/null 2>&1; do
+		sleep 1
+		printf "."
+		timeout=$((timeout-1))
+		if [ $timeout -le 0 ]; then
+			printf "timeout"
+			break;
+		fi
+	done
+	echo
+	$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
+}

@@ -149,6 +149,7 @@ else
 			#Start listening for notifications
 			${LBNOTIFY} receive -i 15 ${notifid} > $$_notifications.txt &
 			recpid=$!
+			disown $recpid
 
 			printf "Logging events resulting in RUNNING state\n"
 			$LB_RUNNING_SH -j ${jobid} > /dev/null 2> /dev/null
@@ -182,11 +183,12 @@ else
 				test_failed
 			fi
 
-			kill $recpid
+			kill $recpid >/dev/null 2>&1
 
 			#Start listening for notifications
 			${LBNOTIFY} receive -i 10 ${notifid} > $$_notifications.txt &
 			recpid=$!
+			disown $recpid
 
 			printf "Logging events resulting in DONE state for both jobs\n"
 			$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
@@ -194,7 +196,7 @@ else
 
 			sleep 10
 
-			kill $recpid
+			kill $recpid >/dev/null 2>&1
 
 			#$SYS_CAT $$_notifications.txt
 
@@ -253,11 +255,12 @@ else
 fi
 
 test_end
-} &> $logfile
+}
+#} &> $logfile
 
-if [ $flag -ne 1 ]; then
- 	cat $logfile
- 	$SYS_RM $logfile
-fi
+#if [ $flag -ne 1 ]; then
+# 	cat $logfile
+# 	$SYS_RM $logfile
+#fi
 exit $TEST_OK
 

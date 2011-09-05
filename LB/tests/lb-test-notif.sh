@@ -145,15 +145,16 @@ else
 			test_done
 
 			#Start listening for notifications
-			${LBNOTIFY} receive -i 5 ${notifid} > $$_notifications.txt &
+			${LBNOTIFY} receive -i 10 ${notifid} > $$_notifications.txt &
 			recpid=$!
+			disown $recpid
 
 			printf "Logging events resulting in DONE state\n"
 			$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
 
-			sleep 10
-
-			kill $recpid
+			printf "Receiving notifications "
+			notif_wait 10 ${jobid} $$_notifications.txt
+			kill $recpid >/dev/null 2>&1
 
 			$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
 

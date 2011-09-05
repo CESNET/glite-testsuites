@@ -171,20 +171,13 @@ while true; do
 	test_done
 
 	#Start listening for notifications
-	${LBNOTIFY} receive -i 5 ${notifid} > $$_notifications.txt &
+	${LBNOTIFY} receive -i 10 ${notifid} > $$_notifications.txt &
 	recpid=$!
+	disown $recpid
 
-	printf "Receiving the stream: "
-	cnt=0
-	while ! $SYS_GREP ${jobid} $$_notifications.txt > /dev/null; do
-		sleep 0.5
-		printf "."
-		cnt=$((cnt+1))
-		if [ $cnt -ge 10 ]; then
-			break
-		fi
-	done
-	kill $recpid
+	printf "Receiving the stream "
+	notif_wait 10 ${jobid} $$_notifications.txt
+	kill $recpid >/dev/null 2>&1
 
 	$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
 	if [ $? = 0 ]; then
