@@ -100,31 +100,11 @@ else
 fi
 
 printf "Testing credentials"
-
-timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-
-if [ "$timeleft" = "" ]; then
-        test_failed
-        print_error "No credentials"
-else
-        if [ "$timeleft" = "0:00:00" ]; then
-                test_failed
-                print_error "Credentials expired"
-        else
-                test_done
-
-		# Get path to the proxy cert
-		printf "Getting proxy cert path... "
-
-		PROXYCERT=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
-
-	        if [ "$PROXYCERT" = "" ]; then
-        	        test_failed
-                	print_error "Unable to identify the path to your proxy certificate"
-	        else
-			printf "$PROXYCERT"
-        	        test_done
-	
+check_credentials_and_generate_proxy
+if [ $? != 0 ]; then
+	test_end
+	exit 2
+fi	
 			# Register job:
 			printf "Registering testing job "
 			jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -285,11 +265,6 @@ else
 			fi
 			$SYS_RM http.header.dump.$$
 
-		fi
-		
-		
-	fi
-fi
 
 test_end
 }

@@ -128,6 +128,22 @@ SYS_STAT=stat
 # not used at the moment
 DEBUG=2
 
+function check_credentials_and_generate_proxy()
+{	
+	check_credentials
+	if [ $? != 0 ]; then
+		test_failed
+		./lb-generate-fake-proxy.sh
+		if [ $? != 0 ]; then
+			print_error "Proxy not created - process failed"
+			return 2
+		fi
+	else
+		test_done
+	fi
+	return 0
+}
+
 # ping host
 function ping_host()
 {
@@ -170,7 +186,7 @@ function check_binaries()
 	do	
 		check_exec $file 
 		if [ $? -gt 0 ]; then
-			update_error "file $file not found"
+			print_error "command $file not found"
 			ret=$TEST_ERROR
 		fi
 	done
@@ -270,7 +286,7 @@ function check_credentials()
 		my_GRIDPROXYINFO="${GRIDPROXYINFO} -f $1"
 	fi
 
-	timeleft=`${my_GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+	timeleft=`${my_GRIDPROXYINFO} 2>/dev/null | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
 	if [ "$timeleft" = "" ]; then
 		print_error "No credentials"
 		return 1

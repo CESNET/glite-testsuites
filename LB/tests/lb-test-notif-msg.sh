@@ -106,20 +106,11 @@ else
 fi
 
 printf "Testing credentials"
-
-timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-
-if [ "$timeleft" = "" ]; then
-        test_failed
-        print_error "No credentials"
-else
-        if [ "$timeleft" = "0:00:00" ]; then
-                test_failed
-                print_error "Credentials expired"
-        else
-                test_done
-
-
+check_credentials_and_generate_proxy
+if [ $? != 0 ]; then
+	test_end
+	exit 2
+fi
 		# Register job:
 		printf "Registering testing job "
 		jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application 2>&1 | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -208,8 +199,6 @@ else
 			try_purge ${joblist}
 
 		fi
-	fi
-fi
 
 test_end
 #} &> $logfile

@@ -91,245 +91,247 @@ DEBUG=2
 {
 test_start
 
-# check_binaries
-printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LB_READY_SH $LB_RUNNING_SH $LB_DONE_SH $SYS_AWK $LBJOBLOG
-if [ $? -gt 0 ]; then
-	test_failed
-else
-	test_done
-fi
+CONT="yes"
+while [ "$CONT" = "yes" ]; do
+	CONT="no"
 
-printf "Testing credentials"
-
-timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-
-if [ "$timeleft" = "" ]; then
-	test_failed
-	print_error "No credentials"
-else
-	if [ "$timeleft" = "0:00:00" ]; then
+	# check_binaries
+	printf "Testing if all binaries are available"
+	check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LB_READY_SH $LB_RUNNING_SH $LB_DONE_SH $SYS_AWK $LBJOBLOG
+	if [ $? -gt 0 ]; then
 		test_failed
-		print_error "Credentials expired"
 	else
 		test_done
+	fi
 
+	printf "Testing credentials"
+	check_credentials_and_generate_proxy
+	if [ $? != 0 ]; then
+		test_end
+		break
+	fi
 
-		# Register job:
-		printf "Registering testing job... "
-		jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+	# Register job:
+	printf "Registering testing job "
+	jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application`
+	if [ $? != 0 ]; then
+		test_failed
+		print_error "Failed to register job"
+		break
+	else
+		test_done
+	fi
+	jobid=`echo "${jobid}" | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+	if [ -z $jobid  ]; then
+		print_error "Failed to parse job "
+		test_end
+		exit 4
+	else
+		printf "($jobid)"
+	fi
+	
+	# log events:
+	printf "Logging events resulting in READY state... "
+	$LB_READY_SH -j ${jobid} > /dev/null 2> /dev/null
 
-		if [ -z $jobid  ]; then
-			test_failed
-			print_error "Failed to register job"
+	printf "Sleeping for 10 seconds...\n"
+
+	sleep 10
+
+	jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+	printf "Is the testing job ($jobid) in a correct state? $jobstate"
+
+	if [ "${jobstate}" = "Ready" ]; then
+		test_done
+	else
+		test_failed
+		print_error "Job is not in appropriate state"
+	fi
+
+#	printf "Logging events resulting in RUNNING state\n"
+#	$LB_RUNNING_SH -j ${jobid} > /dev/null 2> /dev/null
+
+	printf "Logging events resulting in DONE state... "
+	$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
+
+	printf "Sleeping for 10 seconds...\n"
+
+	sleep 10
+
+	jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+	printf "Testing job ($jobid) is in state: $jobstate"
+
+	if [ "${jobstate}" = "Done" ]; then
+		test_done
+	else
+		test_failed
+		print_error "Job is not in appropriate state"
+	fi
+
+	#Purge test job
+	joblist=$$_jobs_to_purge.txt
+	echo $jobid > ${joblist}
+
+        printf "Registering collection "
+        ${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 2 -S > $$_test_coll_registration.txt
+	jobid=`$SYS_CAT $$_test_coll_registration.txt | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+	if [ -z $jobid  ]; then
+		test_failed
+		print_error "Failed to register job"
+	else
+		test_done
+		subjobs=( $(cat $$_test_coll_registration.txt | $SYS_GREP EDG_WL_SUB_JOBID | $SYS_SED 's/EDG_WL_SUB_JOBID.*="//' | $SYS_SED 's/"$//') )
+		printf "Collection ID: $jobid\n     Subjob 1: ${subjobs[0]}\n     Subjob 2: ${subjobs[1]}\nChecking if subjob registration worked... "
+	
+		${LBJOBLOG} ${subjobs[0]} | $SYS_GREP 'DG.EVNT="RegJob"' >> /dev/null
+		if [ $? = 0 ]; then
+			printf "Registration event recorded"
+			test_done
 		else
-			printf "Registered job: $jobid"
+			test_failed
+			print_error "Subjob registration did not work (Registration event not recorded)"
+		fi
+	
+
+		job1jdl=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} -E "^jdl :" | ${SYS_AWK} '{print $3}'`
+		if [ "${job1jdl}" = "(null)" ]; then
+			test_failed
+			print_error "Subjob registration did not work (JDL not present: "${job1jdl}")"
+		else
+			printf "JDL present"
 			test_done
 		fi
 
-		# log events:
-		printf "Logging events resulting in READY state... "
-		$LB_READY_SH -j ${jobid} > /dev/null 2> /dev/null
+		printf "Logging events for subjobs... "
+		$LB_READY_SH -j ${subjobs[0]} > /dev/null 2> /dev/null
+		$LB_DONE_SH -j ${subjobs[1]} > /dev/null 2> /dev/null
 
-		printf "Sleeping for 10 seconds...\n"
-
+		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
 		sleep 10
 
-		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
-		printf "Is the testing job ($jobid) in a correct state? $jobstate"
+		jobstate=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+		printf "Is the testing job (${subjobs[0]}) in a correct state? $jobstate"
 
 		if [ "${jobstate}" = "Ready" ]; then
 			test_done
 		else
 			test_failed
-			print_error "Job is not in appropriate state"
+			print_error "State ${jobstate}: Job is not in appropriate state (Ready)"
 		fi
-
-#		printf "Logging events resulting in RUNNING state\n"
-#		$LB_RUNNING_SH -j ${jobid} > /dev/null 2> /dev/null
-
-		printf "Logging events resulting in DONE state... "
-		$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
-
-		printf "Sleeping for 10 seconds...\n"
-
-		sleep 10
-
-		jobstate=`${LBJOBSTATUS} ${jobid} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
-		printf "Testing job ($jobid) is in state: $jobstate"
+		jobstate=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
+		printf "Is the testing job (${subjobs[1]}) in a correct state? $jobstate"
 
 		if [ "${jobstate}" = "Done" ]; then
 			test_done
 		else
 			test_failed
-			print_error "Job is not in appropriate state"
+			print_error "State ${jobstate}: Job is not in appropriate state (Done)"
 		fi
 
-		#Purge test job
-		joblist=$$_jobs_to_purge.txt
-		echo $jobid > ${joblist}
 
-                printf "Registering collection "
-                ${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 2 -S > $$_test_coll_registration.txt
-                jobid=`$SYS_CAT $$_test_coll_registration.txt | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
-                if [ -z $jobid  ]; then
-                        test_failed
-                        print_error "Failed to register job"
-                else
-                        test_done
-                        subjobs=( $(cat $$_test_coll_registration.txt | $SYS_GREP EDG_WL_SUB_JOBID | $SYS_SED 's/EDG_WL_SUB_JOBID.*="//' | $SYS_SED 's/"$//') )
-                        printf "Collection ID: $jobid\n     Subjob 1: ${subjobs[0]}\n     Subjob 2: ${subjobs[1]}\nChecking if subjob registration worked... "
+		jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+		printf "Is the collection ($jobid) in a correct state? $jobstate"
 
-			${LBJOBLOG} ${subjobs[0]} | $SYS_GREP 'DG.EVNT="RegJob"' >> /dev/null
-                        if [ $? = 0 ]; then
-				printf "Registration event recorded"
-                                test_done
-                        else
-                                test_failed
-                                print_error "Subjob registration did not work (Registration event not recorded)"
-                        fi
+		if [ "${jobstate}" = "Waiting" ]; then
+			test_done
+		else
+			test_failed
+			print_error "State ${jobstate}: Job is not in appropriate state (Waiting)"
+		fi
 
+		printf "Logging events to clear subjobs... "
+		$LB_CLEARED_SH -j ${subjobs[0]} > /dev/null 2> /dev/null
+		$LB_CLEARED_SH -j ${subjobs[1]} > /dev/null 2> /dev/null
 
-                        job1jdl=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} -E "^jdl :" | ${SYS_AWK} '{print $3}'`
-                        if [ "${job1jdl}" = "(null)" ]; then
-                                test_failed
-                                print_error "Subjob registration did not work (JDL not present: "${job1jdl}")"
-                        else
-                                printf "JDL present"
-                                test_done
-                        fi
+		printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
+		sleep 10
 
-                        printf "Logging events for subjobs... "
-                        $LB_READY_SH -j ${subjobs[0]} > /dev/null 2> /dev/null
-                        $LB_DONE_SH -j ${subjobs[1]} > /dev/null 2> /dev/null
+		jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
+		printf "Is the collection ($jobid) in a correct state? $jobstate"
 
-                        printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
-                        sleep 10
+		if [ "${jobstate}" = "Cleared" ]; then
+			test_done
+		else
+			test_failed
+			print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
+		fi
 
-                        jobstate=`${LBJOBSTATUS} ${subjobs[0]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
-                        printf "Is the testing job (${subjobs[0]}) in a correct state? $jobstate"
+		echo $jobid > $$_jobs_to_purge_test.txt
 
-                        if [ "${jobstate}" = "Ready" ]; then
-                                test_done
-                        else
-                                test_failed
-                                print_error "State ${jobstate}: Job is not in appropriate state (Ready)"
-                        fi
-                        jobstate=`${LBJOBSTATUS} ${subjobs[1]} | ${SYS_GREP} "state :" | ${SYS_AWK} '{print $3}'`
-                        printf "Is the testing job (${subjobs[1]}) in a correct state? $jobstate"
+		printf "Purging collection... " 
 
-                        if [ "${jobstate}" = "Done" ]; then
-                                test_done
-                        else
-                                test_failed
-                                print_error "State ${jobstate}: Job is not in appropriate state (Done)"
-                        fi
+		$LBPURGE -j $$_jobs_to_purge_test.txt
 
+		printf "Sleeping for 10 seconds... " 
 
-                        jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
-                        printf "Is the collection ($jobid) in a correct state? $jobstate"
+		sleep 10
 
-                        if [ "${jobstate}" = "Waiting" ]; then
-                                test_done
-                        else
-                                test_failed
-                                print_error "State ${jobstate}: Job is not in appropriate state (Waiting)"
-                        fi
+		printf "Checking state of collection... " 
 
-                        printf "Logging events to clear subjobs... "
-                        $LB_CLEARED_SH -j ${subjobs[0]} > /dev/null 2> /dev/null
-                        $LB_CLEARED_SH -j ${subjobs[1]} > /dev/null 2> /dev/null
+		${LBJOBSTATUS} $jobid > $$_collstate.tmp 2> $$_collstate_err.tmp
+		jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
+		$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
+		if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
 
-                        printf "Sleeping for 10 seconds (waiting for events to deliver)...\n"
-                        sleep 10
+			if [ "${jobstate}" = "Purged" ]; then
+				printf "${jobstate}"
+			else
+			printf "Identifier removed"
+			fi
+			test_done
 
-                        jobstate=`${LBJOBSTATUS} -fullhist $jobid | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}'`
-                        printf "Is the collection ($jobid) in a correct state? $jobstate"
-
-                        if [ "${jobstate}" = "Cleared" ]; then
-                                test_done
-                        else
-                                test_failed
-                                print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
-                        fi
-
-			echo $jobid > $$_jobs_to_purge_test.txt
-
-			printf "Purging collection... " 
-
-			$LBPURGE -j $$_jobs_to_purge_test.txt
-
-			printf "Sleeping for 10 seconds... " 
-
-			sleep 10
-
-			printf "Checking state of collection... " 
-
-			${LBJOBSTATUS} $jobid > $$_collstate.tmp 2> $$_collstate_err.tmp
-                        jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
+			printf "Checking state of subjob #1... "
+			${LBJOBSTATUS} ${subjobs[0]} > $$_collstate.tmp 2> $$_collstate_err.tmp
+			jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
 			$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
-                        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
-
+			if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
 				if [ "${jobstate}" = "Purged" ]; then
 					printf "${jobstate}"
 				else
 					printf "Identifier removed"
 				fi
-                                test_done
+				test_done
+			else
+				test_failed
+				print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
+			fi
 
-				printf "Checking state of subjob #1... "
-				${LBJOBSTATUS} ${subjobs[0]} > $$_collstate.tmp 2> $$_collstate_err.tmp
-	                        jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
-				$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
-                	        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
-					if [ "${jobstate}" = "Purged" ]; then
-						printf "${jobstate}"
-					else
-						printf "Identifier removed"
-					fi
-        	                        test_done
-                	        else
-                        	        test_failed
-                                	print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
-	                        fi
+			printf "Checking state of subjob #2... "
+			${LBJOBSTATUS} ${subjobs[1]} > $$_collstate.tmp 2> $$_collstate_err.tmp
+			jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
+			$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
+			if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
+				if [ "${jobstate}" = "Purged" ]; then
+					printf "${jobstate}"
+				else
+					printf "Identifier removed"
+				fi
+				test_done
+			else
+				test_failed
+				print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
+			fi
 
-				printf "Checking state of subjob #2... "
-				${LBJOBSTATUS} ${subjobs[1]} > $$_collstate.tmp 2> $$_collstate_err.tmp
-	                        jobstate=`$SYS_CAT $$_collstate.tmp | ${SYS_GREP} -E "^state :" | ${SYS_AWK} '{print $3}' 2> $$_collstate.tmp`
-				$SYS_GREP "Identifier removed" $$_collstate_err.tmp > /dev/null
-                	        if [ "$?" = "0" -o "${jobstate}" = "Purged" ]; then
-					if [ "${jobstate}" = "Purged" ]; then
-						printf "${jobstate}"
-					else
-						printf "Identifier removed"
-					fi
-        	                        test_done
-                	        else
-                        	        test_failed
-                                	print_error "State ${jobstate}: Job is not in appropriate state (Cleared)"
-	                        fi
+		else
+			printf "${jobstate}"
+			test_skipped
+		fi
 
-                        else
-				printf "${jobstate}"
-                                test_skipped
-                        fi
-
-			$SYS_RM $$_jobs_to_purge_test.txt
-			$SYS_RM $$_collstate.tmp
-			$SYS_RM $$_collstate_err.tmp
-			
-                fi
-
-                echo ${subjobs[0]} >> ${joblist}
-                echo ${subjobs[1]} >> ${joblist}
-                echo $jobid >> ${joblist}
-                try_purge ${joblist}
-
-                $SYS_RM $$_test_coll_registration.txt
-
+		$SYS_RM $$_jobs_to_purge_test.txt
+		$SYS_RM $$_collstate.tmp
+		$SYS_RM $$_collstate_err.tmp
 
 	fi
-fi
+
+	echo ${subjobs[0]} >> ${joblist}
+	echo ${subjobs[1]} >> ${joblist}
+	echo $jobid >> ${joblist}
+	try_purge ${joblist}
+
+	$SYS_RM $$_test_coll_registration.txt
+
+
+done
 
 test_end
 #} &> $logfile

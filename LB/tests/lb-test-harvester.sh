@@ -118,23 +118,10 @@ else
 fi
 
 printf "Testing credentials"
-
-timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-
-if [ "$timeleft" = "" ]; then
-	test_failed
-	print_error "No credentials!"
+check_credentials_and_generate_proxy
+if [ $? != 0 ]; then
 	test_end
 	exit 2
-else
-	if [ "$timeleft" = "0:00:00" ]; then
-		test_failed
-		print_error "Credentials expired"
-		test_end
-		exit 2
-	else
-		test_done
-	fi
 fi
 
 printf "Testing access to MySQL"

@@ -105,21 +105,13 @@ fi
 
 printf "Testing credentials"
 
-timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-
 while true; do
-	if [ "$timeleft" = "" ]; then
-	 	test_failed
-	 	print_error "No credentials"
+	check_credentials_and_generate_proxy
+	if [ $? != 0 ]; then
+		test_end
+		RETURN=2
 		break
 	fi
-	if [ "$timeleft" = "0:00:00" ]; then
-		test_failed
-		print_error "Credentials expired"
-		break
-	fi
-	test_done
-
 	RETURN=1
 
 	check_srv_version '>=' "2.2"

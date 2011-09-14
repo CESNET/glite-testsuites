@@ -128,12 +128,14 @@ while [ "$CONT" = "yes" ]; do
 	fi
 	test_done
 
-	printf "Testing credentials"
-	check_credentials
-	if [ $? -ne 0 ]; then
-		test_failed
-		break
+	printf "Testing credentials"	
+	check_credentials_and_generate_proxy
+	if [ $? != 0 ]; then
+		test_end
+		exit 2
 	fi
+
+	printf "Testing snd proxy certificate"
 	if [ "$X509_USER_PROXY_BOB" = "" ]; then
 		test_failed
 		print_error "\$X509_USER_PROXY_BOB must be set"

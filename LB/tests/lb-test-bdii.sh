@@ -97,128 +97,118 @@ if [ $? -gt 0 ]; then
 	test_failed
 else
 	test_done
+fi
 
-	printf "Testing optional WS client binary"
-	check_binaries $LBWSGETVERSION
+printf "Testing optional WS client binary"
+check_binaries $LBWSGETVERSION
+if [ $? -gt 0 ]; then
+	printf " ... not present. Some tests will be skipped\n"
+	WSBIN="no"
+else
+	test_done
+
+	printf "Testing credentials"
+	check_credentials
 	if [ $? -gt 0 ]; then
-		printf " ... not present. Some tests will be skipped\n"
 		WSBIN="no"
 	else
+		WSBIN="yes"
+	fi
+
+fi
+
+# Register job:
+
+server=`${SYS_ECHO} ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} 's/:.*$//'`
+
+printf "Checking if BDII operational... "
+$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=infosys' > ldap.$$.out
+if [ $? -gt 0 ]; then	
+	test_failed
+	print_error "No reply"
+else
+	test_done
+fi
+
+printf "Checking Glue 1 root entry... "
+$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=grid' 'GlueServiceType=org.glite.lb.Server' > ldap.$$.out
+if [ $? -gt 0 ]; then	
+	test_failed
+	print_error "No reply"
+else
+	test_done
+fi
+
+printf "Checking ServiceStatus... "
+health=`$SYS_GREP GlueServiceStatus: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
+if [ "$health" == "" ]; then
+	print_error "GlueServiceStatus not specified"
+	test_failed
+else
+	printf "$health"
+	if [ "$health" == "OK" ]; then
 		test_done
+	else
+		test_failed
+	fi
+fi
 
-		printf "Testing credentials"
+printf "Checking Glue 2.0 entry with 'o=glue'... "
+$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' 'GLUE2EndpointInterfaceName=org.glite.lb.Server' > ldap.$$.out
+if [ $? -gt 0 ]; then	
+	test_failed
+	print_error "No reply"
+else
+	test_done
+fi
 
-		timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+printf "Checking GLUE2 HealthStatus... "
+health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
+if [ "$health" == "" ]; then
+	print_error "GLUE2EndpointHealthState not specified"
+	test_failed
+else
+	printf "$health"
+	if [ "$health" == "ok" ]; then
+		test_done
+	else
+		test_failed
+	fi
+fi
 
-		if [ "$timeleft" = "" ]; then
-			printf "No credentials, not critical\n"
-			WSBIN="no"
+printf "Checking GlueServiceVersion... "
+glservver=`$SYS_GREP GLUE2EndpointImplementationVersion ldap.$$.out | $SYS_SED 's/^.*GLUE2EndpointImplementationVersion:\s*//'`
+if [ "$glservver" == "" ]; then	
+	print_error "GLUE2EndpointImplementationVersion not specified"
+	test_failed
+else
+	printf "$glservver"
+	test_done
+
+	printf "Reading version through WS... "
+	if [ "$WSBIN" == "yes" ]; then
+		servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
+		wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
+		if [ "$wsglservver" == "" ]; then	
+			test_failed
 		else
-			if [ "$timeleft" = "0:00:00" ]; then
-				printf "Credentials expired, not critical\n"
-				WSBIN="no"
-			else
+			printf "$wsglservver"
+			test_done
+
+			printf "Comparing versions: '$glservver' == '$wsglservver'"
+			if [ "$glservver" == "$wsglservver" ]; then
 				test_done
-				WSBIN="yes"
-			fi
-
-		fi
-
-	fi
-
-	# Register job:
-
-	server=`${SYS_ECHO} ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} 's/:.*$//'`
-
-	printf "Checking if BDII operational... "
-	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=infosys' > ldap.$$.out
-	if [ $? -gt 0 ]; then	
-		test_failed
-		print_error "No reply"
-	else
-		test_done
-	fi
-
-	printf "Checking Glue 1 root entry... "
-	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=grid' 'GlueServiceType=org.glite.lb.Server' > ldap.$$.out
-	if [ $? -gt 0 ]; then	
-		test_failed
-		print_error "No reply"
-	else
-		test_done
-	fi
-
-	printf "Checking ServiceStatus... "
-	health=`$SYS_GREP GlueServiceStatus: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
-	if [ "$health" == "" ]; then
-		print_error "GlueServiceStatus not specified"
-		test_failed
-	else
-		printf "$health"
-		if [ "$health" == "OK" ]; then
-			test_done
-		else
-			test_failed
-		fi
-	fi
-
-	printf "Checking Glue 2.0 entry with 'o=glue'... "
-	$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' 'GLUE2EndpointInterfaceName=org.glite.lb.Server' > ldap.$$.out
-	if [ $? -gt 0 ]; then	
-		test_failed
-		print_error "No reply"
-	else
-		test_done
-	fi
-
-	printf "Checking GLUE2 HealthStatus... "
-	health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
-	if [ "$health" == "" ]; then
-		print_error "GLUE2EndpointHealthState not specified"
-		test_failed
-	else
-		printf "$health"
-		if [ "$health" == "ok" ]; then
-			test_done
-		else
-			test_failed
-		fi
-	fi
-
-	printf "Checking GlueServiceVersion... "
-	glservver=`$SYS_GREP GLUE2EndpointImplementationVersion ldap.$$.out | $SYS_SED 's/^.*GLUE2EndpointImplementationVersion:\s*//'`
-	if [ "$glservver" == "" ]; then	
-		print_error "GLUE2EndpointImplementationVersion not specified"
-		test_failed
-	else
-		printf "$glservver"
-		test_done
-
-		printf "Reading version through WS... "
-		if [ "$WSBIN" == "yes" ]; then
-			servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
-			wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
-			if [ "$wsglservver" == "" ]; then	
+			else
 				test_failed
-			else
-				printf "$wsglservver"
-				test_done
-
-				printf "Comparing versions: '$glservver' == '$wsglservver'"
-				if [ "$glservver" == "$wsglservver" ]; then
-					test_done
-				else
-					test_failed
-				fi
 			fi
-		else
-			test_skipped
 		fi
+	else
+		test_skipped
 	fi
+fi
 
-	rm ldap.$$.out
+rm ldap.$$.out
 
-fi		
 		
 
 test_end
