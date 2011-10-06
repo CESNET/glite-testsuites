@@ -122,6 +122,7 @@ yum install -q -y globus-proxy-utils
 yum install -q -y postgresql postgresql-server
 #Standard setup now uses production brokers. No need to install our own.
 #yum install -q -y activemq java-1.6.0-openjdk
+yum install -q -y emi-lb-nagios-plugins
 
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
