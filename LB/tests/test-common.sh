@@ -80,6 +80,7 @@ test_running="${spacefill}${begin_green}running${end_green}"
 test_failed="${spacefill}${begin_red}-TEST FAILED-${end_red}"
 test_missed="${spacefill}${begin_red}missing${end_red}"
 test_skipped="${spacefill}${begin_yellow}skipped${end_yellow}"
+test_warning="${spacefill}${begin_yellow}warning${end_yellow}"
 test_dead="${spacefill}${begin_red}dead${end_red}"
 test_unused="${spacefill}${begin_bold}unused${end_bold}"
 test_unknown="${spacefill}${begin_yellow}unknown${end_yellow}"
@@ -93,6 +94,7 @@ function test_running()	{ printf "${test_running}${lf}"; }
 function test_failed()	{ printf "${test_failed}${lf}"; }
 function test_missed()	{ printf "${test_missed}${lf}"; }
 function test_skipped()	{ printf "${test_skipped}${lf}"; }
+function test_warning()	{ printf "${test_warning}${lf}"; }
 function test_dead()	{ printf "${test_dead}${lf}"; }
 function test_unused()	{ printf "${test_unused}${lf}"; }
 function test_unknown	{ printf "${test_unknown}${lf}"; }
