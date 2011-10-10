@@ -105,6 +105,7 @@ if [ $? != 0 ]; then
 	test_end
 	exit 2
 fi	
+X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
 			# Register job:
 			printf "Registering testing job "
 			jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -118,7 +119,7 @@ fi
 				# Get list of jobs
 				printf "Evaluating job list... "
 
-				$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp https://${GLITE_WMS_QUERY_SERVER}/
+				$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp https://${GLITE_WMS_QUERY_SERVER}/
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -144,7 +145,7 @@ fi
 				# Get job status
 				printf "Evaluating job status listing... "
 
-				$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp "${jobid}"
+				$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp "${jobid}"
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -190,7 +191,7 @@ fi
 				# Get notification status
 				printf "Evaluating notification status listing... "
 
-				$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp "${notifid}"
+				$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp "${notifid}"
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -241,7 +242,7 @@ fi
 			done
 			printf "${#URL} characters"
 
-			$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
+			$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
 			$SYS_GREP -E "400.*Bad.*Request" http.header.dump.$$ > /dev/null
 			if [ "$?" != "0" ]; then
 				test_failed
@@ -254,7 +255,7 @@ fi
 
 			printf "Trying request with normal length..."
 			URL="https://${GLITE_WMS_QUERY_SERVER}/$RANDOM"
-			$SYS_CURL --insecure -3 --silent --key $PROXYCERT --cert $PROXYCERT --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
+			$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
 			$SYS_GREP -E "404.*Not.*Found" http.header.dump.$$ > /dev/null
 			if [ "$?" != "0" ]; then
 				test_failed
