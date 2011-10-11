@@ -168,6 +168,17 @@ else
 
 			$SYS_RM $$_notifications.txt
 
+			#Regress #86772
+			printf "Trying to drop invalid NotiID (regression test for bug #86772)..."
+			${LBNOTIFY} drop ${jobid} 2>&1 | ${SYS_GREP} "Invalid" > /dev/null
+			if [ $? = 0 ]; then
+				printf " EINVAL"
+				test_done
+			else
+				printf " no error reported!"
+				test_failed
+			fi
+
 			#Drop notification
 			printf "Dropping the test notification (${notifid})"
 			dropresult=`${LBNOTIFY} drop ${notifid} 2>&1`
