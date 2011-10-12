@@ -123,7 +123,7 @@ fi
 			test_done
 
 			# Check results
-			printf "Asking for states of all 30 jobs..."
+			printf "Asking for states of all 30 jobs (Regression into bug #76175)..."
 			for i in {0..30}
 			do
 				jobids="$jobids ${jobid[$i]}"

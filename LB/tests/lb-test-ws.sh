@@ -128,7 +128,7 @@ fi
 			fi
 
 			#(regresion-test Savannah Bug 77002)
-			printf "Checking if doneCode unset for job not yet done... "
+			printf "Checking if doneCode unset for job not yet done (Regression into bug #77002)... "
                 	check_srv_version '>=' "2.2"
 	                if [ $? = 0 ]; then
 				doneCode=`${LBWSJOBSTATUS} -m ${servername}:${GLITE_LB_SERVER_WPORT} -j ${jobid} | ${SYS_GREP} status | ${SYS_GREP} doneCode | ${SYS_SED} 's/^.*<doneCode>//' | ${SYS_SED} 's/<\/doneCode>.*$//'`
@@ -196,7 +196,7 @@ fi
                         test_done
                 fi
 
-		printf "Getting WS interface version... "
+		printf "Getting WS interface version (Regression into bug #37335)... "
                	check_srv_version '>=' "2.2"
                 if [ $? = 0 ]; then
 	                wsglifver=`$LBWSGETVERSION -i -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Interface version:\s*//'`

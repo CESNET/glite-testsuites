@@ -36,6 +36,7 @@ EndHelpHeader
 	echo "Usage: $progname [OPTIONS] hostname"
 	echo "Options:"
 	echo " -h | --help            Show this help message."
+	echo " -P | --no-proxy        Do not copy existing user proxy."
 	echo " hostname               L&B server to use for testing."
 }
 
@@ -47,12 +48,15 @@ if [ ! -r ${COMMON} ]; then
 fi
 source ${COMMON}
 
+COPYPROXY=1
+
 #logfile=$$.tmp
 #flag=0
 while test -n "$1"
 do
 	case "$1" in
 		"-h" | "--help") showHelp && exit 2 ;;
+		"-P" | "--no-proxy") COPYPROXY=0 ;;
 		*) remotehost=$1 
 			shift
 			outformat=$1
@@ -74,47 +78,56 @@ else
 	test_done
 fi
 
-printf "Testing credentials"
+printf "L&B server: '$remotehost'\n"
+if [ "$remotehost" == "" ]; then
+	printf "L&B server not specified, exittig...\n\n"
+	exit 1
+fi
 
-timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
+if [ $COPYPROXY -eq 1 ]; then
+	printf "Testing credentials... "
+	timeleft=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//" 2> /dev/null`
 
-if [ "$timeleft" = "" ]; then
-        test_failed
-        print_error "No credentials"
-else
-        if [ "$timeleft" = "0:00:00" ]; then
-                test_failed
-                print_error "Credentials expired"
-        else
-                test_done
+	if [ "$timeleft" = "" ]; then
+	        printf "No credentials"
+		COPYPROXY=0
+        	test_skipped
+	else
+        	if [ "$timeleft" = "0:00:00" ]; then
+	                printf "Credentials expired"
+			COPYPROXY=0
+                	test_skipped
+        	else
+                	test_done
 
-		# Get path to the proxy cert
-		printf "Getting proxy cert path... "
+			# Get path to the proxy cert
+			printf "Getting proxy cert path... "
 
-		PROXYCERT=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
+			PROXYCERT=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
 
-	        if [ "$PROXYCERT" = "" ]; then
-        	        test_failed
-                	print_error "Unable to identify the path to your proxy certificate"
-	        else
-			printf "$PROXYCERT"
-        	        test_done
-
-			printf "L&B server: '$remotehost'"
-
-			if [ "$remotehost" = "" ]; then
-				test_failed
-			else
-				test_done
+		        if [ "$PROXYCERT" = "" ]; then
+                		printf "Unable to identify the path to your proxy certificate"
+				COPYPROXY=0
+        		        test_skipped
+		        else
+				printf "$PROXYCERT"
+        		        test_done
 
 				scp $PROXYCERT root@$remotehost:/tmp/
+			fi
+		fi
+	fi
+fi
+
+if [ "$PROXYCERT" == "" ]; then
+	PROXYCERT="none"
+fi
 
 cat << EndArrangeScript > arrange_lb_test_root.sh 
 CERTFILE=\$1
 GLITE_USER=\$2
 LBTSTCOLS=\$3
 OUTPUT_OPT=\$4
-
 
 export LBTSTCOLS
 
@@ -123,6 +136,7 @@ yum install -q -y postgresql postgresql-server
 #Standard setup now uses production brokers. No need to install our own.
 #yum install -q -y activemq java-1.6.0-openjdk
 yum install -q -y emi-lb-nagios-plugins
+yum install -q -y voms-clients
 
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
@@ -141,15 +155,21 @@ createuser -U postgres -S -R -D rtm
 #	activemq start
 #fi
 
-
 cd /tmp
 
 glite_id=\`id -u \$GLITE_USER\`
 
 echo \$GLITE_USER user ID is \$glite_id
 
-mv \$CERTFILE x509up_u\$glite_id
-chown \$GLITE_USER:\$GLITE_USER x509up_u\${glite_id}
+if [ $COPYPROXY -eq 1 ]; then
+	mv \$CERTFILE x509up_u\$glite_id
+	chown \$GLITE_USER:\$GLITE_USER x509up_u\${glite_id}
+else
+	rm -rf /tmp/test-certs/grid-security
+	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB
+	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh
+	scp -rv /tmp/test-certs/grid-security/certificates/* /etc/grid-security/certificates/
+fi
 
 CVSPATH=\`which cvs\`
 
@@ -233,17 +253,14 @@ su -l \$GLITE_USER --command=/tmp/arrange_lb_test_user.sh
 echo "</verbatim>"
 
 EndArrangeScript
-				TERMCOLS=`stty size | awk '{print $2}'`
 
-				chmod +x arrange_lb_test_root.sh
+TERMCOLS=`stty size | awk '{print $2}'`
 
-				scp arrange_lb_test_root.sh root@$remotehost:/tmp/
+chmod +x arrange_lb_test_root.sh
 
-				ssh -l root $remotehost "sh /tmp/arrange_lb_test_root.sh $PROXYCERT glite $TERMCOLS $outformat"
+scp arrange_lb_test_root.sh root@$remotehost:/tmp/
+
+ssh -l root $remotehost "sh /tmp/arrange_lb_test_root.sh "$PROXYCERT" glite $TERMCOLS $outformat"
 
 		
-			fi
-		fi
-	fi
-fi
 

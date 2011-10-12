@@ -126,7 +126,7 @@ fi
 				print_error "Job has not been submitted"
 			fi
 
-			printf "Trying to re-register job with the same jobid..."
+			printf "Regression into bug #27268: Trying to re-register job with the same jobid..."
 			${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -j $jobid > /dev/null
 
 			noofevents=`${LBHISTORY} $jobid | $SYS_NL | $SYS_TAIL -n 1 | ${SYS_AWK} '{print $1}'`

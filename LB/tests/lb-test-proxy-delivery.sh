@@ -164,7 +164,7 @@ fi
 		joblist=$$_jobs_to_purge.txt
 		echo $jobid > ${joblist}
 
-		printf "Registering collection "
+		printf "Registering collection (Regression into bug #73206)"
 		${LBJOBREG} -X ${GLITE_WMS_LBPROXY_STORE_SOCK}store.sock -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 2 -S > $$_test_coll_registration.txt
 		jobid=`$SYS_CAT $$_test_coll_registration.txt | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
 		if [ -z $jobid  ]; then
@@ -184,7 +184,7 @@ fi
 				test_done
 			fi
 
-			printf "Checking if subjob has stateEnterTime set and > 0... "
+			printf "Checking if subjob has stateEnterTime set and > 0 (Regressison into bug #71913)... "
 			j1stateenter=`${LBJOBSTATUS} ${subjobs[0]} | $SYS_GREP "stateEnterTime :" | $SYS_SED 's/stateEnterTime :\s*//' `
 			cresult=`$SYS_EXPR $j1stateenter= \> 0`
 			if [ "$cresult" -eq "1" ]; then

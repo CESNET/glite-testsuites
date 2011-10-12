@@ -22,8 +22,7 @@ showHelp()
 {
 cat << EndHelpHeader
 Script for testing correct reporting of LB server properties over BDII/LDAP.
-This should also be thought of as a regression test for bug #55482,
-and ggus ticket #62737.
+This should also be thought of as a regression test for ggus ticket #62737.
 
 Prerequisities:
    - LB server
@@ -139,7 +138,7 @@ else
 	test_done
 fi
 
-printf "Checking ServiceStatus... "
+printf "Checking ServiceStatus (Regression into bug #76174)... "
 health=`$SYS_GREP GlueServiceStatus: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
 if [ "$health" == "" ]; then
 	print_error "GlueServiceStatus not specified"
@@ -154,7 +153,7 @@ else
 fi
 
 printf "Checking Glue 2.0 entry with 'o=glue'... "
-$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' 'GLUE2EndpointInterfaceName=org.glite.lb.Server' > ldap.$$.out
+$SYS_LDAPSEARCH -x -H ldap://${server}:2170 -b 'o=glue' -S GLUE2EntityCreationTime 'GLUE2EndpointInterfaceName=org.glite.lb.Server' > ldap.$$.out
 if [ $? -gt 0 ]; then	
 	test_failed
 	print_error "No reply"
@@ -162,8 +161,8 @@ else
 	test_done
 fi
 
-printf "Checking GLUE2 HealthStatus... "
-health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
+printf "Checking GLUE2 HealthStatus (Regression into bug #76173)... "
+health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_TAIL -n 1 | $SYS_SED 's/^[^:]*: *//'`
 if [ "$health" == "" ]; then
 	print_error "GLUE2EndpointHealthState not specified"
 	test_failed
@@ -176,8 +175,8 @@ else
 	fi
 fi
 
-printf "Checking GlueServiceVersion... "
-glservver=`$SYS_GREP GLUE2EndpointImplementationVersion ldap.$$.out | $SYS_SED 's/^.*GLUE2EndpointImplementationVersion:\s*//'`
+printf "Checking GlueServiceVersion (Regression into bug #55482)... "
+glservver=`$SYS_GREP GLUE2EndpointImplementationVersion ldap.$$.out | $SYS_TAIL -n 1 | $SYS_SED 's/^.*GLUE2EndpointImplementationVersion:\s*//'`
 if [ "$glservver" == "" ]; then	
 	print_error "GLUE2EndpointImplementationVersion not specified"
 	test_failed

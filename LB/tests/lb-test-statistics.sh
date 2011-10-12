@@ -250,7 +250,7 @@ fi
 			print_error "Done earlier than Running"
 		fi
 
-		printf "Long term: Getting average 'Submitted' -> 'Running' transfer times (should be numbers >= 0):"
+		printf "Long term (Regression into bug #73716): Getting average 'Submitted' -> 'Running' transfer times (should be numbers >= 0):"
 		$LB_FROMTO ALL 1 5 > fromto.out.$$
 		averages=( $($SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_SED} 's/^.*": //' | ${SYS_SED} 's/ s.*$//') )
 		$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | $SYS_SED 's/":.*$//' | $SYS_SED 's/^.*"//' > fromto.out.ces.$$

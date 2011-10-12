@@ -234,7 +234,7 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 
 			fi
 
-			printf "Trying excessively long request (regression-test bug #80263)..."
+			printf "Trying excessively long request (Regression into bug #80263)..."
 			URL="https://${GLITE_WMS_QUERY_SERVER}/"
 			for i in {1..2000}
 			do
