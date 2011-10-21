@@ -90,7 +90,7 @@ test_start
 
 printf "Checking if the probe is available..."
 
-PROBE="$GLITE_LOCATION/usr/libexec/grid-monitoring/probes/emi.lb/LB-probe"
+PROBE="$GLITE_LOCATION/libexec/grid-monitoring/probes/emi.lb/LB-probe"
 
 if [ -f "$PROBE" ]; then
 	test_done
