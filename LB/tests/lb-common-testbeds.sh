@@ -66,7 +66,7 @@ else
 	rm -rf /tmp/test-certs/grid-security
 	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB
 	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
-	cp -rv $FAKE_CAS/* /etc/grid-security/certificates/
+	cp -rv \$FAKE_CAS/* /etc/grid-security/certificates/
 fi
 
 CVSPATH=\`which cvs\`
