@@ -79,7 +79,7 @@ for p in $USER $USER_BOB; do
 		-fqan "/${VO}/Role=NULL/Capability=NULL" &> /dev/null || exit 1
 	done
 mv "/tmp/x509up_u${USER}" "/tmp/x509up_u${user_id}"
-mv "/tmp/x509up_u${USER}" "/tmp/x509up_u.${user_id}"
+mv "/tmp/x509up_u${USER_BOB}" "/tmp/x509up_u.${user_id}"
 
 export X509_USER_PROXY=/tmp/x509up_u${user_id}
 export X509_USER_PROXY_BOB=/tmp/x509up_u.${user_id}
