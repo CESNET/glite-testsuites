@@ -65,8 +65,8 @@ if [ $COPYPROXY -eq 1 ]; then
 else
 	rm -rf /tmp/test-certs/grid-security
 	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB
-	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh
-	cp -rv /tmp/test-certs/grid-security/certificates/* /etc/grid-security/certificates/
+	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
+	cp -rv $FAKE_CAS/* /etc/grid-security/certificates/
 fi
 
 CVSPATH=\`which cvs\`

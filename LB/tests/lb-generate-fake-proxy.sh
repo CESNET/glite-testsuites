@@ -18,7 +18,7 @@
 
 # show help and usage
 progname=`basename $0`
-CERTS_ROOT=/tmp/test-certs
+CERTS_ROOT=/tmp/test-certs.$$
 USER=trusted_client00
 USER_BOB=trusted_client01
 VOMS_SERVER=trusted_host
@@ -57,8 +57,8 @@ done
 echo "Generating fake proxy certificate - this may take a few minutes"
 echo ""
 
-cd /tmp
-rm -rf $CERTS_ROOT org.glite.security.test-utils
+mkdir -p $CERTS_ROOT
+cd $CERTS_ROOT
 wget -q -O org.glite.security.test-utils.tar.gz \
   'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/org.glite.security.test-utils.tar.gz?view=tar' &> /dev/null || exit 1
 tar xzf org.glite.security.test-utils.tar.gz || exit 1
