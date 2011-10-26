@@ -20,8 +20,8 @@
 progname=`basename $0`
 user_id=`id -u`
 CERTS_ROOT=/tmp/test-certs.$$
-USER=trusted_client00.$user_id
-USER_BOB=trusted_client01.$user_id
+USER=trusted_client00
+USER_BOB=trusted_client01
 VOMS_SERVER=trusted_host
 VO=vo.org
 
@@ -79,9 +79,10 @@ for p in $USER $USER_BOB; do
 		-fqan "/${VO}/Role=NULL/Capability=NULL" &> /dev/null || exit 1
 	done
 mv "/tmp/x509up_u${USER}" "/tmp/x509up_u${user_id}"
+mv "/tmp/x509up_u${USER}" "/tmp/x509up_u.${user_id}"
 
 export X509_USER_PROXY=/tmp/x509up_u${user_id}
-export X509_USER_PROXY_BOB=/tmp/x509up_u${USER_BOB}
+export X509_USER_PROXY_BOB=/tmp/x509up_u.${user_id}
 
 echo "/tmp/x509up_u${user_id} proxy certificate has been generated"
 echo "/tmp/x509up_u${USER} proxy certificate has been generated" 
@@ -93,7 +94,7 @@ echo "======================================================================"
 echo X509_CERT_DIR=$CERTS_ROOT/grid-security/certificates
 echo X509_USER_PROXY=/tmp/x509up_u${user_id}
 #BOB'S FAKE PROXY
-echo X509_USER_PROXY_BOB=/tmp/x509up_u${USER_BOB}
+echo X509_USER_PROXY_BOB=/tmp/x509up_u.${user_id}
 echo mkdir /etc/grid-security/vomsdir/$VO
 echo "openssl x509 -noout -subject -issuer -in $CERTS_ROOT/trusted-certs/${VOMS_SERVER}.cert | cut -d ' ' -f 2- > /etc/grid-security/vomsdir/$VO/server.serverovic.lsc"
 echo "======================================================================"
