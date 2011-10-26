@@ -18,12 +18,12 @@
 
 # show help and usage
 progname=`basename $0`
+user_id=`id -u`
 CERTS_ROOT=/tmp/test-certs.$$
-USER=trusted_client00
-USER_BOB=trusted_client01
+USER=trusted_client00.$user_id
+USER_BOB=trusted_client01.$user_id
 VOMS_SERVER=trusted_host
 VO=vo.org
-user_id=`id -u`
 
 showHelp()
 {
