@@ -123,7 +123,7 @@ Clean installation according to EMI guidelines (CA certificates, proxy certifica
 | OS Issue | $ISSUE |
 | Platform | $PLATFORM |
 | Host | $TESTBED |
-| DURATION | `expr $DURATION / 60` min |
+| Duration | `expr $DURATION / 60` min |
 
 ---++++ Process
 <verbatim>\n" > report.twiki

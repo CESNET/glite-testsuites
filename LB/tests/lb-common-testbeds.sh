@@ -55,25 +55,6 @@ createuser -U postgres -S -R -D rtm
 
 cd /tmp
 
-glite_id=\`id -u \$GLITE_USER\`
-
-echo \$GLITE_USER user ID is \$glite_id
-
-if [ $COPYPROXY -eq 1 ]; then
-	mv \$CERTFILE x509up_u\$glite_id
-	chown \$GLITE_USER:\$GLITE_USER x509up_u\${glite_id}
-else
-	rm -rf /tmp/test-certs/grid-security
-	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB
-	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
-	if [ "\$FAKE_CAS" == "" ]; then
-                echo "Failed generating proxy" >&2
-                exit 2
-        else
-                cp -rv \$FAKE_CAS/* /etc/grid-security/certificates/
-        fi
-fi
-
 CVSPATH=\`which cvs\`
 
 if [ "\$CVSPATH" = "" ]; then
@@ -86,6 +67,25 @@ if [ "\$CVSPATH" = "" ]; then
                 yum install -y cvs
         fi
 
+fi
+
+glite_id=\`id -u \$GLITE_USER\`
+
+echo \$GLITE_USER user ID is \$glite_id
+
+if [ $COPYPROXY -eq 1 ]; then
+	mv \$CERTFILE x509up_u\$glite_id
+	chown \$GLITE_USER:\$GLITE_USER x509up_u\${glite_id}
+else
+	rm -rf /tmp/test-certs/grid-security
+	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
+	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
+	if [ "\$FAKE_CAS" == "" ]; then
+                echo "Failed generating proxy" >&2
+                exit 2
+        else
+                cp -rv \$FAKE_CAS/* /etc/grid-security/certificates/
+        fi
 fi
 
 echo cd > arrange_lb_test_user.sh
