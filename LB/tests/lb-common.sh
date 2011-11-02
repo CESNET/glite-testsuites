@@ -132,10 +132,16 @@ function check_credentials_and_generate_proxy()
 {	
 	check_credentials
 	if [ $? != 0 ]; then
-		test_failed
 		./lb-generate-fake-proxy.sh
 		if [ $? != 0 ]; then
+			test_failed
 			print_error "Proxy not created - process failed"
+			return 2
+		fi
+		check_credentials
+		if [ $? != 0 ]; then
+			test_failed
+			print_error "Credentials still not passing check"
 			return 2
 		fi
 	else
@@ -288,11 +294,11 @@ function check_credentials()
 
 	timeleft=`${my_GRIDPROXYINFO} 2>/dev/null | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
 	if [ "$timeleft" = "" ]; then
-		print_error "No credentials"
+		printf "... No credentials... "
 		return 1
 	fi
 	if [ "$timeleft" = "0:00:00" ]; then
-		print_error "Credentials expired"
+		printf "... Credentials expired... "
 		return 1
 	fi
 	return 0
