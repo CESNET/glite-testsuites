@@ -88,6 +88,12 @@ else
         fi
 fi
 
+#Allow glite user to read certain system files. Talk about dirty hacks.
+grep -E "$GLITE_USER.*/bin/cat" /etc/sudoers > /dev/null 2> /dev/null
+if [ ! \$? = 0 ]; then
+	printf "\n$GLITE_USER\tALL=NOPASSWD: /bin/cat /etc/cron.d/glite-lb-purge.cron,/bin/cat /var/log/messages\n\n" >> /etc/sudoers
+fi
+
 echo cd > arrange_lb_test_user.sh
 echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_lb_test_user.sh
