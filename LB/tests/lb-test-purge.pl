@@ -106,6 +106,10 @@ sub test_failed() {
 	if ($html_output) { printf ("<font color=\"red\"><B>-TEST FAILED-</B></font><BR>\n"); }
 	else { print_result ('bold red','-TEST FAILED-'); }
 }
+sub test_skipped() {
+	if ($html_output) { printf ("<font color=\"orange\"><B>skipped</B></font><BR>\n"); }
+	else { print_result ('bold yellow','skipped'); }
+}
 sub test_printf {
 	if ($html_output) { printf("<BR><B>"); }
 	printf "@_\n";
@@ -302,6 +306,50 @@ for (values(%old),values(%new)) {
 }
 
 die "EIDRM or state Purged should have been returned for zombies\n" if $failed;
+
+test_printf ("** Check purge by cron");
+
+#Trying purger log
+$sudoerr=system("sudo -n /bin/cat /etc/cron.d/glite-lb-purge.cron | grep -E \"^[0-9,\\-\\*]\\s[0-9,\\-\\*]\\s[0-9,\\-\\*]\\s[0-9,\\-\\*]\\s[0-9,\\-\\*]\" > /tmp/glite-lb-purge.cron.$$");
+if($sudoerr) {
+	printf "user not allowed to 'sudo'";
+	test_skipped();
+}
+else {
+	printf("\nChecking if purge by cron has been set up at all... ");
+	$purgecronlines = `cat /tmp/glite-lb-purge.cron.$$ | wc -l`;
+	if ($purgecronlines > 0) {
+		test_done();
+	}
+	else {
+		test_failed();
+		die "Purging by cron not set up";
+	}
+
+	printf("Checking for Common Logging Format headers in cron logfile (Regression into bug #88502)...\n");
+	# Store old crontab
+	system("crontab -l > /tmp/crontab.glite.$$ 2> /dev/null");
+
+	# Add a new crontab line, change frequency to max. and output to tmp
+	system("cat /tmp/glite-lb-purge.cron.$$ | sed 's/^[0-9,\\-\\*]\\s[0-9,\\-\\*]\\s[0-9,\\-\\*]\\s[0-9,\\-\\*]\\s[0-9,\\-\\*]/\* \* \* \* \*/' | sed 's/\\/var\\/log\\/glite\\/glite-lb-purger.log/\\/tmp\\/lite-lb-purger.log.$$/g' | crontab");
+
+	#Give cron time to make a run
+	system("sleep 60");
+
+	#Check for expected format
+	$datepresent=system("grep -E -o '^[a-zA-Z]+\\s+[0-9]+\\s+[0-9]+:[0-9]+:[0-9]+\\s+[a-zA-Z]+\\s+[a-zA-Z0-9.\\-]+:' /tmp/lite-lb-purger.log.$$");
+	if ($datepresent) {
+		test_failed();
+		die "Common Logging Format headers not found in the log file.";
+	}
+	else {
+		test_done();
+	}
+
+	#Reinstate old crontab
+	system("cat /tmp/crontab.glite.$$ | crontab");	
+}
+system("rm -f /tmp/glite-lb-purge.cron.$$ /tmp/crontab.glite.$$ /tmp/lite-lb-purger.log.$$");
 
 test_printf ("\n** All tests passed **");
 test_done();
