@@ -27,6 +27,11 @@ GLITE_USER=\$2
 LBTSTCOLS=\$3
 OUTPUT_OPT=\$4
 
+echo "Certificate file: \$CERTFILE "
+echo "gLite user:       \$GLITE_USER "
+echo "Terminal width:   \$LBTSTCOLS "
+echo "Output format:    \$OUTPUT_OPT "
+
 export LBTSTCOLS
 
 yum install -q -y globus-proxy-utils 
