@@ -314,6 +314,8 @@ $sudoerr=system("sudo -n /bin/cat /etc/cron.d/glite-lb-purge.cron | grep -E \"^[
 if($sudoerr) {
 	printf "user not allowed to 'sudo'";
 	test_skipped();
+	#XXX Just for debugging:
+	system("sudo -n /bin/cat /etc/cron.d/glite-lb-purge.cron");
 }
 else {
 	printf("\nChecking if purge by cron has been set up at all... ");
