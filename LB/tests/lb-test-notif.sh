@@ -169,7 +169,7 @@ else
 			$SYS_RM $$_notifications.txt
 
 			#Regress #86772
-			printf "Trying to drop invalid NotiID (Regression into bug #86772)..."
+			printf "Trying to drop invalid NotifID (Regression into bug #86772)..."
 			${LBNOTIFY} drop ${jobid} 2>&1 | ${SYS_GREP} "Invalid" > /dev/null
 			if [ $? = 0 ]; then
 				printf " EINVAL"
