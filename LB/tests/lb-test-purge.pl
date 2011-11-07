@@ -315,6 +315,7 @@ if($sudoerr) {
 	printf "user not allowed to 'sudo'";
 	test_skipped();
 	#XXX Just for debugging:
+	printf("sudoerr=$sudoerr \n");
 	system("sudo -n /bin/cat /etc/cron.d/glite-lb-purge.cron");
 }
 else {
