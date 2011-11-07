@@ -94,6 +94,7 @@ if [ ! \$? = 0 ]; then
 	printf "\n\$GLITE_USER\tALL=NOPASSWD: /bin/cat /etc/cron.d/glite-lb-purge.cron,/bin/cat /var/log/messages\n\n" >> /etc/sudoers
 fi
 sed -i /etc/sudoers 's/^Default\srequiretty/#Default requiretty/'
+visudo -c
 
 echo cd > arrange_lb_test_user.sh
 echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
