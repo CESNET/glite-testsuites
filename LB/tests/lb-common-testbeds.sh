@@ -89,9 +89,9 @@ else
 fi
 
 #Allow glite user to read certain system files. Talk about dirty hacks.
-grep -E "$GLITE_USER.*/bin/cat" /etc/sudoers > /dev/null 2> /dev/null
+grep -E "\$GLITE_USER.*/bin/cat" /etc/sudoers > /dev/null 2> /dev/null
 if [ ! \$? = 0 ]; then
-	printf "\n$GLITE_USER\tALL=NOPASSWD: /bin/cat /etc/cron.d/glite-lb-purge.cron,/bin/cat /var/log/messages\n\n" >> /etc/sudoers
+	printf "\n\$GLITE_USER\tALL=NOPASSWD: /bin/cat /etc/cron.d/glite-lb-purge.cron,/bin/cat /var/log/messages\n\n" >> /etc/sudoers
 fi
 sed -i /etc/sudoers 's/^Default\srequiretty/#Default requiretty/'
 
