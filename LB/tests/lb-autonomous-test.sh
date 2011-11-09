@@ -124,6 +124,7 @@ Clean installation according to EMI guidelines (CA certificates, proxy certifica
 | Platform | $PLATFORM |
 | Host | $TESTBED |
 | Duration | `expr $DURATION / 60` min |
+| Testbed uptime | <verbatim>`uptime`</verbatim> |
 
 ---++++ Process
 <verbatim>\n" > report.twiki
