@@ -42,6 +42,7 @@ yum install -q -y emi-lb-nagios-plugins
 yum install -q -y voms-clients
 yum install -q -y curl
 yum install -q -y wget
+yum install -q -y sudo
 
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
