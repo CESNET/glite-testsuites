@@ -36,6 +36,8 @@ export GSTSTCOLS
 
 yum install -q -y voms-clients
 yum install -q -y httpd mod_ssl
+yum install -q -y curl
+yum install -q -y wget
 sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> /tmp/httpd-webserver.conf
 echo "AddHandler cgi-script .cgi" >> /tmp/httpd-webserver.conf
 echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> /tmp/httpd-webserver.conf

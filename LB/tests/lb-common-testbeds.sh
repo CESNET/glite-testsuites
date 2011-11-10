@@ -40,6 +40,8 @@ yum install -q -y postgresql postgresql-server
 #yum install -q -y activemq java-1.6.0-openjdk
 yum install -q -y emi-lb-nagios-plugins
 yum install -q -y voms-clients
+yum install -q -y curl
+yum install -q -y wget
 
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
