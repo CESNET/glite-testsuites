@@ -349,7 +349,7 @@ EOF
 	chown apache /var/www/proxycache
 
 	#delegation
-	id=`htproxyput --cert /etc/grid-security/hostcert.pem --key /etc/grid-security/hostkey.pem --capath /etc/grid-security/certificates https://$(hostname -f)/gridsite-delegation.cgi`
+	id=`htproxyput --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates https://$(hostname -f)/gridsite-delegation.cgi`
 	printf "id: $id"
 	if [ $? -eq 0 -a -n "$id" ]; then 
 		test_done
@@ -357,9 +357,9 @@ EOF
 		test_failed
 	fi
 
-	expiry=`htproxyunixtime --cert /etc/grid-security/hostcert.pem --key /etc/grid-security/hostkey.pem --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
+	expiry=`htproxyunixtime --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
 
-	newid=`htproxyrenew --cert /etc/grid-security/hostcert.pem --key /etc/grid-security/hostkey.pem --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
+	newid=`htproxyrenew --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
 	printf "newid: $newid"
 	if [ $? -eq 0 -a -n "$newid" ]; then 
 		test_done
@@ -367,7 +367,7 @@ EOF
 		test_failed
 	fi
 
-	htproxydestroy --cert /etc/grid-security/hostcert.pem --key /etc/grid-security/hostkey.pem --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi
+	htproxydestroy --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi
 
 
 	printf "Test handling of VOMS .lsc files (Regression test for bug #39254 and #82023)\n"
@@ -393,9 +393,14 @@ EOF
 		mkdir -p /etc/grid-security/vomsdir/voce/
 
 		cat > /etc/grid-security/vomsdir/voce/voms1.egee.cesnet.cz.lsc <<EOF
-/DC=cz/DC=cesnet-ca/O=CESNET/CN=voms1.egee.cesnet.cz
-/DC=cz/DC=cesnet-ca/CN=CESNET CA
+/DC=cz/DC=cesnet-ca/O=CESNET/CN=voms1.egee.cesnet.cz auger 24
+/DC=cz/DC=cesnet-ca/O=CESNET CA/CN=CESNET CA 3
 EOF
+#old cert
+#		cat > /etc/grid-security/vomsdir/voce/voms1.egee.cesnet.cz.lsc <<EOF
+#/DC=cz/DC=cesnet-ca/O=CESNET/CN=voms1.egee.cesnet.cz
+#/DC=cz/DC=cesnet-ca/CN=CESNET CA
+#EOF
 
 		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 
