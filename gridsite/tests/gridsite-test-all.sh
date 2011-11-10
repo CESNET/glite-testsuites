@@ -389,7 +389,7 @@ EOF
 			test_failed
 		fi
 
-		printf "Setting up .lsf file and trying again"
+		printf "Setting up .lsc file and trying again"
 		mkdir -p /etc/grid-security/vomsdir/voce/
 
 		cat > /etc/grid-security/vomsdir/voce/voms1.egee.cesnet.cz.lsc <<EOF
