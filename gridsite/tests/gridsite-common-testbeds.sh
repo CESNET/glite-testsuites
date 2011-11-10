@@ -73,6 +73,11 @@ else
         fi
 fi
 
+cd ~/
+mkdir GridSite_testing
+cd GridSite_testing
+cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/gridsite
+cd org.glite.testsuites.ctb/gridsite/tests
 echo ========================
 echo "  REAL TESTS START HERE"
 echo ========================
