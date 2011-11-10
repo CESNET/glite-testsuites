@@ -37,6 +37,8 @@ EndHelpHeader
 	echo " -h | --help            Show this help message."
 }
 
+STARTTIME=`date +%s`
+
 # read common definitions and functions
 for COMMON in gridsite-common.sh test-common.sh gridsite-common-testbeds.sh
 do
@@ -52,8 +54,18 @@ do
 done
 source gridsite-common.sh
 source gridsite-common-testbeds.sh
+#also read L&B common definitions for common functions.
+if [ ! -r lb-common-testbeds.sh ]; then
+	printf "Downloading common definitions 'lb-common-testbeds.sh'"
+        wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common-testbeds.sh?view=co > /dev/null
+        if [ ! -r ${COMMON} ]; then
+                exit 2
+        else
+                test_done
+        fi
+fi
+source lb-common-testbeds.sh
 
-STARTTIME=`date +%s`
 
 printf "Getting the 'install' script... "
 #XXX Provisional. The test won't be generated here in the future. Just downloaded or otherwise obtained
@@ -87,33 +99,8 @@ test_done
 
 ENDTIME=`date +%s`
 
-DURATION=`expr $ENDTIME - $STARTTIME`
-
-ISSUE=`cat /etc/issue | head -n 1`
-PLATFORM=`uname -i`
-TESTBED=`hostname -f`
-DISTRO=`cat /etc/issue | head -n 1 | sed 's/\s.*$//'`
-VERSION=`cat /etc/issue | head -n 1 | grep -E -o "[0-9]+\.[0-9]+"`
-MAJOR=`echo $VERSION | sed 's/\..*$//'`
-
-# Generate final report snippet
-
-printf "
----++ $SCENARIO, $DISTRO $MAJOR
-
----+++ Environment
-#CleanInstallation
-
-Clean installation according to EMI guidelines (CA certificates, proxy certificate...).
-
-| OS Issue | $ISSUE |
-| Platform | $PLATFORM |
-| Host | $TESTBED |
-| Duration | `expr $DURATION / 60` min |
-| Testbed uptime | =`uptime | sed 's/^\s*//'`= |
-
----++++ Process
-<verbatim>\n" > report.twiki
+#Generating report section
+gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > report.twiki
 
 cat GridSiteInstall.sh >> report.twiki
 printf "</verbatim>
