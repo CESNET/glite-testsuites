@@ -110,7 +110,7 @@ Clean installation according to EMI guidelines (CA certificates, proxy certifica
 | Platform | $PLATFORM |
 | Host | $TESTBED |
 | Duration | `expr $DURATION / 60` min |
-| Testbed uptime | =`uptime`= |
+| Testbed uptime | =`uptime | sed 's/^\s*//'`= |
 
 ---++++ Process
 <verbatim>\n" > report.twiki
