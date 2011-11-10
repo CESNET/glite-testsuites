@@ -91,6 +91,7 @@ echo "<verbatim>"
 echo ==================
 echo "  TESTS END HERE"
 echo ==================
+echo "</verbatim>"
 
 EndArrangeScript
 }

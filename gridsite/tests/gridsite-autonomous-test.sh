@@ -63,9 +63,9 @@ rpm -Uvhi http://download.fedora.redhat.com/pub/epel/5/x86_64/epel-release-5-4.n
 yum install -y yum-priorities yum-protectbase
 rpm -i http://emisoft.web.cern.ch/emisoft/dist/EMI/1/sl5/x86_64/base/emi-release-1.0.0-1.sl5.noarch.rpm
 
-cd /etc/yum.repos.d/
-wget http://etics-repository.cern.ch/repository/pm/registered/repomd/id/2efadb29-61fb-4d5f-be8f-17b799a269e0/sl5_x86_64_gcc412EPEL/etics-registered-build-by-id-protect.repo
-echo priority=45 >> etics-registered-build-by-id-protect.repo
+#cd /etc/yum.repos.d/
+#wget http://etics-repository.cern.ch/repository/pm/registered/repomd/id/2efadb29-61fb-4d5f-be8f-17b799a269e0/sl5_x86_64_gcc412EPEL/etics-registered-build-by-id-protect.repo
+#echo priority=45 >> etics-registered-build-by-id-protect.repo
 
 yum install -y gridsite-apache gridsite-commands gridsite-debuginfo gridsite-devel.x86_64 gridsite-gsexec gridsite-service-clients gridsite-services gridsite-shared
 EndInstallScript
@@ -110,7 +110,7 @@ Clean installation according to EMI guidelines (CA certificates, proxy certifica
 | Platform | $PLATFORM |
 | Host | $TESTBED |
 | Duration | `expr $DURATION / 60` min |
-| Testbed uptime | <verbatim>`uptime`</verbatim> |
+| Testbed uptime | =`uptime`= |
 
 ---++++ Process
 <verbatim>\n" > report.twiki
