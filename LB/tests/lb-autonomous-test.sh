@@ -101,33 +101,8 @@ test_done
 
 ENDTIME=`date +%s`
 
-DURATION=`expr $ENDTIME - $STARTTIME`
-
-ISSUE=`cat /etc/issue | head -n 1`
-PLATFORM=`uname -i`
-TESTBED=`hostname -f`
-DISTRO=`cat /etc/issue | head -n 1 | sed 's/\s.*$//'`
-VERSION=`cat /etc/issue | head -n 1 | grep -E -o "[0-9]+\.[0-9]+"`
-MAJOR=`echo $VERSION | sed 's/\..*$//'`
-
-# Generate final report snippet
-
-printf "
----++ $SCENARIO, $DISTRO $MAJOR
-
----+++ Environment
-#CleanInstallation
-
-Clean installation according to EMI guidelines (CA certificates, proxy certificate...).
-
-| OS Issue | $ISSUE |
-| Platform | $PLATFORM |
-| Host | $TESTBED |
-| Duration | `expr $DURATION / 60` min |
-| Testbed uptime | <verbatim>`uptime`</verbatim> |
-
----++++ Process
-<verbatim>\n" > report.twiki
+#Generating report section
+gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > report.twiki
 
 cat LBinstall.sh >> report.twiki
 printf "</verbatim>
