@@ -57,8 +57,8 @@ source gridsite-common-testbeds.sh
 #also read L&B common definitions for common functions.
 if [ ! -r lb-common-testbeds.sh ]; then
 	printf "Downloading common definitions 'lb-common-testbeds.sh'"
-        wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common-testbeds.sh?view=co > /dev/null
-        if [ ! -r ${COMMON} ]; then
+        wget -O lb-common-testbeds.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common-testbeds.sh?view=co > /dev/null
+        if [ ! -r lb-common-testbeds.sh ]; then
                 exit 2
         else
                 test_done
@@ -85,7 +85,7 @@ test_done
 
 
 printf "Generating the 'arrange' script... "
-gen_arrange_script `hostname -f` 0
+gen_arrange_script_gridsite `hostname -f` 0
 test_done
 
 

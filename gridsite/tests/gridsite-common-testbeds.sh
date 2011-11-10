@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-function gen_arrange_script()
+function gen_arrange_script_gridsite()
 {
 remotehost=$1
 COPYPROXY=$2
