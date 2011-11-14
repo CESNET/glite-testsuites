@@ -83,12 +83,19 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries curl rm chown openssl htcp htls htmv htcp htrm htls htls htproxydestroy
+check_binaries curl rm chown openssl sleep voms-proxy-info grep sed glite-proxy-renew
 if [ $? -gt 0 ]; then
 	test_failed
 	exit 2
 else
 	test_done
+fi
+
+printf "Testing credentials"
+check_credentials_and_generate_proxy
+if [ $? != 0 ]; then
+        test_end
+        exit 2
 fi
 
 JOBID=https://fake.job.id/xxx
