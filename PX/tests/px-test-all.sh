@@ -49,16 +49,19 @@ if [ ! -r ${COMMON} ]; then
 	exit 2
 fi
 source ${COMMON}
-if [ ! -r lb-common.sh ]; then
-        printf "Downloading common definitions 'lb-common.sh'"
-        wget -O lb-common.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common.sh?view=co > /dev/null
-        if [ ! -r lb-common.sh ]; then
-                exit 2
-        else
-                test_done
-        fi
-fi
-source lb-common.sh
+for COMMON in lb-common.sh lb-generate-fake-proxy.sh
+do
+	if [ ! -r $COMMON ]; then
+	        printf "Downloading common definitions '$COMMON'"
+	        wget -O $COMMON http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/$COMMON?view=co > /dev/null
+	        if [ ! -r $COMMON ]; then
+	                exit 2
+	        else
+	                test_done
+	        fi
+	fi
+	source $COMMON
+done
 
 
 logfile=$$.tmp
