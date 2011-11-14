@@ -49,6 +49,17 @@ if [ ! -r ${COMMON} ]; then
 	exit 2
 fi
 source ${COMMON}
+if [ ! -r lb-common-testbeds.sh ]; then
+        printf "Downloading common definitions 'lb-common-testbeds.sh'"
+        wget -O lb-common-testbeds.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common-testbeds.sh?view=co > /dev/null
+        if [ ! -r lb-common-testbeds.sh ]; then
+                exit 2
+        else
+                test_done
+        fi
+fi
+source lb-common-testbeds.sh
+
 
 logfile=$$.tmp
 flag=0
@@ -83,7 +94,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries curl rm chown openssl sleep voms-proxy-info grep sed glite-proxy-renew
+check_binaries curl rm chown openssl sleep voms-proxy-info grep sed glite-proxy-renew wget
 if [ $? -gt 0 ]; then
 	test_failed
 	exit 2
