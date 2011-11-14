@@ -132,7 +132,12 @@ function check_credentials_and_generate_proxy()
 {	
 	check_credentials
 	if [ $? != 0 ]; then
-		./lb-generate-fake-proxy.sh
+		if [ "$1" != "" ]; then
+			PROXYLIFE=" --hours $1"
+		else 
+			PROXYLIFE=""
+		fi
+		./lb-generate-fake-proxy.sh $PROXYLIFE
 		if [ $? != 0 ]; then
 			test_failed
 			print_error "Proxy not created - process failed"
