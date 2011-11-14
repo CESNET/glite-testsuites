@@ -90,7 +90,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries curl rm chown openssl sleep voms-proxy-info grep sed glite-proxy-renew wget
+check_binaries curl rm chown openssl sleep voms-proxy-info grep sed glite-proxy-renew wget myproxy-store
 if [ $? -gt 0 ]; then
 	test_failed
 	exit 2
@@ -108,6 +108,7 @@ fi
 JOBID=https://fake.job.id/xxx
 
 ORIG_PROXY=`voms-proxy-info | grep -E "^path" | sed 's/^path\s*:\s*//'`
+myproxy-store --certfile $ORIG_PROXY --keyfile $ORIG_PROXY -s localhost -d
 REGISTERED_PROXY=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
 printf "\tProxy:\t$ORIG_PROXY\n\tRenew:\t$REGISTERED_PROXY\n"; 
 printf "Registered proxy -- "; 
