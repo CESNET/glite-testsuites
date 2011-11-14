@@ -44,14 +44,17 @@ EndHelpHeader
         echo "Options:"
         echo " -h | --help            Show this help message."
         echo " -H | --hours           Proxy will be valid for given No. of hours (default is 12)"
+        echo " -l | --lsc             Generate VOMS lsc file."
 
 }
 
+GENLSC=0
 while test -n "$1"
 do
         case "$1" in
                 "-h" | "--help") showHelp && exit 2 ;;
                 "-H" | "--hours") shift ; PROXYHOURS="-hours $1 " ;;
+                "-l" | "--lsc") GENLSC=1 ;;
         esac
         shift
 done
@@ -98,7 +101,12 @@ echo X509_USER_PROXY=/tmp/x509up_u${user_id}
 #BOB'S FAKE PROXY
 echo X509_USER_PROXY_BOB=/tmp/x509up_u.${user_id}
 echo mkdir /etc/grid-security/vomsdir/$VO
-echo "openssl x509 -noout -subject -issuer -in $CERTS_ROOT/trusted-certs/${VOMS_SERVER}.cert | cut -d ' ' -f 2- > /etc/grid-security/vomsdir/$VO/server.serverovic.lsc"
+if [ GENLSC -eq 1 ]; then
+	mkdir -p /etc/grid-security/vomsdir/$VO
+	openssl x509 -noout -subject -issuer -in $CERTS_ROOT/trusted-certs/${VOMS_SERVER}.cert | cut -d ' ' -f 2- > /etc/grid-security/vomsdir/$VO/`hostname -f`.lsc
+else
+echo "openssl x509 -noout -subject -issuer -in $CERTS_ROOT/trusted-certs/${VOMS_SERVER}.cert | cut -d ' ' -f 2- > /etc/grid-security/vomsdir/$VO/`hostname -f`.lsc"
+fi
 echo "======================================================================"
 echo ""
 
