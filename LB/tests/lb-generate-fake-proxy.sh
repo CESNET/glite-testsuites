@@ -43,6 +43,7 @@ EndHelpHeader
 	echo "Usage: $progname [OPTIONS]"
         echo "Options:"
         echo " -h | --help            Show this help message."
+        echo " -H | --hours           Proxy will be valid for given No. of hours (default is 12)"
 
 }
 
@@ -50,6 +51,7 @@ while test -n "$1"
 do
         case "$1" in
                 "-h" | "--help") showHelp && exit 2 ;;
+                "-H" | "--hours") shift ; PROXYHOURS="-hours $1 " ;;
         esac
         shift
 done
@@ -74,7 +76,7 @@ for p in $USER $VOMS_SERVER $USER_BOB; do
 
 for p in $USER $USER_BOB; do
 	voms-proxy-fake -cert ${p}.cert -key ${p}.priv-clear \
-		-hostcert ${VOMS_SERVER}.cert -hostkey ${VOMS_SERVER}.priv-clear \
+		-hostcert ${VOMS_SERVER}.cert -hostkey ${VOMS_SERVER}.priv-clear $PROXYHOURS\
 		-voms ${VO} -out /tmp/x509up_u${p} \
 		-fqan "/${VO}/Role=NULL/Capability=NULL" &> /dev/null || exit 1
 	done

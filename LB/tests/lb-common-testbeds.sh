@@ -107,7 +107,7 @@ visudo -c
 echo cd > arrange_lb_test_user.sh
 echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_lb_test_user.sh
-echo mkdir LB_testing >> arrange_lb_test_user.sh
+echo mkdir -p LB_testing >> arrange_lb_test_user.sh
 echo cd LB_testing >> arrange_lb_test_user.sh
 echo cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB >> arrange_lb_test_user.sh
 echo ls >> arrange_lb_test_user.sh
