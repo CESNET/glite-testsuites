@@ -62,6 +62,7 @@ do
 	fi
 done
 source lb-common.sh
+chmod +x lb-generate-fake-proxy.sh
 
 
 logfile=$$.tmp
@@ -99,7 +100,7 @@ else
 fi
 
 printf "Testing credentials"
-check_credentials_and_generate_proxy
+check_credentials_and_generate_proxy 1
 if [ $? != 0 ]; then
         test_end
         exit 2
