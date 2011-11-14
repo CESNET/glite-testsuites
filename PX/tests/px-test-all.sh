@@ -49,16 +49,16 @@ if [ ! -r ${COMMON} ]; then
 	exit 2
 fi
 source ${COMMON}
-if [ ! -r lb-common-testbeds.sh ]; then
-        printf "Downloading common definitions 'lb-common-testbeds.sh'"
-        wget -O lb-common-testbeds.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common-testbeds.sh?view=co > /dev/null
-        if [ ! -r lb-common-testbeds.sh ]; then
+if [ ! -r lb-common.sh ]; then
+        printf "Downloading common definitions 'lb-common.sh'"
+        wget -O lb-common.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common.sh?view=co > /dev/null
+        if [ ! -r lb-common.sh ]; then
                 exit 2
         else
                 test_done
         fi
 fi
-source lb-common-testbeds.sh
+source lb-common.sh
 
 
 logfile=$$.tmp

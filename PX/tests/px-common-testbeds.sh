@@ -38,7 +38,6 @@ yum install -q -y globus-proxy-utils
 yum install -q -y voms-clients
 yum install -q -y curl
 yum install -q -y wget
-yum install -q -y sudo
 
 cd /tmp
 
