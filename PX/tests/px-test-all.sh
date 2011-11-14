@@ -60,8 +60,8 @@ do
 	                test_done
 	        fi
 	fi
-	source $COMMON
 done
+source lb-common.sh
 
 
 logfile=$$.tmp
@@ -77,13 +77,6 @@ do
 	esac
 	shift
 done
-
-# redirecting all output to $logfile
-#touch $logfile
-#if [ ! -w $logfile ]; then
-#	echo "Cannot write to output file $logfile"
-#	exit $TEST_ERROR
-#fi
 
 DEBUG=2
 
@@ -139,11 +132,6 @@ ls $REGISTERED_PROXY 2>&1 | grep 'No such file or directory' > /dev/null && echo
 
 test_end
 } 
-#} &> $logfile
 
-#if [ $flag -ne 1 ]; then
-# 	cat $logfile
-# 	$SYS_RM $logfile
-#fi
 exit $TEST_OK
 
