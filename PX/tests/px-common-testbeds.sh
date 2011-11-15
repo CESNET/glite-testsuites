@@ -91,11 +91,10 @@ mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname
 mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname -f\`' identified by '[Edited]';"
 
 cd
-mkdir yaim
+mkdir -p yaim/services
 cd yaim
-mkdir services
 
-cat << EOF > site-info.def
+cat << EOF > site-info-voms.def
 MYSQL_PASSWORD="[Edited]"
 SITE_NAME="\`hostname -f\`"
 VOS="vo.org"
@@ -118,12 +117,14 @@ EOF
 sed -i 's/155/255/g' /opt/glite/yaim/examples/edgusers.conf
 sed -i 's/156/256/g' /opt/glite/yaim/examples/edgusers.conf
 
-/opt/glite/yaim/bin/yaim -c -s site-info.def -n VOMS
+/opt/glite/yaim/bin/yaim -c -s site-info-voms.def -n VOMS
 
 source /etc/profile.d/grid-env.sh
 
 voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "glite" "root@`hostname -f`"
 
+cd /tmp/
+ 
 echo cd > arrange_px_test_user.sh
 echo export PXTSTCOLS=\$PXTSTCOLS >> arrange_px_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_px_test_user.sh
