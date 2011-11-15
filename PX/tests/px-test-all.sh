@@ -117,7 +117,7 @@ printf "\tProxy:\t$ORIG_PROXY\n\tRenew:\t$REGISTERED_PROXY\n";
 printf "Registered proxy -- "; 
 voms-proxy-info -file $REGISTERED_PROXY | grep timeleft; 
 printf "sleeping..."; 
-sleep 600; 
+sleep 1800; 
 printf "\nRegistered proxy -- ";
 voms-proxy-info -file $REGISTERED_PROXY | grep timeleft; 
 printf "Original proxy -- "; 
