@@ -123,6 +123,9 @@ source /etc/profile.d/grid-env.sh
 
 voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "glite" "root@`hostname -f`"
 
+mkdir -p /etc/vomses
+cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
+
 cd /tmp/
  
 echo cd > arrange_px_test_user.sh
