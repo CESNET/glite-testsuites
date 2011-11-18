@@ -43,7 +43,9 @@ yum install -q -y voms-clients
 yum install -q -y curl
 yum install -q -y wget
 yum install -q -y sudo
+yum install -q -y bc
 
+/etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
 cat >/var/lib/pgsql/data/pg_hba.conf <<EOF
