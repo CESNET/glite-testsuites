@@ -68,9 +68,9 @@ source lb-common-testbeds.sh
 
 
 printf "Getting the 'install' script... "
-#XXX Provisional. The test won't be generated here in the future. Just downloaded or otherwise obtained
-SCENARIO="Clean installation"
-cat << EndInstallScript > GridSiteInstall.sh
+# Example script, for real tests it should be downloaded or otherwise obtained
+SCENARIO=${SCENARIO:-"Clean installation"}
+test -s GridSiteInstall.sh || cat << EndInstallScript > GridSiteInstall.sh
 rpm -Uvhi http://download.fedora.redhat.com/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
 yum install -y yum-priorities yum-protectbase
 rpm -i http://emisoft.web.cern.ch/emisoft/dist/EMI/1/sl5/x86_64/base/emi-release-1.0.0-1.sl5.noarch.rpm
