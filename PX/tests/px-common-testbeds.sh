@@ -152,7 +152,7 @@ echo echo "  REAL TESTS START HERE" >> arrange_px_test_user.sh
 echo echo ======================== >> arrange_px_test_user.sh
 echo 'echo "</verbatim>"' >> arrange_px_test_user.sh
 echo 'echo "<literal>"' >> arrange_px_test_user.sh
-echo sh ./px-test-all.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
+echo ./px-test-all.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
 echo 'echo "</literal>"' >> arrange_px_test_user.sh
 echo 'echo "<verbatim>"' >> arrange_px_test_user.sh
 echo echo ================== >> arrange_px_test_user.sh

@@ -85,9 +85,9 @@ echo "  REAL TESTS START HERE"
 echo ========================
 echo "</verbatim>"
 echo "<literal>"
-sh ./ping-remote.sh $remotehost \$OUTPUT_OPT
-sh ./ping-local.sh \$OUTPUT_OPT -f /tmp/httpd-webserver.conf
-sh ./gridsite-test-all.sh \$OUTPUT_OPT
+./ping-remote.sh $remotehost \$OUTPUT_OPT
+./ping-local.sh \$OUTPUT_OPT -f /tmp/httpd-webserver.conf
+./gridsite-test-all.sh \$OUTPUT_OPT
 echo "</literal>"
 echo "<verbatim>"
 echo ==================
