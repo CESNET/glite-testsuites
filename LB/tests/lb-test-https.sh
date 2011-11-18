@@ -106,6 +106,19 @@ if [ $? != 0 ]; then
 	exit 2
 fi	
 X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
+
+printf "Using SSL client: "
+$SYS_CURL --version | head -n 1 | grep -i NSS/ >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+	SSL_CMD="wget --no-check-certificate --secure-protocol=SSLv3 --quiet --private-key $X509_USER_PROXY --certificate $X509_USER_PROXY --ca-directory /etc/grid-security/certificates --ca-certificate $X509_USER_PROXY --output-document https.$$.tmp"
+	SSL_CLIENT=wget
+else
+	SSL_CMD="$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp"
+	SSL_CLIENT=curl
+fi
+printf "$SSL_CLIENT"
+test_done
+
 			# Register job:
 			printf "Registering testing job "
 			jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -119,7 +132,7 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 				# Get list of jobs
 				printf "Evaluating job list... "
 
-				$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp https://${GLITE_WMS_QUERY_SERVER}/
+				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -145,7 +158,7 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 				# Get job status
 				printf "Evaluating job status listing... "
 
-				$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp "${jobid}"
+				$SSL_CMD "${jobid}"
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -191,7 +204,7 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 				# Get notification status
 				printf "Evaluating notification status listing... "
 
-				$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp "${notifid}"
+				$SSL_CMD "${notifid}"
 
 				if [ "$?" != "0" ]; then
 					test_failed
@@ -242,7 +255,11 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 			done
 			printf "${#URL} characters"
 
-			$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
+			if [ "$SSL_CLIENT" = "curl" ]; then
+				$SSL_CMD -D http.header.dump.$$ $URL
+			else
+				$SSL_CMD --server-response $URL 2> http.header.dump.$$
+			fi
 			$SYS_GREP -E "400.*Bad.*Request" http.header.dump.$$ > /dev/null
 			if [ "$?" != "0" ]; then
 				test_failed
@@ -255,7 +272,11 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 
 			printf "Trying request with normal length..."
 			URL="https://${GLITE_WMS_QUERY_SERVER}/$RANDOM"
-			$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp -D http.header.dump.$$ $URL
+			if [ "$SSL_CLIENT" = "curl" ]; then
+				$SSL_CMD -D http.header.dump.$$ $URL
+			else
+				$SSL_CMD --server-response $URL 2> http.header.dump.$$
+			fi
 			$SYS_GREP -E "404.*Not.*Found" http.header.dump.$$ > /dev/null
 			if [ "$?" != "0" ]; then
 				test_failed
@@ -266,6 +287,7 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 			fi
 			$SYS_RM http.header.dump.$$
 
+			$SYS_RM https.$$.tmp
 
 test_end
 }
