@@ -50,8 +50,8 @@ yum install -q -y bc
 mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
 cat >/var/lib/pgsql/data/pg_hba.conf <<EOF
 local all all trust
-host all all 127.0.0.1 ident sameuser
-host all all ::1/128 ident sameuser
+host all all 127.0.0.1/32 ident
+host all all ::1/128 ident
 EOF
 /etc/init.d/postgresql reload
 createuser -U postgres -S -R -D rtm
