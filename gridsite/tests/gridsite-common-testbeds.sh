@@ -21,6 +21,15 @@ function gen_arrange_script_gridsite()
 remotehost=$1
 COPYPROXY=$2
 
+HTTPD_CONFDIR=/tmp
+for dir in /etc/httpd /etc/apache /etc/apache2; do
+	if [ -d $dir ]; then
+		HTTPD_CONFDIR=$dir
+		break
+	fi
+done
+HTTPD_CONF=\$HTTPD_CONF_DIR/gridsite-webserver.conf
+
 cat << EndArrangeScript > arrange_gridsite_test_root.sh 
 CERTFILE=\$1
 GLITE_USER=\$2
@@ -38,11 +47,17 @@ yum install -q -y voms-clients
 yum install -q -y httpd mod_ssl
 yum install -q -y curl
 yum install -q -y wget
-sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> /tmp/httpd-webserver.conf
-echo "AddHandler cgi-script .cgi" >> /tmp/httpd-webserver.conf
-echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> /tmp/httpd-webserver.conf
+yum install -q -y nc
+
+
+sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> $HTTPD_CONF
+echo "AddHandler cgi-script .cgi" >> $HTTPD_CONF
+echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> $HTTPD_CONF
 mkdir /var/www/htdocs
-httpd -f /tmp/httpd-webserver.conf
+killall httpd apache2 >/dev/null 2>&1
+sleep 1
+killall -9 httpd apache2 >/dev/null 2>&1
+httpd -f $HTTPD_CONF
 
 cd /tmp
 
@@ -86,7 +101,7 @@ echo ========================
 echo "</verbatim>"
 echo "<literal>"
 ./ping-remote.sh $remotehost \$OUTPUT_OPT
-./ping-local.sh \$OUTPUT_OPT -f /tmp/httpd-webserver.conf
+./ping-local.sh \$OUTPUT_OPT -f $HTTPD_CONF
 ./gridsite-test-all.sh \$OUTPUT_OPT
 echo "</literal>"
 echo "<verbatim>"
