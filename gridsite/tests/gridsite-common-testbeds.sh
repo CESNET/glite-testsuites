@@ -45,9 +45,7 @@ export GSTSTCOLS
 
 yum install -q -y voms-clients
 yum install -q -y httpd mod_ssl
-yum install -q -y curl
-yum install -q -y wget
-yum install -q -y nc
+yum install -q -y curl wget nc lsof
 
 
 sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> $HTTPD_CONF
