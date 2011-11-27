@@ -28,7 +28,7 @@ for dir in /etc/httpd /etc/apache /etc/apache2; do
 		break
 	fi
 done
-HTTPD_CONF=\$HTTPD_CONF_DIR/gridsite-webserver.conf
+HTTPD_CONF=$HTTPD_CONFDIR/gridsite-webserver.conf
 
 cat << EndArrangeScript > arrange_gridsite_test_root.sh 
 CERTFILE=\$1
