@@ -59,6 +59,8 @@ do
         shift
 done
 
+PWD=`pwd`
+
 echo "Generating fake proxy certificate - this may take a few minutes"
 echo ""
 
@@ -88,6 +90,8 @@ mv "/tmp/x509up_u${USER_BOB}" "/tmp/x509up_u.${user_id}"
 
 export X509_USER_PROXY=/tmp/x509up_u${user_id}
 export X509_USER_PROXY_BOB=/tmp/x509up_u.${user_id}
+export x509_USER_CERT=$CERTS_ROOT/trusted-certs/trusted_client00.cert
+export x509_USER_KEY=$CERTS_ROOT/trusted-certs/trusted_client00.priv-clear
 
 echo "/tmp/x509up_u${user_id} proxy certificate has been generated"
 echo "/tmp/x509up_u${USER} proxy certificate has been generated" 
@@ -111,4 +115,5 @@ fi
 echo "======================================================================"
 echo ""
 
-exit 0
+cd $PWD
+
