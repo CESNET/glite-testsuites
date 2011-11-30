@@ -106,11 +106,17 @@ if [ $? != 0 ]; then
         exit 2
 fi
 
+echo User Cert $x509_USER_CERT
+echo User Key $x509_USER_KEY
+chmod 600 $x509_USER_CERT $x509_USER_KEY
+
 JOBID=https://fake.job.id/xxx
 
 ORIG_PROXY=`voms-proxy-info | grep -E "^path" | sed 's/^path\s*:\s*//'`
 PROXYDN=`voms-proxy-info | grep -E "^identity" | sed 's/^identity\s*:\s*//'`
-myproxy-store --certfile $ORIG_PROXY --keyfile $ORIG_PROXY -s localhost -d
+#myproxy-store --certfile $ORIG_PROXY --keyfile $ORIG_PROXY -s localhost -d
+printf "Registering proxy by calling myproxy-init -s localhost -d -n -t 1 --certfile $x509_USER_CERT --keyfile $x509_USER_KEY\n"
+myproxy-init -s localhost -d -n -t 1 -c 1 --certfile $x509_USER_CERT --keyfile $x509_USER_KEY
 myproxy-info -s localhost -l "$PROXYDN"
 REGISTERED_PROXY=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
 printf "\tProxy:\t$ORIG_PROXY\n\tRenew:\t$REGISTERED_PROXY\n"; 
