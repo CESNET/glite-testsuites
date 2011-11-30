@@ -100,12 +100,13 @@ echo X509_CERT_DIR=$CERTS_ROOT/grid-security/certificates
 echo X509_USER_PROXY=/tmp/x509up_u${user_id}
 #BOB'S FAKE PROXY
 echo X509_USER_PROXY_BOB=/tmp/x509up_u.${user_id}
-echo mkdir /etc/grid-security/vomsdir/$VO
+echo TRUSTED_CERTS=$CERTS_ROOT/trusted-certs
 if [ $GENLSC -eq 1 ]; then
 	mkdir -p /etc/grid-security/vomsdir/$VO
 	openssl x509 -noout -subject -issuer -in $CERTS_ROOT/trusted-certs/${VOMS_SERVER}.cert | cut -d ' ' -f 2- > /etc/grid-security/vomsdir/$VO/`hostname -f`.lsc
 else
-echo "openssl x509 -noout -subject -issuer -in $CERTS_ROOT/trusted-certs/${VOMS_SERVER}.cert | cut -d ' ' -f 2- > /etc/grid-security/vomsdir/$VO/`hostname -f`.lsc"
+	echo mkdir /etc/grid-security/vomsdir/$VO
+	echo "openssl x509 -noout -subject -issuer -in $CERTS_ROOT/trusted-certs/${VOMS_SERVER}.cert | cut -d ' ' -f 2- > /etc/grid-security/vomsdir/$VO/`hostname -f`.lsc"
 fi
 echo "======================================================================"
 echo ""
