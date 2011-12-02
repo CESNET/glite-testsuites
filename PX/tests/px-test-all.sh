@@ -122,6 +122,7 @@ REGISTERED_PROXY=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
 printf "\tProxy:\t$ORIG_PROXY\n\tRenew:\t$REGISTERED_PROXY\n"; 
 printf "Registered proxy -- "; 
 voms-proxy-info -file $REGISTERED_PROXY | grep timeleft; 
+#XXX Use this for conversion: date --utc --date "1970-1-1 0:0:0" +%s
 printf "sleeping..."; 
 sleep 1800; 
 printf "\nRegistered proxy -- ";
