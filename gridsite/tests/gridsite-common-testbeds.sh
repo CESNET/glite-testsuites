@@ -30,6 +30,13 @@ for dir in /etc/httpd /etc/apache /etc/apache2; do
 done
 HTTPD_CONF=$HTTPD_CONFDIR/gridsite-webserver.conf
 
+egrep -i "Debian|Ubuntu" /etc/issue
+if [ \$? = 0 ]; then 
+        INSTALLCMD="apt-get install -q --yes"
+else
+        INSTALLCMD="yum install -q -y"
+fi
+
 cat << EndArrangeScript > arrange_gridsite_test_root.sh 
 CERTFILE=\$1
 GLITE_USER=\$2
@@ -43,9 +50,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS
 
-yum install -q -y voms-clients
-yum install -q -y httpd mod_ssl
-yum install -q -y curl wget nc lsof
+${INSTALLCMD} voms-clients httpd mod_ssl curl wget nc lsof
 
 
 sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> $HTTPD_CONF
@@ -63,14 +68,7 @@ CVSPATH=\`which cvs\`
 
 if [ "\$CVSPATH" = "" ]; then
         printf "CVS binary not present"
-        egrep -i "Debian|Ubuntu" /etc/issue
-
-        if [ \$? = 0 ]; then
-                apt-get install --yes cvs
-        else
-                yum install -y cvs
-        fi
-
+	${INSTALLCMD} cvs
 fi
 
 if [ $COPYPROXY -eq 1 ]; then

@@ -16,10 +16,18 @@
 # limitations under the License.
 #
 
+
 function gen_arrange_script()
 {
 remotehost=$1
 COPYPROXY=$2
+
+egrep -i "Debian|Ubuntu" /etc/issue
+if [ \$? = 0 ]; then
+	INSTALLCMD="apt-get install -q --yes"
+else
+	INSTALLCMD="yum install -q -y"
+fi
 
 cat << EndArrangeScript > arrange_lb_test_root.sh 
 CERTFILE=\$1
@@ -34,16 +42,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export LBTSTCOLS
 
-yum install -q -y globus-proxy-utils 
-yum install -q -y postgresql postgresql-server
-#Standard setup now uses production brokers. No need to install our own.
-#yum install -q -y activemq java-1.6.0-openjdk
-yum install -q -y emi-lb-nagios-plugins
-yum install -q -y voms-clients
-yum install -q -y curl
-yum install -q -y wget
-yum install -q -y sudo
-yum install -q -y bc
+${INSTALLCMD} globus-proxy-utils postgresql postgresql-server emi-lb-nagios-plugins voms-clients curl wget sudo bc
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start
@@ -69,14 +68,7 @@ CVSPATH=\`which cvs\`
 
 if [ "\$CVSPATH" = "" ]; then
         printf "CVS binary not present"
-        egrep -i "Debian|Ubuntu" /etc/issue
-
-        if [ \$? = 0 ]; then
-                apt-get install --yes cvs
-        else
-                yum install -y cvs
-        fi
-
+	${INSTALLCMD} cvs
 fi
 
 glite_id=\`id -u \$GLITE_USER\`
