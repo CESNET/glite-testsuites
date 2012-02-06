@@ -98,7 +98,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $LBCMSCLIENT $SYS_EXPR
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $LBCMSCLIENT $SYS_EXPR $SYS_CURL
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -111,6 +111,20 @@ if [ $? != 0 ]; then
 	test_end
 	exit 2
 fi
+X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
+
+printf "Using SSL client: "
+$SYS_CURL --version | head -n 1 | grep -i NSS/ >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+        SSL_CMD="wget --no-check-certificate --secure-protocol=SSLv3 --quiet --private-key $X509_USER_PROXY --certificate $X509_USER_PROXY --ca-directory /etc/grid-security/certificates --ca-certificate $X509_USER_PROXY --output-document configuration.$$.tmp"
+        SSL_CLIENT=wget
+else
+        SSL_CMD="$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output configuration.$$.tmp"
+        SSL_CLIENT=curl
+fi
+printf "$SSL_CLIENT"
+test_done
+
 		# Register job:
 		printf "Registering testing job "
 		jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application 2>&1 | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -135,18 +149,46 @@ fi
 			printf "(${notifid}) "
 			test_done
 
-			BROKERLINE=`grep -E "^broker" /etc/glite-lb/msg.conf`
+		        check_srv_version '>=' "2.3"
+		        if [ $? -eq 0 ]; then
+				printf "Reading server configuration"
+				$SSL_CMD "https://${GLITE_WMS_QUERY_SERVER}/?configuration"
+                               if [ "$?" != "0" ]; then
+                                        test_failed
+                                        print_error "Could not read server configuration"
+                                else
+					BROKER=`$SYS_CAT configuration.$$.tmp | $SYS_GREP -E "^msg_brokers=" | $SYS_SED -r 's/^msg_brokers=\s*//' | $SYS_SED -r 's/\s+.*$//' | $SYS_SED 's/tcp:\/\///'`
+					rm configuration.$$.tmp
+					test_done
+				fi
 
-			if [ $? = 0 ]; then
-
+			else
+				printf "Reading from config file"
+				BROKERLINE=`grep -E "^broker" /etc/glite-lb/msg.conf`
 				BROKER=`$SYS_ECHO $BROKERLINE | $SYS_AWK '{print $3}' | $SYS_SED 's/^.*\/\///' | $SYS_SED 's/\///g'`
+				test_done
+			fi
 
-				printf "connecting to broker $BROKER, topic grid.emi.lbtest"
+			if [ ! $BROKER == "" ]; then
+
 
 				#Start listening for notifications
-				${LBCMSCLIENT} ${BROKER} grid.emi.lbtest > $$_notifications.txt &
-				recpid=$!
+			
+				printf "Checking if client supports output files... "	
+				rudver=`${LBCMSCLIENT} | $SYS_GREP '\-o'`
+				if [ "$rudver" == "" ]; then
+					printf "No. Connecting to broker $BROKER, topic grid.emi.lbtest"
+					${LBCMSCLIENT} ${BROKER} grid.emi.lbtest 2>&1 > $$_notifications.txt &
+					recpid=$!
+				else
+					printf "Yes. Connecting to broker $BROKER, topic grid.emi.lbtest"
+					${LBCMSCLIENT} -o $$_notifications.txt ${BROKER} grid.emi.lbtest > /dev/null &
+					recpid=$!
+				fi
+					
 				test_done
+
+				sleep 2
 
 				printf "Logging events resulting in DONE state... "
 				$LB_DONE_SH -j ${jobid} > /dev/null 2> /dev/null
@@ -157,7 +199,7 @@ fi
 				sleep 20
 				test_done
 
-				kill $recpid
+				kill -n 15 $recpid
 
 				printf "Checking number of messages delivered... "
 
