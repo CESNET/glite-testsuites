@@ -21,6 +21,13 @@ function gen_arrange_script_px()
 remotehost=$1
 COPYPROXY=$2
 
+egrep -i "Debian|Ubuntu" /etc/issue
+if [ \$? = 0 ]; then
+        INSTALLCMD="apt-get install -q --yes"
+else
+        INSTALLCMD="yum install -q -y"
+fi
+
 cat << EndArrangeScript > arrange_px_test_root.sh 
 CERTFILE=\$1
 GLITE_USER=\$2
@@ -34,10 +41,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export PXTSTCOLS
 
-yum install -q -y globus-proxy-utils 
-yum install -q -y voms-clients
-yum install -q -y curl
-yum install -q -y wget
+${INSTALLCMD} globus-proxy-utils voms-clients curl wget emi-voms-mysql xml-commons-apis
 
 cd /tmp
 
@@ -45,14 +49,7 @@ CVSPATH=\`which cvs\`
 
 if [ "\$CVSPATH" = "" ]; then
         printf "CVS binary not present"
-        egrep -i "Debian|Ubuntu" /etc/issue
-
-        if [ \$? = 0 ]; then
-                apt-get install --yes cvs
-        else
-                yum install -y cvs
-        fi
-
+	${INSTALLCMD} globus-proxy-utils voms-clients curl wget
 fi
 
 glite_id=\`id -u \$GLITE_USER\`
@@ -73,10 +70,6 @@ else
                 cp -rv \$FAKE_CAS/* /etc/grid-security/certificates/
         fi
 fi
-
-
-yum install -y emi-voms-mysql
-yum install -y xml-commons-apis
 
 service mysqld start
 
