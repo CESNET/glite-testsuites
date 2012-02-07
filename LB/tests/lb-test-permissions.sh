@@ -164,6 +164,7 @@ $GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-authz.conf
 $GLITE_LB_LOCATION_ETC/gLiteservices
 $GLITE_LB_LOCATION_ETC/logrotate.d/lb-lcas
 $GLITE_LB_LOCATION_ETC/logrotate.d/lb-purger
+$GLITE_LB_LOCATION_ETC/mysql/conf.d/glite-lb-server.cnf
 EOF
 
 $SYS_CAT << EOF > 664glite
