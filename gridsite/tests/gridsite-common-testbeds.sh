@@ -21,15 +21,6 @@ function gen_arrange_script_gridsite()
 remotehost=$1
 COPYPROXY=$2
 
-HTTPD_CONFDIR=/tmp
-for dir in /etc/httpd /etc/apache /etc/apache2; do
-	if [ -d $dir ]; then
-		HTTPD_CONFDIR=$dir
-		break
-	fi
-done
-HTTPD_CONF=$HTTPD_CONFDIR/gridsite-webserver.conf
-
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes"
@@ -52,6 +43,15 @@ export GSTSTCOLS
 
 ${INSTALLCMD} voms-clients httpd mod_ssl curl wget nc lsof
 
+
+HTTPD_CONFDIR=/tmp
+for dir in /etc/httpd /etc/apache /etc/apache2; do
+	if [ -d $dir ]; then
+		HTTPD_CONFDIR=$dir
+		break
+	fi
+done
+HTTPD_CONF=$HTTPD_CONFDIR/gridsite-webserver.conf
 
 sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> $HTTPD_CONF
 echo "AddHandler cgi-script .cgi" >> $HTTPD_CONF
