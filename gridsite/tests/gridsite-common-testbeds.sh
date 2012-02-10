@@ -34,7 +34,7 @@ egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes"
 else
-        INSTALLCMD="yum install -q -y"
+        INSTALLCMD="yum install -q -y --nogpgcheck"
 fi
 
 cat << EndArrangeScript > arrange_gridsite_test_root.sh 
