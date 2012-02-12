@@ -43,24 +43,23 @@ export GSTSTCOLS
 
 ${INSTALLCMD} voms-clients httpd mod_ssl curl wget nc lsof
 
-
 HTTPD_CONFDIR=/tmp
 for dir in /etc/httpd /etc/apache /etc/apache2; do
-	if [ -d $dir ]; then
-		HTTPD_CONFDIR=$dir
+	if [ -d \$dir ]; then
+		HTTPD_CONFDIR=\$dir
 		break
 	fi
 done
-HTTPD_CONF=$HTTPD_CONFDIR/gridsite-webserver.conf
+HTTPD_CONF=\$HTTPD_CONFDIR/gridsite-webserver.conf
 
-sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> $HTTPD_CONF
-echo "AddHandler cgi-script .cgi" >> $HTTPD_CONF
-echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> $HTTPD_CONF
+sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> \$HTTPD_CONF
+echo "AddHandler cgi-script .cgi" >> \$HTTPD_CONF
+echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> \$HTTPD_CONF
 mkdir /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
 sleep 1
 killall -9 httpd apache2 >/dev/null 2>&1
-httpd -f $HTTPD_CONF
+httpd -f \$HTTPD_CONF
 
 cd /tmp
 
@@ -97,7 +96,7 @@ echo ========================
 echo "</verbatim>"
 echo "<literal>"
 ./ping-remote.sh $remotehost \$OUTPUT_OPT
-./ping-local.sh \$OUTPUT_OPT -f $HTTPD_CONF
+./ping-local.sh \$OUTPUT_OPT -f \$HTTPD_CONF
 ./gridsite-test-all.sh \$OUTPUT_OPT
 echo "</literal>"
 echo "<verbatim>"
