@@ -130,6 +130,7 @@ fi
 if [ "$GLITE_LB_LOCATION_ETC" = "" ]; then
 	GLITE_LB_LOCATION_ETC="/opt/glite/etc"
 fi
+GLITE_HOME=`getent passwd ${GLITE_USER} | cut -d: -f6`
 
 
 #lrwxrwxrwx 1 root root 29 Aug  2 10:31 /etc/glite-lb-dbsetup.sql -> glite-lb/glite-lb-dbsetup.sql
@@ -137,37 +138,42 @@ fi
 #-r--r--r-- 1 root root 990 May 10 07:50 /etc/glite-lb/harvester-test-dbsetup.sql
 
 $SYS_CAT << EOF > 400glite
-/home/glite/.certs/hostkey.pem
+$GLITE_HOME/.certs/hostkey.pem
 EOF
 
 $SYS_CAT << EOF > 644glite
 /var/log/glite/glite-lb-lcas.log
-/var/log/glite/glite-lb-purger.log
-/home/$GLITE_USER/.bashrc
-/home/$GLITE_USER/.certs/hostcert.pem
-/home/$GLITE_USER/.bash_profile
-/home/$GLITE_USER/.bash_logout
+/var/log/glite/glite-lb-pproxy-purge.log
+/var/log/glite/glite-lb-server-purge.log
+$GLITE_HOME/.bashrc
+$GLITE_HOME/.certs/hostcert.pem
+$GLITE_HOME/.bash_profile
+$GLITE_HOME/.bash_logout
 EOF
 
 $SYS_CAT << EOF > 644root
 $GLITE_LB_LOCATION_ETC/glite-lb/msg.conf
-$GLITE_LOCATION/interface/lb-job-attrs2.xsd
 $GLITE_LB_LOCATION_ETC/glite-lb/log4crc
 $GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-index.conf.template
 $GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-harvester.conf
 $GLITE_LB_LOCATION_ETC/glite-lb/msg.conf.example
 $GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-dbsetup.sql
-$GLITE_LOCATION/interface/lb-job-record.xsd
 $GLITE_LB_LOCATION_ETC/glite-lb/lcas.db
-$GLITE_LOCATION/interface/lb-job-attrs.xsd
 $GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-authz.conf
+$GLITE_LB_LOCATION_ETC/glite-lb/site-notif.conf
 $GLITE_LB_LOCATION_ETC/gLiteservices
-$GLITE_LB_LOCATION_ETC/logrotate.d/lb-lcas
-$GLITE_LB_LOCATION_ETC/logrotate.d/lb-purger
+$GLITE_LB_LOCATION_ETC/logrotate.d/glite-lb-lcas
+$GLITE_LB_LOCATION_ETC/logrotate.d/glite-lb-purge
 $GLITE_LB_LOCATION_ETC/mysql/conf.d/glite-lb-server.cnf
+$GLITE_LOCATION/share/wsdl/glite-lb/glue2.xsd
+$GLITE_LOCATION/share/wsdl/glite-lb/LB.wsdl
+$GLITE_LOCATION/share/wsdl/glite-lb/LBTypes.wsdl
+$GLITE_LOCATION/interface/glite-lb/lb-job-attrs2.xsd
+$GLITE_LOCATION/interface/glite-lb/lb-job-record.xsd
+$GLITE_LOCATION/interface/glite-lb/lb-job-attrs.xsd
 EOF
 
-$SYS_CAT << EOF > 664glite
+$SYS_CAT << EOF > 644or664glite
 $GLITE_LB_LOCATION_VAR/glite-lb-bkserverd.pid
 $GLITE_LB_LOCATION_VAR/glite-lb-interlogd.pid
 $GLITE_LB_LOCATION_VAR/glite-lb-logd.pid
@@ -177,7 +183,7 @@ EOF
 
 $SYS_CAT << EOF > 755root
 $GLITE_LB_LOCATION_ETC/glite-lb/glite-lb-migrate_db2version20
-$GLITE_LOCATION/share/glite-lb/msg-brokers-openwire
+$GLITE_LOCATION/share/glite-lb/msg-brokers
 EOF
 
 $SYS_CAT << EOF > s700glite
@@ -198,7 +204,7 @@ printf "  Config files..."
 test_perms ".rw.r-.r-." root root 644root
 
 printf "  PIDs..."
-test_perms "-rw.rw.r-." $GLITE_USER $GLITE_USER 664glite
+test_perms "-rw-r.-r--" $GLITE_USER $GLITE_USER 644or664glite
 
 printf "  Admin scripts..."
 test_perms "-rwxr-xr-x" root root 755root
