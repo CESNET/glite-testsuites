@@ -136,6 +136,7 @@ echo ./lb-test-job-registration.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-https.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-job-states.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-logevent.sh /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo ./lb-test-collections.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-notif-recovery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-notif-msg.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-notif.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
