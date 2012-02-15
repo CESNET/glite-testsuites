@@ -137,7 +137,7 @@ function check_credentials_and_generate_proxy()
 		else 
 			PROXYLIFE=""
 		fi
-		./lb-generate-fake-proxy.sh $PROXYLIFE
+		source ./lb-generate-fake-proxy.sh $PROXYLIFE
 		if [ $? != 0 ]; then
 			test_failed
 			print_error "Proxy not created - process failed"
