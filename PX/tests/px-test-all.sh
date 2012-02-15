@@ -106,6 +106,10 @@ if [ $? != 0 ]; then
         exit 2
 fi
 
+if [ "$x509_USER_CERT" == "" -o "$x509_USER_KEY" == "" ]; then
+	source ./lb-generate-fake-proxy.sh --hours $1
+fi
+
 echo User Cert $x509_USER_CERT
 echo User Key $x509_USER_KEY
 chmod 600 $x509_USER_CERT $x509_USER_KEY
