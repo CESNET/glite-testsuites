@@ -49,7 +49,7 @@ CVSPATH=\`which cvs\`
 
 if [ "\$CVSPATH" = "" ]; then
         printf "CVS binary not present"
-	${INSTALLCMD} globus-proxy-utils voms-clients curl wget
+	${INSTALLCMD} cvs
 fi
 
 glite_id=\`id -u \$GLITE_USER\`
@@ -71,16 +71,19 @@ else
         fi
 fi
 
-service mysqld start
+if [ ! -d /etc/vomses ]; then
+	${INSTALLCMD} emi-voms-mysql
 
-/usr/bin/mysqladmin -u root password [Edited];
+	service mysqld start
 
-mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname\`' identified by '[Edited]';"
-mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname -f\`' identified by '[Edited]';"
+	/usr/bin/mysqladmin -u root password [Edited];
 
-cd
-mkdir -p yaim/services
-cd yaim
+	mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname\`' identified by '[Edited]';"
+	mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname -f\`' identified by '[Edited]';"
+
+	cd
+	mkdir -p yaim/services
+	cd yaim
 
 cat << EOF > site-info-voms.def
 MYSQL_PASSWORD="[Edited]"
@@ -102,17 +105,24 @@ VOMS_ADMIN_SMTP_HOST=[Edited]
 VOMS_ADMIN_MAIL=[Edited]
 EOF
 
-sed -i 's/155/255/g' /opt/glite/yaim/examples/edgusers.conf
-sed -i 's/156/256/g' /opt/glite/yaim/examples/edgusers.conf
+	sed -i 's/155/255/g' /opt/glite/yaim/examples/edgusers.conf
+	sed -i 's/156/256/g' /opt/glite/yaim/examples/edgusers.conf
 
-/opt/glite/yaim/bin/yaim -c -s site-info-voms.def -n VOMS
+	/opt/glite/yaim/bin/yaim -c -s site-info-voms.def -n VOMS
 
-source /etc/profile.d/grid-env.sh
+	source /etc/profile.d/grid-env.sh
 
-voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "glite" "root@`hostname -f`"
+	voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "glite" "root@`hostname -f`"
 
-mkdir -p /etc/vomses
-cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
+	mkdir -p /etc/vomses
+	cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
+else
+	printf "Using external voms server:\n===========================\n"
+	find /etc/vomses -type f -exec printf "{}: " \; -exec cat {} \;
+	printf "===========================\n"
+
+fi
+
 
 cd /tmp/
  
