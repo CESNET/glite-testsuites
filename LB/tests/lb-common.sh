@@ -65,6 +65,7 @@ LB4AGUACTSTATUS=glite-lb-ws_lb4agu_GetActivityStatus
 LBREGSANDBOX=glite-lb-register_sandbox
 LBHISTORY=glite-lb-state_history
 LBCMSCLIENT=glite-lb-cmsclient
+LBQUERYEXT=glite-lb-query_ext
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd
