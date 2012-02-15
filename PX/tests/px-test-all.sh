@@ -67,6 +67,7 @@ chmod +x lb-generate-fake-proxy.sh
 
 logfile=$$.tmp
 flag=0
+NL="\n"
 while test -n "$1"
 do
 	case "$1" in
@@ -74,7 +75,7 @@ do
 		"-o" | "--output") shift ; logfile=$1 flag=1 ;;
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
-		"-x" | "--html")  setOutputHTML ;;
+		"-x" | "--html")  setOutputHTML; NL="<br>" ;;
 	esac
 	shift
 done
@@ -107,11 +108,11 @@ if [ $? != 0 ]; then
 fi
 
 if [ "$x509_USER_CERT" == "" -o "$x509_USER_KEY" == "" ]; then
-	source ./lb-generate-fake-proxy.sh --hours $1
+	source ./lb-generate-fake-proxy.sh --hours 1
 fi
 
-echo User Cert $x509_USER_CERT
-echo User Key $x509_USER_KEY
+printf "User Cert $x509_USER_CERT$NL"
+printf "User Key $x509_USER_KEY$NL"
 chmod 600 $x509_USER_CERT $x509_USER_KEY
 
 JOBID=https://fake.job.id/xxx
@@ -119,32 +120,94 @@ JOBID=https://fake.job.id/xxx
 ORIG_PROXY=`voms-proxy-info | grep -E "^path" | sed 's/^path\s*:\s*//'`
 PROXYDN=`voms-proxy-info | grep -E "^identity" | sed 's/^identity\s*:\s*//'`
 #myproxy-store --certfile $ORIG_PROXY --keyfile $ORIG_PROXY -s localhost -d
-printf "Registering proxy by calling myproxy-init -s localhost -d -n -t 1 -c 1 --certfile $x509_USER_CERT --keyfile $x509_USER_KEY\n"
+printf "Registering proxy by calling myproxy-init -s localhost -d -n -t 1 -c 1 --certfile $x509_USER_CERT --keyfile $x509_USER_KEY$NL" 
 #myproxy-init -s localhost -d -n -t 1 -c 1 --certfile $x509_USER_CERT --keyfile $x509_USER_KEY
 myproxy-init -s localhost -d -n --certfile $x509_USER_CERT --keyfile $x509_USER_KEY
-myproxy-info -s localhost -l "$PROXYDN"
-REGISTERED_PROXY=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
-printf "\tProxy:\t$ORIG_PROXY\n\tRenew:\t$REGISTERED_PROXY\n"; 
-printf "Registered proxy -- "; 
-voms-proxy-info -file $REGISTERED_PROXY | grep timeleft; 
-#XXX Use this for conversion: date --utc --date "1970-1-1 0:0:0" +%s
-printf "sleeping..."; 
-sleep 1800; 
-printf "\nRegistered proxy -- ";
-voms-proxy-info -file $REGISTERED_PROXY | grep timeleft; 
-printf "Original proxy -- "; 
-voms-proxy-info -file $ORIG_PROXY | grep timeleft; 
-printf "\nRegistered proxy -- "; 
-voms-proxy-info -file $REGISTERED_PROXY -fqan -actimeleft; 
-printf "Original proxy -- "; 
-voms-proxy-info -file $ORIG_PROXY -fqan -actimeleft; 
-printf "\nRegistered proxy -- "; 
-voms-proxy-info -file $REGISTERED_PROXY -identity; 
-printf "Original proxy -- ";
-voms-proxy-info -file $ORIG_PROXY -identity; 
-glite-proxy-renew -j $JOBID stop; 
-ls $REGISTERED_PROXY 2>&1 | grep 'No such file or directory' > /dev/null && echo OK
+#myproxy-info -s localhost -l "$PROXYDN"
 
+printf "Getting registered proxy... "
+REGISTERED_PROXY=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
+
+if [ "$REGISTERED_PROXY" == "" ]; then
+	test_failed
+	print_error "Could not set renewal"
+	exit 1
+fi
+test_done
+
+printf "\tProxy:\t$ORIG_PROXY$NL\tRenew:\t$REGISTERED_PROXY$NL"; 
+
+printf "Checking time left on registered proxy... "
+REGISTEREDTIMELEFT=`voms-proxy-info -file $REGISTERED_PROXY | grep timeleft | grep -E -o "[0-9]+:[0-9]+:[0-9]+"`
+#Use this for conversion: date --utc --date "1970-1-1 0:0:0" +%s
+REGISTEREDTIMELEFTSEC=`date --utc --date "1970-1-1 $REGISTEREDTIMELEFT" +%s`
+printf "($REGISTEREDTIMELEFT, i.e. $REGISTEREDTIMELEFTSEC s)"
+if [ ! $REGISTEREDTIMELEFTSEC -gt 0 ]; then
+	test_failed
+	print_error "Failed to retrieve time left"
+	exit 1
+fi
+test_done
+
+printf "sleeping 1800 (Sorry, no other way to let the proxy age enough)... "; 
+sleep 1800;
+test_done
+
+
+printf "Checking time left on registered proxy... "
+REGISTEREDTIMELEFT=`voms-proxy-info -file $REGISTERED_PROXY | grep timeleft | grep -E -o "[0-9]+:[0-9]+:[0-9]+"`
+REGISTEREDTIMELEFTSEC=`date --utc --date "1970-1-1 $REGISTEREDTIMELEFT" +%s`
+printf "($REGISTEREDTIMELEFT, i.e. $REGISTEREDTIMELEFTSEC s)"
+if [ ! $REGISTEREDTIMELEFTSEC -gt 0 ]; then
+	test_failed
+	print_error "Failed to retrieve time left"
+	exit 1
+fi
+test_done
+
+printf "Checking time left on original proxy... "
+ORIGINALTIMELEFT=`voms-proxy-info -file $ORIG_PROXY | grep timeleft | grep -E -o "[0-9]+:[0-9]+:[0-9]+"`
+ORIGINALTIMELEFTSEC=`date --utc --date "1970-1-1 $ORIGINALTIMELEFT" +%s`
+printf "($ORIGINALTIMELEFT, i.e. $ORIGINALTIMELEFTSEC s)"
+if [ ! $ORIGINALTIMELEFTSEC -gt 0 ]; then
+	test_failed
+	print_error "Failed to retrieve time left"
+	exit 1
+fi
+test_done
+
+printf "Checking renewal ($REGISTEREDTIMELEFTSEC > $ORIGINALTIMELEFTSEC)? "
+expr $REGISTEREDTIMELEFTSEC > $ORIGINALTIMELEFTSEC > /dev/null
+if [ $? -eq 0 ]; then
+	test_done
+else
+	test_failed
+	print_error "Proxy was not renewed"
+fi
+
+printf "Other particulars:$NL"
+printf "Registered proxy `voms-proxy-info -file $REGISTERED_PROXY -fqan -actimeleft`$NL" 
+printf "Original proxy `voms-proxy-info -file $ORIG_PROXY -fqan -actimeleft`$NL"
+printf "Registered proxy `voms-proxy-info -file $REGISTERED_PROXY -identity`$NL" 
+printf "Original proxy `voms-proxy-info -file $ORIG_PROXY -identity`$NL" 
+
+printf "Stopping renewal... "
+glite-proxy-renew -j $JOBID stop;
+if [ $? -eq 0 ]; then
+        test_done
+else
+	test_failed
+	print_error "Failed to stop"
+fi
+
+
+printf "Checking if registered proxy was removed... "
+if [ -f $REGISTERED_PROXY ]; then
+	test_failed
+	print_error "Registered proxy still exists ($REGISTERED_PROXY)"
+else
+	test_done
+fi
 
 test_end
 } 
