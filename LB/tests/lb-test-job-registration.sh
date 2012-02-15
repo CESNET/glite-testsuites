@@ -90,7 +90,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $LBJOBREG $LBJOBSTATUS
 if [ $? -gt 0 ]; then
 	test_failed
 else
