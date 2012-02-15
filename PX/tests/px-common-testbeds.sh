@@ -41,7 +41,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export PXTSTCOLS
 
-${INSTALLCMD} globus-proxy-utils voms-clients curl wget emi-voms-mysql xml-commons-apis
+${INSTALLCMD} globus-proxy-utils voms-clients curl wget xml-commons-apis
 
 cd /tmp
 
