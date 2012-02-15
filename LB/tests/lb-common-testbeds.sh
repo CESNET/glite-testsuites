@@ -25,8 +25,10 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then
 	INSTALLCMD="apt-get install -q --yes"
+	INSTALLPKGS="lintian"
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
+	INSTALLPKGS="rpmlint"
 fi
 
 cat << EndArrangeScript > arrange_lb_test_root.sh 
@@ -42,7 +44,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export LBTSTCOLS
 
-${INSTALLCMD} globus-proxy-utils postgresql postgresql-server emi-lb-nagios-plugins voms-clients curl wget sudo bc
+${INSTALLCMD} globus-proxy-utils postgresql postgresql-server emi-lb-nagios-plugins voms-clients curl wget sudo bc $INSTALLPKGS
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start
@@ -151,6 +153,7 @@ echo ./lb-test-statistics.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-threaded.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-harvester.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-nagios-probe.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo ./lb-test-packaging.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo perl ./lb-test-purge.pl --i-want-to-purge $remotehost:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo 'echo "</literal>"' >> arrange_lb_test_user.sh
 echo 'echo "<verbatim>"' >> arrange_lb_test_user.sh

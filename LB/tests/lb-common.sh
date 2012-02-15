@@ -356,3 +356,64 @@ function notif_wait() {
 	echo
 	$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
 }
+
+function check_rpmlint() {
+	local pkg=''
+	local out=''
+	local ret=0
+
+	echo "Packages compliance check output:"
+	while test -n "$1"; do
+		for pkg in `rpm -qa --queryformat '%{NAME} ' $1`; do
+			echo $pkg
+			out="`rpmlint $pkg`"
+			echo "$out"
+			echo
+			if echo $out | grep -i '^E:' >/dev/null; then
+				ret=1
+			fi
+		done
+
+		shift
+	done
+
+	return $ret
+}
+
+function check_lintian() {
+	local dir=/tmp/lintian-check.$$
+	local pkgs=''
+	local pkg=''
+	local out=''
+	local ret=0
+
+	while test -n "$1"; do
+		pkgs="$pkgs `dpkg-query -W -f '${Source}\n' $1 2>$dir/query.log`"
+		shift
+	done
+	pkgs=`echo "$pkgs" | sort | uniq`
+
+	rm -f $dir
+	mkdir $dir
+	printf "Downloading packages..."
+	(cd $dir; apt-get -d source $pkgs >$dir/download.log)
+	if test $? -eq 0; then
+		test_done
+	else
+		test_failed
+	fi
+
+	echo "Packages compliance check output:"
+	for pkg in $pkgs; do
+		echo $pkg:
+		out="`lintian $dir/${pkg}_*.dsc`"
+		echo "$out"
+		echo
+		if echo $out | grep -i '^E:' >/dev/null; then
+			ret=1
+		fi
+	done
+
+	rm -rf $dir
+	return $ret
+}

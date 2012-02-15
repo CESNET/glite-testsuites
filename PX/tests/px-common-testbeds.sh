@@ -24,8 +24,10 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then
         INSTALLCMD="apt-get install -q --yes"
+	INSTALLPKGS="lintian"
 else
         INSTALLCMD="yum install -q -y --nogpgcheck"
+	INSTALLPKGS="rpmlint"
 fi
 
 cat << EndArrangeScript > arrange_px_test_root.sh 
@@ -41,7 +43,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export PXTSTCOLS
 
-${INSTALLCMD} globus-proxy-utils voms-clients curl wget xml-commons-apis
+${INSTALLCMD} globus-proxy-utils voms-clients curl wget xml-commons-apis $INSTALLPKGS
 
 cd /tmp
 
@@ -151,6 +153,7 @@ echo echo ======================== >> arrange_px_test_user.sh
 echo 'echo "</verbatim>"' >> arrange_px_test_user.sh
 echo 'echo "<literal>"' >> arrange_px_test_user.sh
 echo ./px-test-all.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
+echo ./px-test-packaging.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
 echo 'echo "</literal>"' >> arrange_px_test_user.sh
 echo 'echo "<verbatim>"' >> arrange_px_test_user.sh
 echo echo ================== >> arrange_px_test_user.sh

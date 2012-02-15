@@ -24,8 +24,10 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes"
+	INSTALLPKGS="lintian"
 else
         INSTALLCMD="yum install -q -y --nogpgcheck"
+	INSTALLPKGS="rpmlint"
 fi
 
 cat << EndArrangeScript > arrange_gridsite_test_root.sh 
@@ -41,7 +43,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS
 
-${INSTALLCMD} voms-clients httpd mod_ssl curl wget nc lsof
+${INSTALLCMD} voms-clients httpd mod_ssl curl wget nc lsof $INSTALLPKGS
 
 HTTPD_CONFDIR=/tmp
 for dir in /etc/httpd /etc/apache /etc/apache2; do
@@ -98,6 +100,7 @@ echo "<literal>"
 ./ping-remote.sh $remotehost \$OUTPUT_OPT
 ./ping-local.sh \$OUTPUT_OPT -f \$HTTPD_CONF
 ./gridsite-test-all.sh \$OUTPUT_OPT
+./gridsite-test-packaging.sh \$OUTPUT_OPT
 echo "</literal>"
 echo "<verbatim>"
 echo ==================
