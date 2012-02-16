@@ -116,8 +116,6 @@ function check_credentials_and_generate_proxy()
 			print_error "Credentials still not passing check"
 			return 2
 		fi
-	else
-		test_done
 	fi
 	return 0
 }

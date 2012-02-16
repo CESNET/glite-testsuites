@@ -79,6 +79,12 @@ done
 
 {
 test_start
+printf "Downloading canl examples sources"
+wget -q -O canl_examples.tar.gz \
+	'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/emi.canl.canl-c/examples.tar.gz?view=tar' &> /dev/null || exit 1
+tar xzf canl_examples.tar.gz || exit 1
+test_done
+rm -rf canl_examples.tar.gz
 
 # check_binaries
 printf "Testing if all binaries are available"
