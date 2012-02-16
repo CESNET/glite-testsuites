@@ -54,6 +54,7 @@ if [ ! -r ${COMMON} ]; then
 	exit 2
 fi
 source ${COMMON}
+source lb-common.sh
 
 while test -n "$1"
 do
