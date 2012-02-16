@@ -291,6 +291,28 @@ test_done
 
 			check_srv_version '>=' "2.3"
 			if [ $? = 0 ]; then
+				printf "Downloading remote configuration... "
+				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/?configuration > https.$$.tmp
+				LineNO=`$SYS_WC -l https.$$.tmp | $SYS_AWK '{ print $1 }' `
+				if [ ! "$LineNO" == "0" ]; then
+					test_done
+					printf "Checking for items... "
+					for item in msg_brokers msg_prefixes 
+					do
+						printf "$item... "
+						$SYS_GREP -E "$item.*=" https.$$.tmp > /dev/null
+						if [ "$?" == "0" ]; then
+							test_done
+						else
+							test_failed
+							print_error "Value $item not returned"
+						fi
+					done
+				else
+					test_failed
+					print_error "Statistics not returned"
+				fi
+
 				printf "Checking statistics... "
 				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/?stats > https.$$.tmp
 				LineNO=`$SYS_WC -l https.$$.tmp | $SYS_AWK '{ print $1 }' `
@@ -310,28 +332,6 @@ test_done
 								test_failed
 								print_error "A numeric value greater tha zero should have been returned"
 							fi
-						else
-							test_failed
-							print_error "Value $item not returned"
-						fi
-					done
-				else
-					test_failed
-					print_error "Statistics not returned"
-				fi
-
-				printf "Downloading remote configuration... "
-				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/?configuration > https.$$.tmp
-				LineNO=`$SYS_WC -l https.$$.tmp | $SYS_AWK '{ print $1 }' `
-				if [ ! "$LineNO" == "0" ]; then
-					test_done
-					printf "Checking for items... "
-					for item in msg_brokers msg_prefixes 
-					do
-						printf "$item... "
-						$SYS_GREP -E "$item.*=" https.$$.tmp > /dev/null
-						if [ "$?" == "0" ]; then
-							test_done
 						else
 							test_failed
 							print_error "Value $item not returned"
