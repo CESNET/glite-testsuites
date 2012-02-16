@@ -46,6 +46,8 @@ export PATH
 
 #general grid binaries
 GRIDPROXYINFO=grid-proxy-info
+#voms binaries
+VOMSPROXYKAE=voms-proxy-fake
 
 # default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
