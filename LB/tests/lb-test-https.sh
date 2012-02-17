@@ -337,6 +337,14 @@ test_done
 							print_error "Value $item not returned"
 						fi
 					done
+					printf "Checking stat file location... "
+					grep -i -E "<b>[ \t]*WARNING" https.$$.tmp > /dev/null
+					if [ $? -eq 0 ]; then
+						printf "Files are in tmp!"
+						test_warning
+					else
+						test_done
+					fi
 				else
 					test_failed
 					print_error "Statistics not returned"
