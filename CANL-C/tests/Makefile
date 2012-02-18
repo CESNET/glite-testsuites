@@ -1,7 +1,7 @@
 top_srcdir=.
 VPATH=${top_srcdir}/examples
 CC=gcc
-LIB_PATH=
+LIB_PATH=-L/home/marvel/canl/emi.canl.canl-c/stage/usr/lib64
 
 SRC_CLI=canl_sample_client.c
 OBJ_CLI=canl_sample_client.o
@@ -13,24 +13,24 @@ LINK=${CC} ${LDFLAGS}
 COMPILE=${CC} ${CFLAGS}
 
 CFLAGS_SER=-Wall -g
-LFLAGS_SER=-L${LIB_PATH} -lcanl_c
+LFLAGS_SER=${LIB_PATH} -lcanl_c
 
 CFLAGS_CLI=-Wall -g
-LFLAGS_CLI=-L${LIB_PATH} -lcanl_c
+LFLAGS_CLI=${LIB_PATH} -lcanl_c
 
-all: client server
+all: emi-canl-client emi-canl-server
 
-client: ${OBJ_CLI}
+emi-canl-client: ${OBJ_CLI}
 	${LINK} $< ${LFLAGS_CLI} -o $@
 
 ${OBJ_CLI}: ${SRC_CLI} ${LIBCANL}
 	${COMPILE} -c ${top_srcdir}/examples/${SRC_CLI} ${CFLAGS_CLI} -o $@
 
-server: ${OBJ_SER}
+emi-canl-server: ${OBJ_SER}
 	${LINK} $< ${LFLAGS_SER} -o $@
 
 ${OBJ_SER}: ${SRC_SER} ${LIBCANL}
 	${COMPILE} -c ${top_srcdir}/examples/${SRC_SER} ${CFLAGS_SER} -o $@
 
 clean:
-	rm -rfv *.o client server
+	rm -rfv *.o emi-canl-server emi-canl-client
