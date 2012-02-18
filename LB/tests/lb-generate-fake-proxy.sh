@@ -94,7 +94,7 @@ if [ $VOMS -eq 1 ]; then
 	export X509_USER_PROXY=/tmp/x509up_u${user_id}
 	export X509_USER_PROXY_BOB=/tmp/x509up_u.${user_id}
 	echo "/tmp/x509up_u${user_id} proxy certificate has been generated"
-	echo "/tmp/x509up_u${USER} proxy certificate has been generated" 
+	echo "/tmp/x509up_u.${user_id} proxy certificate has been generated" 
 fi
 
 export x509_USER_CERT=$CERTS_ROOT/trusted-certs/trusted_client00.cert
