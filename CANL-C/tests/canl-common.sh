@@ -48,6 +48,9 @@ export PATH
 GRIDPROXYINFO=grid-proxy-info
 #voms binaries
 VOMSPROXYFAKE=voms-proxy-fake
+#canl sample binaries
+EMI_CANL_CLIENT=emi-canl-client
+EMI_CANL_SERVER=emi-canl-server
 
 # default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
@@ -95,6 +98,18 @@ SYS_STAT=stat
 
 #generate proxy shell script file
 GEN_PROXY=./canl-generate-fake-proxy.sh
+
+function get_canl_examples()
+{
+	wget -q -O canl_examples.tar.gz \
+        	'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/emi.canl.canl-c/examples.tar.gz?view=tar' &> /dev/null || return 1
+	tar xzf canl_examples.tar.gz || return 1
+	rm -rf canl_examples.tar.gz
+	make -s || return 1
+	rm -rf examples/
+	return 0
+}
+
 function check_credentials_and_generate_proxy()
 {	
 	check_credentials
@@ -106,13 +121,11 @@ function check_credentials_and_generate_proxy()
 		fi
 		$GEN_PROXY $PROXYLIFE
 		if [ $? != 0 ]; then
-			test_failed
 			print_error "Proxy not created - process failed"
 			return 2
 		fi
 		check_credentials
 		if [ $? != 0 ]; then
-			test_failed
 			print_error "Credentials still not passing check"
 			return 2
 		fi
@@ -162,7 +175,7 @@ function check_binaries()
 	do	
 		check_exec $file 
 		if [ $? -gt 0 ]; then
-			print_error "command $file not found"
+			print_error "$file not found"
 			ret=$TEST_ERROR
 		fi
 	done

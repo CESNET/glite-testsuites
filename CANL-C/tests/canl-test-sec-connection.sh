@@ -52,13 +52,17 @@ if [ ! -r ${COMMON} ]; then
 fi
 source ${COMMON}
 
-logfile=$$.tmp
-flag=0
+#logfile=$$.tmp
+#flag=0
+srvbin=""
+clibin=""
 while test -n "$1"
 do
 	case "$1" in
 		"-h" | "--help") showHelp && exit 2 ;;
 #		"-o" | "--output") shift ; logfile=$1 flag=1 ;;
+		"-s" | "--srvbin") shift ; srvbin=$1 ;;
+		"-k" | "--clibin") shift ; clibin=$1 ;;
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
 		"-x" | "--html")  setOutputHTML ;;
@@ -79,16 +83,45 @@ done
 
 {
 test_start
-printf "Downloading canl examples sources"
-wget -q -O canl_examples.tar.gz \
-	'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/emi.canl.canl-c/examples.tar.gz?view=tar' &> /dev/null || exit 1
-tar xzf canl_examples.tar.gz || exit 1
+# check canl binaries
+printf "Testing if binaries of canl examples are available"
+if [ -n "$srvbin" -a -n "$clibin" ]; then
+	check_binaries $srvbin $clibin
+	if [ $? -gt 0 ]; then
+		test_failed
+		printf "Downloading canl source files and building examples"
+		get_canl_examples
+		if [ $? -gt 0 ]; then
+			test_failed
+			test_end
+			exit $TEST_ERROR
+		fi
+		EMI_CANL_SERVER='./emi-canl-server'
+		EMI_CANL_CLIENT='./emi-canl-client'
+	fi
+	EMI_CANL_SERVER="$srvbin"
+	EMI_CANL_CLIENT="$clibin"
+else
+	#default path
+	check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT 
+	if [ $? -gt 0 ]; then
+		test_failed
+		printf "Downloading canl source files and building examples"
+		get_canl_examples
+		if [ $? -gt 0 ]; then
+			test_failed
+			test_end
+			exit $TEST_ERROR
+		fi
+		EMI_CANL_SERVER='./emi-canl-server'
+		EMI_CANL_CLIENT='./emi-canl-client'
+	fi
+fi
 test_done
-rm -rf canl_examples.tar.gz
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK
+check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT $VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -98,6 +131,7 @@ fi
 printf "Testing credentials"
 check_credentials_and_generate_proxy
 if [ $? -gt 0 ]; then
+	test_failed
 	test_end
 	exit 2
 else
