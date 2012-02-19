@@ -121,7 +121,7 @@ test_done
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT $VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK
+check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT $VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $SYS_LSOF
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -139,7 +139,7 @@ else
 fi
 
 #test server with bad cert input
-printf "Testing server with false host certificates\n"
+printf "Testing server with nonexisting host certificates\n"
 ${EMI_CANL_SERVER} -c /certcert.$$
 if [ $? != 0 ]; then
 	test_done
@@ -148,7 +148,7 @@ else
 fi
 
 #test server with bad key input
-printf "Testing server with false host certificates\n"
+printf "Testing server with nonexisting host key\n"
 ${EMI_CANL_SERVER} -k /keykey.$$
 if [ $? != 0 ]; then
 	test_done
@@ -157,11 +157,32 @@ else
 fi
 
 #test server with bad cert and key
-printf "Testing server with false host certificates\n"
+printf "Testing server with nonexisting host cert and key\n"
 ${EMI_CANL_SERVER} -k /keykey.$$ -c /cercert.$$
 if [ $? != 0 ]; then
 	test_done
 else
+	test_failed
+fi
+
+#test client with server not running
+printf "Testing client: connect to server not running\n"
+nu_port=11112
+max_port=11190
+${SYS_LSOF} -i :${nu_port}
+while [ $? -eq 0 -a ${nu_port} -lt ${max_port} ]
+do
+	nu_port=$(( ${nu_port} + 1 ))
+done
+if [ ${nu_port} -ne ${max_port} ]; then
+	${EMI_CANL_CLIENT} -s localhost -p 11112
+	if [ $? != 0 ]; then
+		test_done
+	else
+		test_failed
+	fi
+else
+	print_error "No port available"
 	test_failed
 fi
 
