@@ -172,7 +172,8 @@ max_port=11190
 ${SYS_LSOF} -i :${nu_port}
 while [ $? -eq 0 -a ${nu_port} -lt ${max_port} ]
 do
-	nu_port=$(( ${nu_port} + 1 ))
+	nu_port=$((nu_port+1))
+	${SYS_LSOF} -i :${nu_port}
 done
 if [ ${nu_port} -ne ${max_port} ]; then
 	${EMI_CANL_CLIENT} -s localhost -p 11112
