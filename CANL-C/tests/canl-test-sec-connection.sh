@@ -176,7 +176,7 @@ do
 	${SYS_LSOF} -i :${nu_port}
 done
 if [ ${nu_port} -ne ${max_port} ]; then
-	${EMI_CANL_CLIENT} -s localhost -p 11112
+	${EMI_CANL_CLIENT} -s localhost -p ${nu_port}
 	if [ $? != 0 ]; then
 		test_done
 	else
@@ -184,6 +184,15 @@ if [ ${nu_port} -ne ${max_port} ]; then
 	fi
 else
 	print_error "No port available"
+	test_failed
+fi
+
+#test client with nonexisting proxy certificate
+printf "Testing client: use nonexisting proxy certificate\n"
+${EMI_CANL_CLIENT} -c /cercert.$$
+if [ $? != 0 ]; then
+	test_done
+else
 	test_failed
 fi
 
