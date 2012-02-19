@@ -138,6 +138,33 @@ else
 	test_done
 fi
 
+#test server with bad cert input
+printf "Testing server with false host certificates\n"
+${EMI_CANL_SERVER} -c /certcert.$$
+if [ $? != 0 ]; then
+	test_done
+else
+	test_failed
+fi
+
+#test server with bad key input
+printf "Testing server with false host certificates\n"
+${EMI_CANL_SERVER} -k /keykey.$$
+if [ $? != 0 ]; then
+	test_done
+else
+	test_failed
+fi
+
+#test server with bad cert and key
+printf "Testing server with false host certificates\n"
+${EMI_CANL_SERVER} -k /keykey.$$ -c /cercert.$$
+if [ $? != 0 ]; then
+	test_done
+else
+	test_failed
+fi
+
 test_end
 }
 #} &> $logfile
