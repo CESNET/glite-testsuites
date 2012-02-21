@@ -95,9 +95,46 @@ SYS_RPM=rpm
 SYS_WC=wc
 SYS_LS=ls
 SYS_STAT=stat
+SYS_OPENSSL=openssl
 
 #generate proxy shell script file
 GEN_PROXY=./canl-generate-fake-proxy.sh
+
+function get_canl_binaries()
+{
+printf "Testing if binaries of canl examples are available"
+if [ -n "$srvbin" -a -n "$clibin" ]; then
+        check_binaries $srvbin $clibin
+        if [ $? -gt 0 ]; then
+                test_failed
+                printf "Downloading canl source files and building examples"
+                get_canl_examples
+                if [ $? -gt 0 ]; then
+                        test_failed
+                        return $TEST_ERROR
+                fi
+                EMI_CANL_SERVER='./emi-canl-server'
+                EMI_CANL_CLIENT='./emi-canl-client'
+        fi
+        EMI_CANL_SERVER="$srvbin"
+        EMI_CANL_CLIENT="$clibin"
+else
+        #default path
+        check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT
+        if [ $? -gt 0 ]; then
+                test_failed
+                printf "Downloading canl source files and building examples"
+                get_canl_examples
+                if [ $? -gt 0 ]; then
+                        test_failed
+                        return $TEST_ERROR
+                fi
+                EMI_CANL_SERVER='./emi-canl-server'
+                EMI_CANL_CLIENT='./emi-canl-client'
+        fi
+fi
+return 0
+}
 
 function get_canl_examples()
 {

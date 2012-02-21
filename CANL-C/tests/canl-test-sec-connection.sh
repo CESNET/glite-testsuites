@@ -21,7 +21,7 @@ progname=`basename $0`
 showHelp()
 {
 cat << EndHelpHeader
-Script for testing binaries
+Script for testing canl secured connection API
 
 Prerequisities:
 Tests called:
@@ -42,6 +42,8 @@ EndHelpHeader
 	echo " -t | --text            Format output as plain ASCII text."
 	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
 	echo " -x | --html            Format output as html."
+	echo " -s | --srvbin          Canl sample server file path"
+	echo " -k | --clibin          Canl sample client file path"
 }
 
 # read common definitions and functions
@@ -84,44 +86,20 @@ done
 {
 test_start
 # check canl binaries
-printf "Testing if binaries of canl examples are available"
-if [ -n "$srvbin" -a -n "$clibin" ]; then
-	check_binaries $srvbin $clibin
-	if [ $? -gt 0 ]; then
-		test_failed
-		printf "Downloading canl source files and building examples"
-		get_canl_examples
-		if [ $? -gt 0 ]; then
-			test_failed
-			test_end
-			exit $TEST_ERROR
-		fi
-		EMI_CANL_SERVER='./emi-canl-server'
-		EMI_CANL_CLIENT='./emi-canl-client'
-	fi
-	EMI_CANL_SERVER="$srvbin"
-	EMI_CANL_CLIENT="$clibin"
-else
-	#default path
-	check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT 
-	if [ $? -gt 0 ]; then
-		test_failed
-		printf "Downloading canl source files and building examples"
-		get_canl_examples
-		if [ $? -gt 0 ]; then
-			test_failed
-			test_end
-			exit $TEST_ERROR
-		fi
-		EMI_CANL_SERVER='./emi-canl-server'
-		EMI_CANL_CLIENT='./emi-canl-client'
-	fi
+get_canl_binaries
+if [ $? -ne 0 ]; then
+        test_failed
+        test_end
+        exit $TEST_ERROR
+else    
+        test_done
 fi
-test_done
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT $VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $SYS_LSOF
+check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT \
+	$VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP \
+	$SYS_SED $SYS_AWK $SYS_LSOF
 if [ $? -gt 0 ]; then
 	test_failed
 else
