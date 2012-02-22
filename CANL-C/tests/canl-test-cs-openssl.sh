@@ -144,6 +144,23 @@ fi
 
 kill ${last_pid} &> /dev/null
 
+printf "Starting canl sample server \n"
+${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
+	-c /etc/grid-security/hostcert.pem -p "${lsn_port}" & 
+last_pid=$!
+lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
+if [ -n "$lp_running" ]; then
+	test_done
+else
+	test_failed
+	test_end
+	exit 2
+fi
+printf "Openssl client: connect to CANL sample server \n"
+${SYS_OPENSSL} s_client -quiet -connect "localhost:${lsn_port}"
+
+#kill ${last_pid} &> /dev/null
+
 test_end
 }
 #} &> $logfile
