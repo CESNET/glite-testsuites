@@ -117,11 +117,31 @@ else
 	test_done
 fi
 
-printf "Starting openssl server "
+lsn_port=11112
+printf "Starting openssl server \n"
 ${SYS_OPENSSL} s_server -key /etc/grid-security/hostkey.pem \
-	-cert /etc/grid-security/hostcert.pem &
+	-cert /etc/grid-security/hostcert.pem -accept "${lsn_port}" \
+	-nbio &
 
 last_pid=$!
+lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
+if [ -n "$lp_running" ]; then
+	test_done
+else
+	test_failed
+	test_end
+	exit 2
+fi
+proxy_cert=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
+printf "CANL client: connecting to openssl server\n"
+${EMI_CANL_CLIENT} -s localhost -p "${lsn_port}" #\
+#	-c ${proxy_cert} -k ${proxy_cert}
+if [ $? -ne 0 ]; then
+	test_failed
+else
+	test_done
+fi
+
 kill ${last_pid} &> /dev/null
 
 test_end
