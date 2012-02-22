@@ -100,7 +100,7 @@ fi
 printf "Testing if all binaries are available"
 check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT \
 	$VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP \
-	$SYS_SED $SYS_AWK $SYS_OPENSSL
+	$SYS_SED $SYS_AWK $OPENSSL
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -117,12 +117,28 @@ else
 	test_done
 fi
 
-lsn_port=11112
 printf "Starting openssl server \n"
-${SYS_OPENSSL} s_server -key /etc/grid-security/hostkey.pem \
-	-cert /etc/grid-security/hostcert.pem -accept "${lsn_port}" \
-	-nbio &
+#find some unused port first
+nu_port=11112
+max_port=11190
+${SYS_LSOF} -i :${nu_port}
+while [ $? -eq 0 -a ${nu_port} -lt ${max_port} ]
+do
+        nu_port=$((nu_port+1))
+        ${SYS_LSOF} -i :${nu_port}
+done
 
+if [ ${nu_port} -eq ${max_port} ]; then
+        print_error "No port available"
+        test_failed
+	test_end
+	exit 2
+fi
+
+#then start server
+${OPENSSL} s_server -key /etc/grid-security/hostkey.pem \
+-cert /etc/grid-security/hostcert.pem -accept "${nu_port}" \
+-nbio &
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then
@@ -132,9 +148,10 @@ else
 	test_end
 	exit 2
 fi
-proxy_cert=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
+
+#proxy_cert=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
 printf "CANL client: connecting to openssl server\n"
-${EMI_CANL_CLIENT} -s localhost -p "${lsn_port}" #\
+${EMI_CANL_CLIENT} -s localhost -p "${nu_port}" #\
 #	-c ${proxy_cert} -k ${proxy_cert}
 if [ $? -ne 0 ]; then
 	test_failed
@@ -146,7 +163,7 @@ kill ${last_pid} &> /dev/null
 
 printf "Starting canl sample server \n"
 ${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
-	-c /etc/grid-security/hostcert.pem -p "${lsn_port}" & 
+	-c /etc/grid-security/hostcert.pem -p "${nu_port}" & 
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then
@@ -157,9 +174,9 @@ else
 	exit 2
 fi
 printf "Openssl client: connect to CANL sample server \n"
-${SYS_OPENSSL} s_client -quiet -connect "localhost:${lsn_port}"
+${OPENSSL} s_client -quiet -connect "localhost:${nu_port}"
 
-#kill ${last_pid} &> /dev/null
+kill ${last_pid} &> /dev/null
 
 test_end
 }

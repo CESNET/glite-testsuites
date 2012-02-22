@@ -95,7 +95,7 @@ SYS_RPM=rpm
 SYS_WC=wc
 SYS_LS=ls
 SYS_STAT=stat
-SYS_OPENSSL=openssl
+OPENSSL=openssl
 
 #generate proxy shell script file
 GEN_PROXY=./canl-generate-fake-proxy.sh
