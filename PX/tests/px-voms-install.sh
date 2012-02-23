@@ -16,6 +16,24 @@
 # limitations under the License.
 #
 
+#Remove for production:
+if [ ! -f /etc/yum.repos.d/epel.repo ]; then
+	rpm -ivh http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+fi
+if [ ! -f /etc/yum.repos.d/emi1-base.repo ]; then
+	yum install -y yum-priorities yum-protectbase
+	rpm -i http://emisoft.web.cern.ch/emisoft/dist/EMI/1/sl5/x86_64/base/emi-release-1.0.0-1.sl5.noarch.rpm
+fi
+
+USERNAME="root"
+while test -n "$1"
+do
+        case "$1" in
+                "-u" | "--user") shift; USERNAME="$1" ;;
+        esac
+        shift
+done
+
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then
         INSTALLCMD="apt-get install -q --yes"
@@ -25,14 +43,30 @@ else
 	INSTALLPKGS="rpmlint"
 fi
 
-${INSTALLCMD} emi-voms-mysql
+${INSTALLCMD} emi-voms-mysql xml-commons-apis wget
+
+#get CAS
+if [ ! -f lb-generate-fake-proxy.sh ]; then
+	wget -O lb-generate-fake-proxy.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh?view=co
+fi
+
+FAKE_CAS=`source ./lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`
+if [ "$FAKE_CAS" == "" ]; then
+        echo "Failed generating proxy" >&2
+        exit 2
+else
+        cp -rv $FAKE_CAS/* /etc/grid-security/certificates/
+fi
 
 service mysqld start
+
+sleep 2
 
 /usr/bin/mysqladmin -u root password [Edited];
 
 mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname\`' identified by '[Edited]';"
 mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname -f\`' identified by '[Edited]';"
+
 
 cd
 mkdir -p yaim/services
@@ -42,6 +76,7 @@ cat << EOF > site-info-voms.def
 MYSQL_PASSWORD="[Edited]"
 SITE_NAME="\`hostname -f\`"
 VOS="vo.org"
+BDII_DELETE_DELAY=0
 EOF
 
 cat << EOF > services/glite-voms
@@ -65,12 +100,14 @@ sed -i 's/156/256/g' /opt/glite/yaim/examples/edgusers.conf
 
 source /etc/profile.d/grid-env.sh
 
-voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "glite" "root@`hostname -f`"
-voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=root" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "root" "root@`hostname -f`"
-voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "glite" "root@`hostname -f`"
-voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=root client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "root" "root@`hostname -f`"
+voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
+voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
+voms-admin --nousercert --vo vo.org create-user "/DC=org/DC=terena/DC=tcs/C=CZ/O=CESNET/CN=Zdenek Sustr 4040" "/C=NL/O=TERENA/CN=TERENA eScience Personal CA" "$USERNAME" "root@`hostname -f`"
+
 
 mkdir -p /etc/vomses
 cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
 
+echo Experimental VOMS set up with users
+voms-admin --vo vo.org list-users
 
