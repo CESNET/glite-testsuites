@@ -87,6 +87,13 @@ else
         fi
 fi
 
+if [ ! -d /etc/vomses ]; then
+	if [ ! -f ./px-voms-install.sh ]; then
+		wget -O px-voms-install.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/px-voms-install.sh?view=co
+	fi
+	source ./px-voms-install.sh -u root
+fi
+
 cd ~/
 mkdir GridSite_testing
 cd GridSite_testing
