@@ -83,7 +83,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries curl rm chown openssl htcp htls htmv htcp htrm htls htls htproxydestroy
+check_binaries curl rm chown openssl htcp htls htmv htcp htrm htls htls htproxydestroy awk sed openssl tail head
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -389,18 +389,22 @@ EOF
 			test_failed
 		fi
 
-		printf "Setting up .lsc file and trying again"
+		printf "Setting up .lsc file and trying again\n"
 		mkdir -p /etc/grid-security/vomsdir/voce/
 
-		cat > /etc/grid-security/vomsdir/voce/voms1.egee.cesnet.cz.lsc <<EOF
-/DC=cz/DC=cesnet-ca/O=CESNET/CN=voms1.egee.cesnet.cz auger 24
-/DC=cz/DC=cesnet-ca/O=CESNET CA/CN=CESNET CA 3
-EOF
-#old cert
-#		cat > /etc/grid-security/vomsdir/voce/voms1.egee.cesnet.cz.lsc <<EOF
-#/DC=cz/DC=cesnet-ca/O=CESNET/CN=voms1.egee.cesnet.cz
-#/DC=cz/DC=cesnet-ca/CN=CESNET CA
-#EOF
+		for vomsfile in /etc/vomses/*
+		do
+			VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
+			VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
+			VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
+			openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOST.$$.DNs.txt
+			VOMSCERT=`tail -n 1 $VOMSHOST.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+			VOMSCA=`head -n 1 $VOMSHOST.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+
+			mkdir -p /etc/grid-security/vomsdir/$VONAME
+			printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+			echo Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+		done
 
 		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 
