@@ -393,18 +393,20 @@ EOF
 
 		for vomsfile in /etc/vomses/*
 		do
-			VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
-			VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
-			VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
-			openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
-			VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
-			VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+			if [ -f $vomsfile ]; then
+				VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
+				VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
+				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
+				openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
+				VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+				VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 
-			mkdir -p /etc/grid-security/vomsdir/$VONAME
-			printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
-			echo Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+				mkdir -p /etc/grid-security/vomsdir/$VONAME
+				printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+				echo Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
-			rm $VOMSHOSTONLY.$$.DNs.txt
+				rm $VOMSHOSTONLY.$$.DNs.txt
+			fi
 		done
 
 		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
