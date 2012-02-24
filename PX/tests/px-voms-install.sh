@@ -50,7 +50,7 @@ if [ ! -f lb-generate-fake-proxy.sh ]; then
 	wget -O lb-generate-fake-proxy.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh?view=co
 fi
 
-FAKE_CAS=`source ./lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`
+FAKE_CAS=`sh ./lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`
 if [ "$FAKE_CAS" == "" ]; then
         echo "Failed generating proxy" >&2
         exit 2
