@@ -57,9 +57,9 @@ HTTPD_CONF=\$HTTPD_CONFDIR/gridsite-webserver.conf
 sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> \$HTTPD_CONF
 echo "AddHandler cgi-script .cgi" >> \$HTTPD_CONF
 echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> \$HTTPD_CONF
-mkdir /var/www/htdocs
+mkdir -p /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
-sleep 1
+sleep 2
 killall -9 httpd apache2 >/dev/null 2>&1
 echo Starting httpd -f \$HTTPD_CONF
 httpd -f \$HTTPD_CONF
