@@ -61,6 +61,7 @@ mkdir /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
 sleep 1
 killall -9 httpd apache2 >/dev/null 2>&1
+echo Starting httpd -f \$HTTPD_CONF
 httpd -f \$HTTPD_CONF
 
 cd /tmp
@@ -88,6 +89,7 @@ else
 fi
 
 if [ ! -d /etc/vomses ]; then
+	echo Installing experimental VOMS server
 	if [ ! -f ./px-voms-install.sh ]; then
 		wget -O px-voms-install.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/px-voms-install.sh?view=co
 	fi
