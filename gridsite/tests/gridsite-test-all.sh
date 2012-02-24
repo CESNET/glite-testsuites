@@ -399,7 +399,7 @@ EOF
 			VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
 			openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOST.$$.DNs.txt
 			VOMSCERT=`tail -n 1 $VOMSHOST.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
-			VOMSCA=`head -n 1 $VOMSHOST.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+			VOMSCA=`grep -E "^1[ \t]" $VOMSHOST.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 
 			mkdir -p /etc/grid-security/vomsdir/$VONAME
 			printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
