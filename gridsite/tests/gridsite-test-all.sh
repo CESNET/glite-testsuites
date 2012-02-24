@@ -396,7 +396,7 @@ EOF
 			if [ -f $vomsfile ]; then
 				VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
 #				VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
-#				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
+				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
 #				openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
 #				VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 #				VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
