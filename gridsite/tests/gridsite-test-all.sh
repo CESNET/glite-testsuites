@@ -395,26 +395,28 @@ EOF
 		do
 			if [ -f $vomsfile ]; then
 				VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
-#				VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
+				VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
 				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
-#				openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
-#				VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
-#				VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+				openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
+				VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+				VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 
 				mkdir -p /etc/grid-security/vomsdir/$VONAME
-#				printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+				printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
-				VOMSSUBJ=`voms-proxy-info -all | grep -A 100 "extension information" | grep -E "^issuer" | awk '{ print $3 }'`
-				for certfile in /etc/grid-security/certificates/*.pem
-				do
-					CURRSUBJ=`openssl x509 -in $certfile -subject -noout`
-					if [ "$VOMSSUBJ" == "$CURRSUBJ" ]; then
-						VOMSISSUER=`openssl x509 -in $certfile -issuer -noout`
-						break
-					fi
-				done
+#				VOMSSUBJ=`voms-proxy-info -all | grep -A 100 "extension information" | grep -E "^issuer" | awk '{ print $3 }'`
 
-				printf "$VOMSSUBJ\n$VOMSISSUER\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+#				for certfile in /etc/grid-security/certificates/*
+#				do
+#					CURRSUBJ=`openssl x509 -in $certfile -subject -noout | sed 's/^subject=[ \t]*//'`
+#					echo $CURRSUBJ
+#					if [ "$VOMSSUBJ" == "$CURRSUBJ" ]; then
+#						VOMSISSUER=`openssl x509 -in $certfile -issuer -noout | sed 's/^issuer=[ \t]*//'`
+#						break
+#					fi
+#				done
+
+#				printf "$VOMSSUBJ\n$VOMSISSUER\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 				echo Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc:
 				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
