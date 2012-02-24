@@ -404,8 +404,19 @@ EOF
 				mkdir -p /etc/grid-security/vomsdir/$VONAME
 #				printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
-				voms-proxy-info -all | grep -A 100 "extension information" | grep -E "^subject|^issuer" | awk '{ print $3 }' > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
-				echo Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+				VOMSSUBJ=`voms-proxy-info -all | grep -A 100 "extension information" | grep -E "^issuer" | awk '{ print $3 }'`
+				for certfile in /etc/grid-security/certificates/*.pem
+				do
+					CURRSUBJ=`openssl x509 -in $certfile -subject -noout`
+					if [ "$VOMSSUBJ" == "$CURRSUBJ" ]; then
+						VOMSISSUER=`openssl x509 -in $certfile -issuer -noout`
+						break
+					fi
+				done
+
+				printf "$VOMSSUBJ\n$VOMSISSUER\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+				echo Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc:
+				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
 				rm $VOMSHOSTONLY.$$.DNs.txt
 			fi
