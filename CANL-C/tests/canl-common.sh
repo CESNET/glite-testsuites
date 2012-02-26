@@ -103,8 +103,8 @@ GEN_PROXY=./canl-generate-fake-proxy.sh
 function get_canl_binaries()
 {
 printf "Testing if binaries of canl examples are available"
-if [ -n "$srvbin" -a -n "$clibin" ]; then
-        check_binaries $srvbin $clibin
+if [ -n "$1" -a -n "$2" ]; then
+        check_binaries $1 $2
         if [ $? -gt 0 ]; then
                 test_failed
                 printf "Downloading canl source files and building examples"
@@ -116,8 +116,8 @@ if [ -n "$srvbin" -a -n "$clibin" ]; then
                 EMI_CANL_SERVER='./emi-canl-server'
                 EMI_CANL_CLIENT='./emi-canl-client'
         fi
-        EMI_CANL_SERVER="$srvbin"
-        EMI_CANL_CLIENT="$clibin"
+        EMI_CANL_SERVER="$1"
+        EMI_CANL_CLIENT="$2"
 else
         #default path
         check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT
