@@ -23,7 +23,7 @@ showHelp()
 cat << EndHelpHeader
 script for testing canl secured connection API using openssl server & client
 
-Prerequisities:
+Prerequisities: acces rights to host certificate file, proxy cert. file and appropriate key files.
 Tests called:
 
     check_binaries
