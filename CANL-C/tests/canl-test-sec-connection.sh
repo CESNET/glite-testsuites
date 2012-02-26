@@ -86,7 +86,7 @@ done
 {
 test_start
 # check canl binaries
-get_canl_binaries
+get_canl_binaries $srvbin $clibin
 if [ $? -ne 0 ]; then
         test_failed
         test_end
@@ -99,7 +99,7 @@ fi
 printf "Testing if all binaries are available"
 check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT \
 	$VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP \
-	$SYS_SED $SYS_AWK $SYS_LSOF
+	$SYS_SED $SYS_AWK $SYS_LSOF $OPENSSL
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -173,6 +173,24 @@ if [ $? != 0 ]; then
 else
 	test_failed
 fi
+
+printf "Starting canl sample server \n"
+${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
+        -c /etc/grid-security/hostcert.pem -p "${nu_port}" &
+last_pid=$!
+lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
+if [ -n "$lp_running" ]; then
+        test_done
+else
+        test_failed
+        test_end
+        exit 2
+fi
+
+printf "CANL client: connect to CANL sample server \n"
+${EMI_CANL_CLIENT} -s localhost -p "${nu_port}"
+
+kill ${last_pid} &> /dev/null
 
 test_end
 }
