@@ -16,15 +16,6 @@
 # limitations under the License.
 #
 
-#Remove for production:
-if [ ! -f /etc/yum.repos.d/epel.repo ]; then
-	rpm -ivh http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-fi
-if [ ! -f /etc/yum.repos.d/emi1-base.repo ]; then
-	yum install -y yum-priorities yum-protectbase
-	rpm -i http://emisoft.web.cern.ch/emisoft/dist/EMI/1/sl5/x86_64/base/emi-release-1.0.0-1.sl5.noarch.rpm
-fi
-
 USERNAME="root"
 while test -n "$1"
 do
@@ -35,7 +26,7 @@ do
 done
 
 egrep -i "Debian|Ubuntu" /etc/issue
-if [ \$? = 0 ]; then
+if [ $? = 0 ]; then
         INSTALLCMD="apt-get install -q --yes"
 	INSTALLPKGS="lintian"
 else
@@ -64,8 +55,8 @@ sleep 2
 
 /usr/bin/mysqladmin -u root password [Edited];
 
-mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname\`' identified by '[Edited]';"
-mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname -f\`' identified by '[Edited]';"
+mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'`hostname`' identified by '[Edited]';"
+mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'`hostname -f`' identified by '[Edited]';"
 
 
 cd
@@ -74,14 +65,14 @@ cd yaim
 
 cat << EOF > site-info-voms.def
 MYSQL_PASSWORD="[Edited]"
-SITE_NAME="\`hostname -f\`"
+SITE_NAME="`hostname -f`"
 VOS="vo.org"
 BDII_DELETE_DELAY=0
 EOF
 
 cat << EOF > services/glite-voms
 # VOMS server hostname
-VOMS_HOST=\`hostname -f\`
+VOMS_HOST=`hostname -f`
 VOMS_DB_HOST='localhost'
 
 VO_VO_ORG_VOMS_PORT=15000
