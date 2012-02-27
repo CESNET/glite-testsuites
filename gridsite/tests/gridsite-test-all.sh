@@ -380,8 +380,9 @@ EOF
 	
 		FQAN=`voms-proxy-info --fqan`
 
-		rm -rf /etc/grid-security/vomsdir
-		printf "Trying without vomsdir. GRST_CRED_2 should not be present... "
+		mkdir -p /tmp/vomsdir.$$
+		mv -f /etc/grid-security/vomsdir/* /tmp/vomsdir.$$/
+		printf "Trying with empty vomsdir. GRST_CRED_2 should not be present... "
 		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 		if [ "$GRST_CRED_2" == "" ]; then
 			test_done
@@ -389,32 +390,39 @@ EOF
 			print_error "returned: $GRST_CRED_2\n"
 			test_failed
 		fi
+		mv -f /tmp/vomsdir.$$/* /etc/grid-security/vomsdir/
+		rm -rf /tmp/vomsdir.$$ 
 
 		printf "Setting up .lsc file and trying again\n"
 
 		UTOPIA=`voms-proxy-info -all | grep -A 100 "extension information" | grep "^issuer" | grep "L=Tropic" | grep "O=Utopia" | grep "OU=Relaxation"`
 		if [ "$UTOPIA" != "" ]; then
 			printf "Possibly fake VOMS extensions. Regenerating... "
-			voms-proxy-info -all | grep -A 100 "extension information" | sed "s/\$/$NL/"
+#			voms-proxy-info -all | grep -A 100 "extension information" | sed "s/\$/$NL/"
 			voms-proxy-init -voms vo.org -key $x509_USER_KEY -cert $x509_USER_CERT | sed "s/\$/$NL/"
 		fi;
-		voms-proxy-info -all | grep -A 100 "extension information" | sed "s/\$/$NL/"
+#		voms-proxy-info -all | grep -A 100 "extension information" | sed "s/\$/$NL/"
 
 		for vomsfile in /etc/vomses/*
 		do
 			if [ -f $vomsfile ]; then
 				VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
-				VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
 				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
-				openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
-				VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
-				VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+				if [ ! -f /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc ]; then
+					VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
+					openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
+					VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
+					VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 
-				mkdir -p /etc/grid-security/vomsdir/$VONAME
-				printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+					mkdir -p /etc/grid-security/vomsdir/$VONAME
+					printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
-				printf "Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc:\n$NL"
-				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc | sed "s/\$/$NL/"
+					printf "Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc\n$NL"
+				else
+					printf "/etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc already exists\n$NL"
+				fi
+
+#				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc | sed "s/\$/$NL/"
 
 				rm $VOMSHOSTONLY.$$.DNs.txt
 			fi
