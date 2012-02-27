@@ -52,6 +52,7 @@ source ${COMMON}
 
 logfile=$$.tmp
 flag=0
+NL=""
 while test -n "$1"
 do
 	case "$1" in
@@ -59,7 +60,7 @@ do
 		"-o" | "--output") shift ; logfile=$1 flag=1 ;;
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
-		"-x" | "--html")  setOutputHTML ;;
+		"-x" | "--html")  setOutputHTML ; NL="<BR>";;
 	esac
 	shift
 done
@@ -393,11 +394,11 @@ EOF
 
 		UTOPIA=`voms-proxy-info -all | grep -A 100 "extension information" | grep "^issuer" | grep "L=Tropic" | grep "O=Utopia" | grep "OU=Relaxation"`
 		if [ "$UTOPIA" != "" ]; then
-			printf "Possibly fake VOMS extensions. Regenerating..."
-			voms-proxy-info -all | grep -A 100 "extension information" 
-			voms-proxy-init -voms vo.org -key $x509_USER_KEY -cert $x509_USER_CERT
-			voms-proxy-info -all | grep -A 100 "extension information" 
+			printf "Possibly fake VOMS extensions. Regenerating... "
+			voms-proxy-info -all | grep -A 100 "extension information" | sed "s/\$/$NL/"
+			voms-proxy-init -voms vo.org -key $x509_USER_KEY -cert $x509_USER_CERT | sed "s/\$/$NL/"
 		fi;
+		voms-proxy-info -all | grep -A 100 "extension information" | sed "s/\$/$NL/"
 
 		for vomsfile in /etc/vomses/*
 		do
@@ -412,21 +413,8 @@ EOF
 				mkdir -p /etc/grid-security/vomsdir/$VONAME
 				printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
-#				VOMSSUBJ=`voms-proxy-info -all | grep -A 100 "extension information" | grep -E "^issuer" | awk '{ print $3 }'`
-
-#				for certfile in /etc/grid-security/certificates/*
-#				do
-#					CURRSUBJ=`openssl x509 -in $certfile -subject -noout | sed 's/^subject=[ \t]*//'`
-#					echo $CURRSUBJ
-#					if [ "$VOMSSUBJ" == "$CURRSUBJ" ]; then
-#						VOMSISSUER=`openssl x509 -in $certfile -issuer -noout | sed 's/^issuer=[ \t]*//'`
-#						break
-#					fi
-#				done
-
-#				printf "$VOMSSUBJ\n$VOMSISSUER\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
-				echo Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc:
-				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+				printf "Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc:\n$NL"
+				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc | sed "s/\$/$NL/"
 
 				rm $VOMSHOSTONLY.$$.DNs.txt
 			fi
