@@ -59,6 +59,7 @@ do
 		if [ ! -r ${COMMON} ]; then
 			exit 2
 		else 
+			chmod +x $COMMON
 			test_done
 		fi
 	fi
@@ -72,6 +73,7 @@ if [ ! -r lb-common-testbeds.sh ]; then
         if [ ! -r lb-common-testbeds.sh ]; then
                 exit 2
         else
+		chmod +x lb-common-testbeds.sh
                 test_done
         fi
 fi

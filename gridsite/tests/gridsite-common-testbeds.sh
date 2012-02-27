@@ -79,19 +79,26 @@ if [ $COPYPROXY -eq 1 ]; then
 else
 	rm -rf /tmp/test-certs/grid-security
 	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
-	FAKE_CAS=\`source ./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
+	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh > fake-prox.out.\$\$
+	FAKE_CAS=\`cat fake-prox.out.\$\$ | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" == "" ]; then
                 echo "Failed generating proxy" >&2
                 exit 2
         else
                 cp -rv \$FAKE_CAS/* /etc/grid-security/certificates/
         fi
+
+	TRUSTED_CERTS=\`cat fake-prox.out.\$\$ | grep -E "^TRUSTED_CERTS" | sed 's/TRUSTED_CERTS=//'\`
+	export x509_USER_CERT=\${TRUSTED_CERTS}/trusted_client00.cert
+	export x509_USER_KEY=\${TRUSTED_CERTS}/trusted_client00.priv-clear
+	rm fake-prox.out.\$\$
 fi
 
 if [ ! -d /etc/vomses ]; then
 	echo Installing experimental VOMS server
 	if [ ! -f ./px-voms-install.sh ]; then
 		wget -O px-voms-install.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/px-voms-install.sh?view=co
+		chmod +x px-voms-install.sh
 	fi
 	source ./px-voms-install.sh -u root
 fi
