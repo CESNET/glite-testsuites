@@ -23,7 +23,7 @@ remotehost=$1
 COPYPROXY=$2
 
 egrep -i "Debian|Ubuntu" /etc/issue
-if [ \$? = 0 ]; then
+if [ $? = 0 ]; then
 	INSTALLCMD="apt-get install -q --yes"
 	INSTALLPKGS="lintian"
 else
@@ -48,8 +48,13 @@ ${INSTALLCMD} globus-proxy-utils postgresql postgresql-server emi-lb-nagios-plug
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start
-mv /var/lib/pgsql/data/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf.orig
-cat >/var/lib/pgsql/data/pg_hba.conf <<EOF
+for conf in /etc/postgresql/8.4/main/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf; do
+	if [ -f \$conf ]; then
+		break;
+	fi
+done
+mv \$conf \$conf.orig
+cat >\$conf <<EOF
 local all all trust
 host all all 127.0.0.1/32 ident
 host all all ::1/128 ident

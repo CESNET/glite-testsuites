@@ -384,17 +384,25 @@ function check_lintian() {
 	local dir=/tmp/lintian-check.$$
 	local pkgs=''
 	local pkg=''
+	local src=''
 	local out=''
 	local ret=0
 
+	rm -rf $dir
+	mkdir $dir
 	while test -n "$1"; do
-		pkgs="$pkgs `dpkg-query -W -f '${Source}\n' $1 2>$dir/query.log`"
+		pkgs="$pkgs `dpkg-query -W $1 2>>$dir/query.log | cut -f1`
+"
 		shift
+	done
+	for pkg in $pkgs; do
+		src=`dpkg-query -W -f '${Source}' $pkg 2>>$dir/query.log`
+		if [ -z "$src" ]; then src="$pkg"; fi
+		pkgs="$pkgs
+$src"
 	done
 	pkgs=`echo "$pkgs" | sort | uniq`
 
-	rm -f $dir
-	mkdir $dir
 	printf "Downloading packages..."
 	(cd $dir; apt-get -d source $pkgs >$dir/download.log)
 	if test $? -eq 0; then
@@ -408,7 +416,6 @@ function check_lintian() {
 		echo $pkg:
 		out="`lintian $dir/${pkg}_*.dsc`"
 		echo "$out"
-		echo
 		if echo $out | grep -i '^E:' >/dev/null; then
 			ret=1
 		fi
