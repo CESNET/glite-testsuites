@@ -391,6 +391,12 @@ EOF
 
 		printf "Setting up .lsc file and trying again\n"
 
+		UTOPIA=`voms-proxy-info -all | grep -A 100 "extension information" | grep "^issuer" | grep utopia`
+		if [ $UTOPIA != "" ]; then
+			printf "Possibly fake VOMS extensions. Regenerating..."
+			voms-proxy-init -voms vo.org -key $x509_USER_KEY -cert $x509_USER_CERT | grep -A 100 "extension information" 
+		fi;
+
 		for vomsfile in /etc/vomses/*
 		do
 			if [ -f $vomsfile ]; then
