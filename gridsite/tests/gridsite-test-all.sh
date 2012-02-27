@@ -394,9 +394,9 @@ EOF
 		UTOPIA=`voms-proxy-info -all | grep -A 100 "extension information" | grep "^issuer" | grep "L=Tropic" | grep "O=Utopia" | grep "OU=Relaxation"`
 		if [ "$UTOPIA" != "" ]; then
 			printf "Possibly fake VOMS extensions. Regenerating..."
-			voms-proxy-info | grep -A 100 "extension information" 
+			voms-proxy-info -all | grep -A 100 "extension information" 
 			voms-proxy-init -voms vo.org -key $x509_USER_KEY -cert $x509_USER_CERT
-			voms-proxy-info | grep -A 100 "extension information" 
+			voms-proxy-info -all | grep -A 100 "extension information" 
 		fi;
 
 		for vomsfile in /etc/vomses/*
