@@ -50,9 +50,14 @@ EndHelpHeader
 # read common definitions and functions
 for COMMON in gridsite-common.sh lb-common.sh
 do
+	if [ [ "$COMMON" \< "l" ]; then 
+		SUBSYS="gridsite"
+	else 
+		SUBSYS="LB"
+	fi
         if [ ! -r ${COMMON} ]; then
                 printf "Downloading common definitions '${COMMON}'"
-                wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/gridsite/tests/$COMMON?view=co > /dev/null
+                wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/$SUBSYS/tests/$COMMON?view=co > /dev/null
                 if [ ! -r ${COMMON} ]; then
                         exit 2
                 else
