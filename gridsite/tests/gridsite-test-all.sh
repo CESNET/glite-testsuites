@@ -418,13 +418,13 @@ EOF
 					printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
 
 					printf "Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc\n$NL"
+
+					rm $VOMSHOSTONLY.$$.DNs.txt
 				else
 					printf "/etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc already exists\n$NL"
 				fi
 
 #				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc | sed "s/\$/$NL/"
-
-				rm $VOMSHOSTONLY.$$.DNs.txt
 			fi
 		done
 
