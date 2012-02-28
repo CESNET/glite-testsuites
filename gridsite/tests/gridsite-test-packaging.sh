@@ -48,24 +48,21 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-for COMMON in gridsite-common.sh lb-common.sh
+for COMMON in gridsite/gridsite-common.sh LB/lb-common.sh
 do
-	if [ [ "$COMMON" \< "l" ]; then 
-		SUBSYS="gridsite"
-	else 
-		SUBSYS="LB"
-	fi
-        if [ ! -r ${COMMON} ]; then
+	SUBSYS=`dirname $COMMON`
+	FILE=`basename $COMMON`
+        if [ ! -r ${FILE} ]; then
                 printf "Downloading common definitions '${COMMON}'"
-                wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/$SUBSYS/tests/$COMMON?view=co > /dev/null
-                if [ ! -r ${COMMON} ]; then
+                wget -q -O ${FILE} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/$SUBSYS/tests/$FILE?view=co > /dev/null
+                if [ ! -r ${FILE} ]; then
                         exit 2
                 else
-                        chmod +x $COMMON
+                        chmod +x $FILE
                         test_done
                 fi
         fi
-	source $COMMON
+	source $FILE
 done
 
 while test -n "$1"
