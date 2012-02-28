@@ -80,6 +80,7 @@ test_running="${spacefill}${begin_green}running${end_green}"
 test_failed="${spacefill}${begin_red}-TEST FAILED-${end_red}"
 test_missed="${spacefill}${begin_red}missing${end_red}"
 test_skipped="${spacefill}${begin_yellow}skipped${end_yellow}"
+test_warning="${spacefill}${begin_yellow}warning${end_yellow}"
 test_dead="${spacefill}${begin_red}dead${end_red}"
 test_unused="${spacefill}${begin_bold}unused${end_bold}"
 test_unknown="${spacefill}${begin_yellow}unknown${end_yellow}"
@@ -93,6 +94,7 @@ function test_running()	{ printf "${test_running}${lf}"; }
 function test_failed()	{ printf "${test_failed}${lf}"; }
 function test_missed()	{ printf "${test_missed}${lf}"; }
 function test_skipped()	{ printf "${test_skipped}${lf}"; }
+function test_warning()	{ printf "${test_warning}${lf}"; }
 function test_dead()	{ printf "${test_dead}${lf}"; }
 function test_unused()	{ printf "${test_unused}${lf}"; }
 function test_unknown	{ printf "${test_unknown}${lf}"; }
@@ -174,24 +176,24 @@ spacefill="&nbsp;&nbsp;&nbsp;"
 is_html=1
 
 begin_bold="<b>"
-begin_black="<font color=\"black\">"
-begin_red="<font color=\"red\">"
-begin_green="<font color=\"green\">"
-begin_yellow="<font color=\"yellow\">"
-begin_blue="<font color=\"blue\">"
-begin_magenta="<font color=\"magenta\">"
-begin_cyan="<font color=\"cyan\">"
-begin_white="<font color=\"white\">"
+begin_black="<b><font color=\"black\">"
+begin_red="<b><font color=\"red\">"
+begin_green="<b><font color=\"green\">"
+begin_yellow="<b><font color=\"orange\">"
+begin_blue="<b><font color=\"blue\">"
+begin_magenta="<b><font color=\"magenta\">"
+begin_cyan="<b><font color=\"cyan\">"
+begin_white="<b><font color=\"white\">"
 
 end_bold="</b>"
-end_black="$ENDFONT"
-end_red="$ENDFONT"
-end_green="$ENDFONT"
-end_yellow="$ENDFONT"
-end_blue="$ENDFONT"
-end_magenta="$ENDFONT"
-end_cyan="$ENDFONT"
-end_white="$ENDFONT"
+end_black="$ENDFONT</b>"
+end_red="$ENDFONT</b>"
+end_green="$ENDFONT</b>"
+end_yellow="$ENDFONT</b>"
+end_blue="$ENDFONT</b>"
+end_magenta="$ENDFONT</b>"
+end_cyan="$ENDFONT</b>"
+end_white="$ENDFONT</b>"
 
 set_test
 }
@@ -213,10 +215,10 @@ function update_error()
 
 function print_error()
 {
-	printf "${begin_red}Error${end_red}: %s ${lf}" "$*"
+	printf "\t${begin_red}Error${end_red}: %s ${lf}" "$*"
 
 	if [ -f $testerrfile ]; then
-		printf "${begin_red}Error${end_red}: %s ${lf}" "`cat $testerrfile`"
+		printf "\t${begin_red}Error${end_red}: %s ${lf}" "`cat $testerrfile`"
 	fi
 	reset_error
 }
