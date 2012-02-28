@@ -225,6 +225,16 @@ test_done
 						test_done
 					fi
 
+					printf "Checking for validity period (to distinguis from job listing)... "
+					$SYS_GREP -E "Valid until:</th><td>[0-9 :-]+</td>" https.$$.tmp > /dev/null 2> /dev/null
+
+					if [ "$?" != "0" ]; then
+						test_failed
+						print_error "Validity period inot listed"
+					else
+						test_done
+					fi
+
 					$SYS_RM https.$$.tmp
 
                                 fi

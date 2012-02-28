@@ -145,7 +145,7 @@ else
 			test_done
 
 			#Start listening for notifications
-			${LBNOTIFY} receive -i 10 ${notifid} > $$_notifications.txt &
+			${LBNOTIFY} receive ${notifid} > $$_notifications.txt &
 			recpid=$!
 			disown $recpid
 
