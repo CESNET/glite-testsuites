@@ -39,6 +39,7 @@ ${INSTALLCMD} emi-voms-mysql xml-commons-apis wget
 #get CAS
 if [ ! -f lb-generate-fake-proxy.sh ]; then
 	wget -O lb-generate-fake-proxy.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh?view=co
+	chmod +x lb-generate-fake-proxy.sh
 fi
 
 FAKE_CAS=`sh ./lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`
