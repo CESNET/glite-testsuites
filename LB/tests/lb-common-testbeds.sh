@@ -44,7 +44,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export LBTSTCOLS
 
-${INSTALLCMD} globus-proxy-utils postgresql postgresql-server emi-lb-nagios-plugins voms-clients curl wget sudo bc $INSTALLPKGS
+${INSTALLCMD} globus-proxy-utils postgresql postgresql-server voms-clients curl wget sudo bc $INSTALLPKGS
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start

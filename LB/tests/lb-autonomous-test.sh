@@ -65,7 +65,8 @@ rpm -i http://emisoft.web.cern.ch/emisoft/dist/EMI/1/sl5/x86_64/base/emi-release
 
 
 
-yum install -y emi-lb --nogpgcheck
+yum install -y --nogpgcheck emi-lb
+yum install -y --nogpgcheck emi-lb-nagios-plugins
 
 cd ~/
 mkdir -m 700 yaim
