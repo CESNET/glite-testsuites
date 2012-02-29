@@ -110,10 +110,10 @@ X509_USER_PROXY=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\
 printf "Using SSL client: "
 $SYS_CURL --version | head -n 1 | grep -i NSS/ >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-	SSL_CMD="wget --no-check-certificate --secure-protocol=SSLv3 --quiet --private-key $X509_USER_PROXY --certificate $X509_USER_PROXY --ca-directory /etc/grid-security/certificates --ca-certificate $X509_USER_PROXY --output-document https.$$.tmp"
+	SSL_CMD="wget --timeout=60 --no-check-certificate --secure-protocol=SSLv3 --quiet --private-key $X509_USER_PROXY --certificate $X509_USER_PROXY --ca-directory /etc/grid-security/certificates --ca-certificate $X509_USER_PROXY --output-document https.$$.tmp"
 	SSL_CLIENT=wget
 else
-	SSL_CMD="$SYS_CURL --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp"
+	SSL_CMD="$SYS_CURL --max-time 60 --insecure -3 --silent --key $X509_USER_PROXY --cert $X509_USER_PROXY --capath /etc/grid-security/certificates --output https.$$.tmp"
 	SSL_CLIENT=curl
 fi
 printf "$SSL_CLIENT"
