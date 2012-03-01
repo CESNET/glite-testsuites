@@ -16,6 +16,12 @@
 # limitations under the License.
 #
 
+function add_voms_user_w_attrs() {
+	voms-admin --nousercert --vo vo.org create-user "$1" "$2" "$3" "$4"
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute1 $RANDOM
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute2 $RANDOM
+}
+
 USERNAME="root"
 while test -n "$1"
 do
@@ -92,10 +98,12 @@ sed -i 's/156/256/g' /opt/glite/yaim/examples/edgusers.conf
 
 source /etc/profile.d/grid-env.sh
 
-voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
-voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
-voms-admin --nousercert --vo vo.org create-user "/DC=org/DC=terena/DC=tcs/C=CZ/O=CESNET/CN=Zdenek Sustr 4040" "/C=NL/O=TERENA/CN=TERENA eScience Personal CA" "$USERNAME" "root@`hostname -f`"
+voms-admin --vo vo.org create-attribute-class "attribute1" "The first test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute2" "The second test attribute" 0
 
+add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
+add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
+add_voms_user_w_attrs "/DC=org/DC=terena/DC=tcs/C=CZ/O=CESNET/CN=Zdenek Sustr 4040" "/C=NL/O=TERENA/CN=TERENA eScience Personal CA" "$USERNAME" "root@`hostname -f`"
 
 mkdir -p /etc/vomses
 cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
