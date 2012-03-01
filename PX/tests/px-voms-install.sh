@@ -106,7 +106,7 @@ voms-admin --vo vo.org create-attribute-class "attribute3" "The third test attri
 
 voms-admin --vo vo.org create-group Testers
 voms-admin --vo vo.org create-role Tester
-voms-admin --vo vo.org set-role-attribute "/vo.org/Testers/" Role=Tester attribute3 "TestAttr$RANDOM"
+voms-admin --vo vo.org set-role-attribute "/vo.org/Testers" Role=Tester attribute3 "TestAttr$RANDOM"
 
 add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
 add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
@@ -115,6 +115,10 @@ add_voms_user_w_attrs "/DC=org/DC=terena/DC=tcs/C=CZ/O=CESNET/CN=Zdenek Sustr 40
 mkdir -p /etc/vomses
 cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
 
-echo Experimental VOMS set up with users
+echo Experimental VOMS set up with users:
 voms-admin --vo vo.org list-users
+echo groups:
+voms-admin --vo vo.org list-groups
+echo roles:
+voms-admin --vo vo.org list-roles
 
