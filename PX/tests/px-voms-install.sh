@@ -20,7 +20,8 @@ function add_voms_user_w_attrs() {
 	voms-admin --nousercert --vo vo.org create-user "$1" "$2" "$3" "$4"
 	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute1 $RANDOM
 	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute2 $RANDOM
-	voms-admin --nousercert --vo vo.org add-member Testers "$1" "$2"
+	voms-admin --nousercert --vo vo.org add-member "/vo.org/Testers" "$1" "$2"
+	voms-admin --nousercert --vo vo.org assign-role "/vo.org/Testers" Tester "$1" "$2"
 }
 
 USERNAME="root"
