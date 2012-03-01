@@ -20,6 +20,7 @@ function add_voms_user_w_attrs() {
 	voms-admin --nousercert --vo vo.org create-user "$1" "$2" "$3" "$4"
 	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute1 $RANDOM
 	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute2 $RANDOM
+	voms-admin --nousercert --vo vo.org add-member Testers "$1" "$2"
 }
 
 USERNAME="root"
@@ -100,6 +101,11 @@ source /etc/profile.d/grid-env.sh
 
 voms-admin --vo vo.org create-attribute-class "attribute1" "The first test attribute" 0
 voms-admin --vo vo.org create-attribute-class "attribute2" "The second test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute3" "The third test attribute" 0
+
+voms-admin --vo vo.org create-group Testers
+voms-admin --vo vo.org create-role Tester
+voms-admin --vo vo.org set-role-attribute "/vo.org/Testers/" Role=Tester attribute3 "TestAttr$RANDOM"
 
 add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
 add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
