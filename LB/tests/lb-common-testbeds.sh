@@ -28,7 +28,7 @@ if [ $? = 0 ]; then
 	INSTALLPKGS="lintian"
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint"
+	INSTALLPKGS="rpmlint postgresql-server"
 fi
 
 cat << EndArrangeScript > arrange_lb_test_root.sh 
@@ -44,7 +44,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export LBTSTCOLS
 
-${INSTALLCMD} globus-proxy-utils postgresql postgresql-server voms-clients curl wget sudo bc $INSTALLPKGS
+${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget sudo bc $INSTALLPKGS
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start
@@ -89,7 +89,7 @@ else
 	rm -rf /tmp/test-certs/grid-security
 	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
 	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
-	if [ "\$FAKE_CAS" == "" ]; then
+	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
                 exit 2
         else
@@ -125,7 +125,7 @@ echo export GLITE_WMS_LBPROXY_STORE_SOCK=/tmp/lb_proxy_ >> arrange_lb_test_user.
 echo 'env | egrep "GLITE|\$HNAME|PATH"' >> arrange_lb_test_user.sh
 echo pwd >> arrange_lb_test_user.sh
 echo id >> arrange_lb_test_user.sh
-if [ "\$OUTPUT_OPT" == "-i" ]; then
+if [ "\$OUTPUT_OPT" = "-i" ]; then
 echo echo ======================== >> arrange_lb_test_user.sh
 echo echo "  THE CONSOLE IS YOURS" >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh

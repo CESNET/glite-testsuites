@@ -318,7 +318,7 @@ function check_srv_version()
         else
 		servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
                 wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
-                if [ "$wsglservver" == "" ]; then
+                if [ "$wsglservver" = "" ]; then
                		return 2
                 else
 	

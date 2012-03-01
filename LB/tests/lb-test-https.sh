@@ -304,14 +304,14 @@ test_done
 				printf "Downloading remote configuration... "
 				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/?configuration > https.$$.tmp
 				LineNO=`$SYS_WC -l https.$$.tmp | $SYS_AWK '{ print $1 }' `
-				if [ ! "$LineNO" == "0" ]; then
+				if [ ! "$LineNO" = "0" ]; then
 					test_done
 					printf "Checking for items... "
 					for item in msg_brokers msg_prefixes 
 					do
 						printf "$item... "
 						$SYS_GREP -E "$item.*=" https.$$.tmp > /dev/null
-						if [ "$?" == "0" ]; then
+						if [ "$?" = "0" ]; then
 							test_done
 						else
 							test_failed
@@ -326,14 +326,14 @@ test_done
 				printf "Checking statistics... "
 				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/?stats > https.$$.tmp
 				LineNO=`$SYS_WC -l https.$$.tmp | $SYS_AWK '{ print $1 }' `
-				if [ ! "$LineNO" == "0" ]; then
+				if [ ! "$LineNO" = "0" ]; then
 					test_done
 					printf "Checking for items that should be > 0... "
 					for item in "gLite job regs" "Notification regs.*legacy" "HTML accesses" "Plain text accesses"
 					do
 						printf "$item... "
 						ItLine=`$SYS_GREP -E "$item" https.$$.tmp`
-						if [ "$?" == "0" ]; then
+						if [ "$?" = "0" ]; then
 							ItValue=`$SYS_ECHO $ItLine | $SYS_GREP -o -E -i "<td>[0-9]+</td>" | $SYS_GREP -o -E -i "[0-9]+"`
 							printf "$ItValue "
 							if [ "$ItValue" != "" -a $ItValue -gt 0 ]; then

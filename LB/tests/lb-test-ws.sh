@@ -135,7 +135,7 @@ fi
 
 				printf "($doneCode)"
 
-				if [ "$doneCode" == "" ]; then
+				if [ "$doneCode" = "" ]; then
 					test_done
 				else
 					test_failed
@@ -189,7 +189,7 @@ fi
 		printf "Getting server version... "
                 servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
                 wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
-                if [ "$wsglservver" == "" ]; then
+                if [ "$wsglservver" = "" ]; then
 	                test_failed
                 else
         	        printf "$wsglservver"
@@ -200,7 +200,7 @@ fi
                	check_srv_version '>=' "2.2"
                 if [ $? = 0 ]; then
 	                wsglifver=`$LBWSGETVERSION -i -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Interface version:\s*//'`
-        	        if [ "$wsglifver" == "" ]; then
+        	        if [ "$wsglifver" = "" ]; then
 	        	        test_failed
 	                else
         		        printf "$wsglifver"
@@ -210,20 +210,20 @@ fi
 			printf "Check if test runs on server... "
 			localname=`$SYS_HOSTNAME -f`
 
-			if [ "$servername" == "$localname" ]; then
+			if [ "$servername" = "$localname" ]; then
 				printf "Get rpm version... "
 				rpmversion=`$SYS_RPM -qi glite-lb-ws-interface | $SYS_GREP -E "^Version" | $SYS_SED 's/^Version\s*:\s*//' | $SYS_SED 's/\s.*$//'`
 
-				if [ "$rpmversion" == "" ]; then
+				if [ "$rpmversion" = "" ]; then
 					printf "Unable to detect rpm version"
 					test_skipped
 				else
 					printf "$rpmversion"
 					test_done
 
-					printf "Comparing versions ($wsglifver == $rpmversion)... "
+					printf "Comparing versions ($wsglifver = $rpmversion)... "
 
-					if [ "$wsglifver" == "$rpmversion" ]; then
+					if [ "$wsglifver" = "$rpmversion" ]; then
 						test_done
 					else
 						test_failed

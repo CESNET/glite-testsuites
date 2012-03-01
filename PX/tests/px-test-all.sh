@@ -107,7 +107,7 @@ if [ $? != 0 ]; then
         exit 2
 fi
 
-if [ "$x509_USER_CERT" == "" -o "$x509_USER_KEY" == "" ]; then
+if [ "$x509_USER_CERT" = "" -o "$x509_USER_KEY" = "" ]; then
 	source ./lb-generate-fake-proxy.sh --hours 1
 fi
 
@@ -128,7 +128,7 @@ myproxy-init -s localhost -d -n --certfile $x509_USER_CERT --keyfile $x509_USER_
 printf "Getting registered proxy... "
 REGISTERED_PROXY=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
 
-if [ "$REGISTERED_PROXY" == "" ]; then
+if [ "$REGISTERED_PROXY" = "" ]; then
 	test_failed
 	print_error "Could not set renewal"
 	exit 1

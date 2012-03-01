@@ -51,7 +51,7 @@ if [ ! -f lb-generate-fake-proxy.sh ]; then
 fi
 
 FAKE_CAS=`sh ./lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`
-if [ "$FAKE_CAS" == "" ]; then
+if [ "$FAKE_CAS" = "" ]; then
         echo "Failed generating proxy" >&2
         exit 2
 else

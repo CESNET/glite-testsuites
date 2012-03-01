@@ -140,12 +140,12 @@ fi
 
 printf "Checking ServiceStatus (Regression into bug #76174)... "
 health=`$SYS_GREP GlueServiceStatus: ldap.$$.out | $SYS_SED 's/^[^:]*: *//'`
-if [ "$health" == "" ]; then
+if [ "$health" = "" ]; then
 	print_error "GlueServiceStatus not specified"
 	test_failed
 else
 	printf "$health"
-	if [ "$health" == "OK" ]; then
+	if [ "$health" = "OK" ]; then
 		test_done
 	else
 		test_failed
@@ -163,12 +163,12 @@ fi
 
 printf "Checking GLUE2 HealthStatus (Regression into bug #76173)... "
 health=`$SYS_GREP GLUE2EndpointHealthState: ldap.$$.out | $SYS_TAIL -n 1 | $SYS_SED 's/^[^:]*: *//'`
-if [ "$health" == "" ]; then
+if [ "$health" = "" ]; then
 	print_error "GLUE2EndpointHealthState not specified"
 	test_failed
 else
 	printf "$health"
-	if [ "$health" == "ok" ]; then
+	if [ "$health" = "ok" ]; then
 		test_done
 	else
 		test_failed
@@ -177,7 +177,7 @@ fi
 
 printf "Checking GlueServiceVersion (Regression into bug #55482)... "
 glservver=`$SYS_GREP GLUE2EndpointImplementationVersion ldap.$$.out | $SYS_TAIL -n 1 | $SYS_SED 's/^.*GLUE2EndpointImplementationVersion:\s*//'`
-if [ "$glservver" == "" ]; then	
+if [ "$glservver" = "" ]; then	
 	print_error "GLUE2EndpointImplementationVersion not specified"
 	test_failed
 else
@@ -185,17 +185,17 @@ else
 	test_done
 
 	printf "Reading version through WS... "
-	if [ "$WSBIN" == "yes" ]; then
+	if [ "$WSBIN" = "yes" ]; then
 		servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
 		wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
-		if [ "$wsglservver" == "" ]; then	
+		if [ "$wsglservver" = "" ]; then	
 			test_failed
 		else
 			printf "$wsglservver"
 			test_done
 
-			printf "Comparing versions: '$glservver' == '$wsglservver'"
-			if [ "$glservver" == "$wsglservver" ]; then
+			printf "Comparing versions: '$glservver' = '$wsglservver'"
+			if [ "$glservver" = "$wsglservver" ]; then
 				test_done
 			else
 				test_failed

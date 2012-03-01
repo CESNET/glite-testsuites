@@ -169,14 +169,14 @@ test_done
 				test_done
 			fi
 
-			if [ ! $BROKER == "" ]; then
+			if [ ! $BROKER = "" ]; then
 
 
 				#Start listening for notifications
 			
 				printf "Checking if client supports output files... "	
 				rudver=`${LBCMSCLIENT} | $SYS_GREP '\-o'`
-				if [ "$rudver" == "" ]; then
+				if [ "$rudver" = "" ]; then
 					printf "No. Connecting to broker $BROKER, topic grid.emi.lbtest"
 					${LBCMSCLIENT} ${BROKER} grid.emi.lbtest 2>&1 > $$_notifications.txt &
 					recpid=$!

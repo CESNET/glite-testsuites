@@ -384,7 +384,7 @@ EOF
 		mv -f /etc/grid-security/vomsdir/* /tmp/vomsdir.$$/
 		printf "Trying with empty vomsdir. GRST_CRED_2 should not be present... "
 		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
-		if [ "$GRST_CRED_2" == "" ]; then
+		if [ "$GRST_CRED_2" = "" ]; then
 			test_done
 		else
 			print_error "returned: $GRST_CRED_2\n"
@@ -430,7 +430,7 @@ EOF
 
 		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 
-		if [ "$GRST_CRED_2" == "" ]; then
+		if [ "$GRST_CRED_2" = "" ]; then
 			print_error "GRST_CRED_2 not returned"
 			test_failed
 		else
@@ -448,7 +448,7 @@ EOF
 
 		printf "Test listing of VOMS attributes (Regression test for bug #92077)\n"
 		GRST_CRED_AURI=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep -E GRST_CRED_AURI.*Testers`
-		if [ "$GRST_CRED_AURI" == "" ]; then
+		if [ "$GRST_CRED_AURI" = "" ]; then
 			test_failed
 			print_error "attribute not present"
 		else 

@@ -65,7 +65,7 @@ else
 	rm -rf /tmp/test-certs/grid-security
 	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
 	FAKE_CAS=\`source ./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
-	if [ "\$FAKE_CAS" == "" ]; then
+	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
                 exit 2
         else
@@ -141,7 +141,7 @@ echo 'export HNAME=\`hostname -f\`' >> arrange_px_test_user.sh
 echo 'env | egrep "GLITE|\$HNAME|PATH"' >> arrange_px_test_user.sh
 echo pwd >> arrange_px_test_user.sh
 echo id >> arrange_px_test_user.sh
-if [ "\$OUTPUT_OPT" == "-i" ]; then
+if [ "\$OUTPUT_OPT" = "-i" ]; then
 echo echo ======================== >> arrange_px_test_user.sh
 echo echo "  THE CONSOLE IS YOURS" >> arrange_px_test_user.sh
 echo echo ======================== >> arrange_px_test_user.sh

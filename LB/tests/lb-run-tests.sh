@@ -85,7 +85,7 @@ else
 fi
 
 printf "L&B server: '$remotehost'\n"
-if [ "$remotehost" == "" ]; then
+if [ "$remotehost" = "" ]; then
 	printf "L&B server not specified, exittig...\n\n"
 	exit 1
 fi
@@ -125,7 +125,7 @@ if [ $COPYPROXY -eq 1 ]; then
 	fi
 fi
 
-if [ "$PROXYCERT" == "" ]; then
+if [ "$PROXYCERT" = "" ]; then
 	PROXYCERT="none"
 fi
 
