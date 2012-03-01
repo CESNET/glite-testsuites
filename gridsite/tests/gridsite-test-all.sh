@@ -447,7 +447,14 @@ EOF
 		fi
 
 		printf "Test listing of VOMS attributes (Regression test for bug #92077)\n"
-		curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi
+		GRST_CRED_AURI=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep -E GRST_CRED_AURI.*Testers`
+		if [ "$GRST_CRED_AURI" == "" ]; then
+			test_failed
+			print_error "attribute not present"
+		else 
+			printf " $GRST_CRED_AURI"
+			test_done
+		fi
 
 	else
 		printf "No proxy certificate"
