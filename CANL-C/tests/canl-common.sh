@@ -51,6 +51,8 @@ VOMSPROXYFAKE=voms-proxy-fake
 #canl sample binaries
 EMI_CANL_CLIENT=emi-canl-client
 EMI_CANL_SERVER=emi-canl-server
+EMI_CANL_PROXY_INIT=emi-canl-proxy-init
+EMI_CANL_DELEGATION=emi-canl-delegation
 
 # default LB ports
 GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
@@ -100,7 +102,47 @@ OPENSSL=openssl
 #generate proxy shell script file
 GEN_PROXY=./canl-generate-fake-proxy.sh
 
-function get_canl_binaries()
+# $1 - proxy init binary
+# $2 - proxy delegation
+function get_canl_proxy_binaries()
+{
+printf "Testing if binary of canl_proxy_init is available"
+if [ -n "$1" -a -n "$2" ]; then
+        check_binaries $1 $2
+        if [ $? -gt 0 ]; then
+                test_failed
+                printf "Downloading canl source files and building examples"
+                get_canl_examples
+                if [ $? -gt 0 ]; then
+                        test_failed
+                        return $TEST_ERROR
+                fi
+                EMI_CANL_PROXY_INIT='./emi-canl-proxy-init'
+                EMI_CANL_PROXY_INIT='./emi-canl-delegation'
+        fi
+        EMI_CANL_PROXY_INIT="$1"
+        EMI_CANL_DELEGATION="$2"
+else
+        #default path
+        check_binaries $EMI_CANL_PROXY_INIT $EMI_CANL_DELEGATIOM
+        if [ $? -gt 0 ]; then
+                test_failed
+                printf "Downloading canl source files and building examples"
+                get_canl_examples
+                if [ $? -gt 0 ]; then
+                        test_failed
+                        return $TEST_ERROR
+                fi
+                EMI_CANL_PROXY_INIT='./emi-canl-proxy-init'
+                EMI_CANL_DELEGATION='./emi-canl-delegation'
+        fi
+fi
+return 0
+}
+
+# $1 - server binary
+# $2 - client binary
+function get_canl_sc_binaries()
 {
 printf "Testing if binaries of canl examples are available"
 if [ -n "$1" -a -n "$2" ]; then
