@@ -408,7 +408,7 @@ EOF
 			if [ -f $vomsfile ]; then
 				VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
 				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
-				if [ ! -f /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc ]; then
+#				if [ ! -f /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc ]; then
 					VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
 					openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
 					VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
@@ -420,9 +420,9 @@ EOF
 					printf "Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc\n$NL"
 
 					rm $VOMSHOSTONLY.$$.DNs.txt
-				else
-					printf "/etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc already exists\n$NL"
-				fi
+#				else
+#					printf "/etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc already exists\n$NL"
+#				fi
 
 #				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc | sed "s/\$/$NL/"
 			fi
@@ -445,6 +445,9 @@ EOF
 				test_failed
 			fi
 		fi
+
+		printf "Test listing of VOMS attributes (Regression test for bug #92077)\n"
+		curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi
 
 	else
 		printf "No proxy certificate"
