@@ -191,7 +191,7 @@ VERSION=`cat /etc/issue | head -n 1 | grep -E -o "[0-9]+\.[0-9]+"`
 MAJOR=`echo $VERSION | sed 's/\..*$//'`
 
 printf "
----++ $SCENARIO, $DISTRO $MAJOR
+---++ $SCENARIO, $DISTRO $MAJOR ($PLATFORM)
 
 ---+++ Environment
 #CleanInstallation
