@@ -437,7 +437,7 @@ EOF
 			test_done
 
 			printf "Checking for presence of FQAN... "
-			echo "$GRST_CRED_2" | grep $FQAN > /dev/null
+			echo "$GRST_CRED_2" | grep "$FQAN" > /dev/null
 			if [ $? = 0 ]; then
 				test_done
 			else
@@ -447,15 +447,56 @@ EOF
 		fi
 
 		printf "Test listing of VOMS attributes (Regression test for bug #92077)\n"
-		GRST_CRED_AURI=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep -E GRST_CRED_AURI.*Testers`
-		if [ "$GRST_CRED_AURI" = "" ]; then
-			test_failed
-			print_error "attribute not present"
-		else 
-			printf " $GRST_CRED_AURI"
+
+		printf "Getting list of Role attributes from voms-proxy-info... "
+		voms-proxy-info -all | grep -E "^attribute[ \t]+:" | grep "Role=" | sed -r 's/^attribute[ \t]+:[ \t]*//' > info-roles.$$.out
+
+		if [ ! -s info-roles.$$.out ]; then
+			printf "EMPTY!"
+			test_skipped
+		else
 			test_done
+			printf "Getting list of Role attributes from test.cgi... "
+
+			curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-pre.$$.out
+
+			if [ ! -s info-roles.$$.out ]; then
+	                        printf "EMPTY!"
+        	                test_failed
+				print_error "No role attributes found, even before re-running init"
+                	else
+				test_done
+				printf "re-running voms extensions... "
+				voms-proxy-init -noregen > /dev/null 2> /dev/null
+				test_done
+				printf "Getting another set of Role attributes from test.cgi... "
+				curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-post.$$.out
+				if [ ! -s test-roles-post.$$.out ]; then
+					test_failed
+					print_error "List of role attributes is empty!"
+				else
+					test_done
+					printf "Comparing attributes... "
+					diff --ignore-case test-roles-pre.$$.out test-roles-post.$$.out > /dev/null
+					if [ $? -eq 0 ]; then
+						test_done
+					else
+						sort test-roles-pre.$$.out > test-roles-pre.$$.out.sorted
+						sort test-roles-post.$$.out > test-roles-post.$$.out.sorted
+						diff --ignore-case test-roles-pre.$$.out.sorted test-roles-post.$$.out.sorted > /dev/null
+						if [ $? -eq 0 ]; then
+							printf "Matching, but out of order!"
+							test_warning
+						else
+							test_error
+							print_error "A non-matching set of role attributes has been returned"
+						fi
+					fi
+				fi
+			fi
 		fi
 
+		rm info-roles.$$.out test-roles-pre.$$.out* test-roles-post.$$.out*
 	else
 		printf "No proxy certificate"
 		test_skipped
