@@ -211,19 +211,25 @@ fi
 			localname=`$SYS_HOSTNAME -f`
 
 			if [ "$servername" = "$localname" ]; then
-				printf "Get rpm version... "
-				rpmversion=`$SYS_RPM -qi glite-lb-ws-interface | $SYS_GREP -E "^Version" | $SYS_SED 's/^Version\s*:\s*//' | $SYS_SED 's/\s.*$//'`
+				egrep -i "Debian|Ubuntu" /etc/issue >/dev/null 2>&1
+				if [ $? = 0 ]; then
+					printf "Get dpkg version... "
+					sysversion=`$SYS_DPKG_QUERY -W glite-lb-ws-interface | $SYS_SED 's/^[^\s]*\s\+//' | $SYS_SED 's/-.*//'`
+				else
+					printf "Get rpm version... "
+					sysversion=`$SYS_RPM -qi glite-lb-ws-interface | $SYS_GREP -E "^Version" | $SYS_SED 's/^Version\s*:\s*//' | $SYS_SED 's/\s.*$//'`
+				fi
 
-				if [ "$rpmversion" = "" ]; then
-					printf "Unable to detect rpm version"
+				if [ "$sysversion" = "" ]; then
+					printf "Unable to detect installed package version"
 					test_skipped
 				else
-					printf "$rpmversion"
+					printf "$sysversion"
 					test_done
 
-					printf "Comparing versions ($wsglifver = $rpmversion)... "
+					printf "Comparing versions ($wsglifver = $sysversion)... "
 
-					if [ "$wsglifver" = "$rpmversion" ]; then
+					if [ "$wsglifver" = "$sysversion" ]; then
 						test_done
 					else
 						test_failed
