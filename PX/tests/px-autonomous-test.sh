@@ -39,6 +39,17 @@ EndHelpHeader
 
 STARTTIME=`date +%s`
 
+egrep -i "Debian|Ubuntu" /etc/issue
+if [ \$? = 0 ]; then
+        INSTALLCMD="apt-get install -q --yes"
+        INSTALLPKGS="lintian"
+else
+        INSTALLCMD="yum install -q -y --nogpgcheck"
+        INSTALLPKGS="rpmlint"
+fi
+
+$INSTALLCMD wget
+
 # read common definitions and functions
 for COMMON in px-common.sh test-common.sh px-common-testbeds.sh
 do
