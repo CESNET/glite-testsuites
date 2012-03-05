@@ -111,6 +111,7 @@ voms-admin --vo vo.org set-role-attribute "/vo.org/Testers" Role=Tester attribut
 add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
 add_voms_user_w_attrs "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=$USERNAME client01" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "$USERNAME" "root@`hostname -f`"
 add_voms_user_w_attrs "/DC=org/DC=terena/DC=tcs/C=CZ/O=CESNET/CN=Zdenek Sustr 4040" "/C=NL/O=TERENA/CN=TERENA eScience Personal CA" "$USERNAME" "root@`hostname -f`"
+add_voms_user_w_attrs "/DC=cz/DC=cesnet-ca/O=University of West Bohemia/CN=Frantisek Dvorak" "/DC=cz/DC=cesnet-ca/O=CESNET CA/CN=CESNET CA 3" "$USERNAME" "root@`hostname -f`"
 
 mkdir -p /etc/vomses
 cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
