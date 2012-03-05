@@ -392,17 +392,24 @@ function check_lintian() {
 	rm -rf $dir
 	mkdir $dir
 	while test -n "$1"; do
-		pkgs="$pkgs `dpkg-query -W $1 2>>$dir/query.log | cut -f1`
+		pkgs="$pkgs `dpkg-query -W "$1" 2>>$dir/query.log | cut -f1`
 "
 		shift
 	done
 	for pkg in $pkgs; do
 		src=`dpkg-query -W -f '${Source}' $pkg 2>>$dir/query.log`
-		if [ -z "$src" ]; then src="$pkg"; fi
-		pkgs="$pkgs
+		if [ $? -eq 0 ]; then
+			if [ -z "$src" ]; then src="$pkg"; fi
+			pkgs="$pkgs
 $src"
+		fi
 	done
-	pkgs=`echo "$pkgs" | sort | uniq`
+	pkgs=`echo "$pkgs" | sort | uniq | sed 's/^ //'`
+
+	if test -z "$pkgs"; then
+		echo "No packages to check"
+		return 0
+	fi
 
 	printf "Downloading packages..."
 	(cd $dir; apt-get -d source $pkgs >$dir/download.log)
