@@ -74,50 +74,12 @@ else
 fi
 
 if [ ! -d /etc/vomses ]; then
-	${INSTALLCMD} emi-voms-mysql
-
-	service mysqld start
-
-	/usr/bin/mysqladmin -u root password [Edited];
-
-	mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname\`' identified by '[Edited]';"
-	mysql --user=root --password=[Edited] -e "grant all on *.* to 'root'@'\`hostname -f\`' identified by '[Edited]';"
-
-	cd
-	mkdir -p yaim/services
-	cd yaim
-
-cat << EOF > site-info-voms.def
-MYSQL_PASSWORD="[Edited]"
-SITE_NAME="\`hostname -f\`"
-VOS="vo.org"
-EOF
-
-cat << EOF > services/glite-voms
-# VOMS server hostname
-VOMS_HOST=\`hostname -f\`
-VOMS_DB_HOST='localhost'
-
-VO_VO_ORG_VOMS_PORT=15000
-VO_VO_ORG_VOMS_DB_USER=cert_mysql_user
-VO_VO_ORG_VOMS_DB_PASS="[Edited]"
-VO_VO_ORG_VOMS_DB_NAME=voms_cert_mysql_db
-
-VOMS_ADMIN_SMTP_HOST=[Edited]
-VOMS_ADMIN_MAIL=[Edited]
-EOF
-
-	sed -i 's/155/255/g' /opt/glite/yaim/examples/edgusers.conf
-	sed -i 's/156/256/g' /opt/glite/yaim/examples/edgusers.conf
-
-	/opt/glite/yaim/bin/yaim -c -s site-info-voms.def -n VOMS
-
-	source /etc/profile.d/grid-env.sh
-
-	voms-admin --nousercert --vo vo.org create-user "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite" "/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=the trusted CA" "glite" "root@`hostname -f`"
-
-	mkdir -p /etc/vomses
-	cat /etc/voms-admin/vo.org/vomses > /etc/vomses/`hostname -f`
+        echo Installing experimental VOMS server
+        if [ ! -f ./px-voms-install.sh ]; then
+                wget -O px-voms-install.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/px-voms-install.sh?view=co
+                chmod +x px-voms-install.sh
+        fi
+        source ./px-voms-install.sh -u glite
 else
 	printf "Using external voms server:\n===========================\n"
 	find /etc/vomses -type f -exec printf "{}: " \; -exec cat {} \;
