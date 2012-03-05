@@ -84,7 +84,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries curl rm chown openssl htcp htls htmv htcp htrm htls htls htproxydestroy awk sed openssl tail head
+check_binaries curl rm chown openssl htcp htls htmv htcp htrm htls htls htproxydestroy awk sed openssl tail head sort
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -526,6 +526,17 @@ EOF
 			test_failed
 		fi
 	done
+
+	printf "Check interpretable DEFVERSION... "
+	GRIDSITEVERSION=`rpm -q gridsite-shared | grep -E -o "gridsite-shared-[0-9]+\.[0-9]+" | sed 's/shared-//'`
+	DEFVERSION=`grep "^DEFVERSION" /usr/share/doc/${GRIDSITEVERSION}/VERSION | sed 's/DEFVERSION[ \t]*=[ \t]*//'`
+	printf "Oct %o, Hex %x" $DEFVERSION $DEFVERSION
+	if [ $? -eq 0 ]; then
+		test_done
+	else
+		test_failed
+		print_error "Failed to interpret DEFVERSION as a number"
+	fi
 
 test_end
 } 
