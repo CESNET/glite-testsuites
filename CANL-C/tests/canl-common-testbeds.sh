@@ -43,7 +43,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS
 
-${INSTALLCMD} wget lsof canl-examples cvs voms-clients globus-proxy-utils $INSTALLPKGS
+${INSTALLCMD} wget lsof canl-c-examples cvs voms-clients globus-proxy-utils $INSTALLPKGS
 
 cd /tmp
 
