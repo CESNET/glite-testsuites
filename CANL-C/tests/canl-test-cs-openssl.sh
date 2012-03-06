@@ -87,7 +87,7 @@ done
 {
 test_start
 # check canl binaries
-get_canl_binaries
+get_canl_sc_binaries $srvbin $clibin
 if [ $? -ne 0 ]; then
 	test_failed
 	test_end
