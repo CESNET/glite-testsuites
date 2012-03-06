@@ -1,7 +1,7 @@
 top_srcdir=.
 VPATH=${top_srcdir}/examples
 CC=gcc
-LIB_PATH=-L/home/marvel/canl/emi.canl.canl-c/stage/usr/lib64
+LIB_PATH=
 
 SRC_CLI=canl_sample_client.c
 OBJ_CLI=canl_sample_client.o
