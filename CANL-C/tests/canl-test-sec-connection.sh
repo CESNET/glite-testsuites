@@ -118,7 +118,7 @@ fi
 
 #test server with bad cert input
 printf "Testing server with nonexisting host certificates\n"
-${EMI_CANL_SERVER} -c /certcert.$$
+${EMI_CANL_SERVER} -c /certcert.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
 else
@@ -127,7 +127,7 @@ fi
 
 #test server with bad key input
 printf "Testing server with nonexisting host key\n"
-${EMI_CANL_SERVER} -k /keykey.$$
+${EMI_CANL_SERVER} -k /keykey.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
 else
@@ -136,7 +136,7 @@ fi
 
 #test server with bad cert and key
 printf "Testing server with nonexisting host cert and key\n"
-${EMI_CANL_SERVER} -k /keykey.$$ -c /cercert.$$
+${EMI_CANL_SERVER} -k /keykey.$$ -c /cercert.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
 else
@@ -154,7 +154,7 @@ do
 	${SYS_LSOF} -i :${nu_port}
 done
 if [ ${nu_port} -ne ${max_port} ]; then
-	${EMI_CANL_CLIENT} -s localhost -p ${nu_port}
+	${EMI_CANL_CLIENT} -s localhost -p ${nu_port} &> /dev/null
 	if [ $? != 0 ]; then
 		test_done
 	else
@@ -167,7 +167,7 @@ fi
 
 #test client with nonexisting proxy certificate
 printf "Testing client: use nonexisting proxy certificate\n"
-${EMI_CANL_CLIENT} -c /cercert.$$
+${EMI_CANL_CLIENT} -c /cercert.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
 else
