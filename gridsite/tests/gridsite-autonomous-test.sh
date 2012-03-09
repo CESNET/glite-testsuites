@@ -113,7 +113,7 @@ sh arrange_gridsite_test_root.sh none glite 80 '-x' > test_log.txt 2> test_err.l
 test_done
 
 printf "Collecting package list... "
-gen_repo_list ./prod_packages.txt ./repo_packages.txt
+gen_repo_lists ./prod_packages.txt ./repo_packages.txt
 test_done
 
 ENDTIME=`date +%s`
