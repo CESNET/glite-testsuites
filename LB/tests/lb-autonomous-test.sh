@@ -124,4 +124,20 @@ printf "</verbatim>
 <verbatim>\n" >> report.twiki
 cat test_log.txt >> report.twiki
 
+PRODUCT="emi.lb"
+UNITESTEXEC="YES"
+REMARKS=""
+PERFORMANCEEXEC="YES"
+TESTREPOCONTENTS="`cat ./repo_packages.txt`"
+PRODREPOCONTENTS="`cat ./prod_packages.txt`"
+INSTALLCOMMAND="`cat GridSiteInstall.sh`"
+INSTALLLOG="`cat Install_log.txt`"
+CONFIGLOG="Configuration log shown with the installation log, see directly above."
+#UPGRADECMD
+UNITTESTURL="See Build Report. Unit tests are an integral part of the build."
+TESTPLANURL="http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/"
+FUNCTIONALITYTESTURL="https://twiki.cern.ch/twiki/bin/view/EGEE/SA3Testing#LB"
+
+gen_test_report > TestRep.txt
+
 
