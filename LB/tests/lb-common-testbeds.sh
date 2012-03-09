@@ -215,10 +215,11 @@ function gen_repo_lists()
 		LISTALLCMD="apt-get install -q --yes"
 	else
 		yum install -y -q yum-utils
-		LISTALLCMD="repoquery -a --qf \"%{name} %{version} %{repoid}\""
+		repoquery -a --qf "%{name} %{version} %{repoid}" > /tmp/allpkgs.$$.txt
 	fi
 
-	$LISTALLCMD | grep " EMI" > $1
-	$LISTALLCMD | grep " ETICS" > $2
+	cat /tmp/allpkgs.$$.txt | grep " EMI" > $1
+	cat /tmp/allpkgs.$$.txt | grep " ETICS" > $2
 
+	rm -f /tmp/allpkgs.$$.txt
 }
