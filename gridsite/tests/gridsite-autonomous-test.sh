@@ -43,9 +43,11 @@ egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then
         INSTALLCMD="apt-get install -q --yes"
         INSTALLPKGS="lintian"
+	UPGRADECMD="apt-get upgrade"
 else
         INSTALLCMD="yum install -q -y --nogpgcheck"
         INSTALLPKGS="rpmlint"
+	UPGRADECMD="yum update"
 fi
 
 $INSTALLCMD wget
@@ -110,6 +112,10 @@ printf "Running tests... "
 sh arrange_gridsite_test_root.sh none glite 80 '-x' > test_log.txt 2> test_err.log
 test_done
 
+printf "Collecting package list... "
+gen_repo_list ./prod_packages.txt ./repo_packages.txt
+test_done
+
 ENDTIME=`date +%s`
 
 #Generating report section
@@ -133,4 +139,95 @@ printf "</verbatim>
 <verbatim>\n" >> report.twiki
 cat test_log.txt >> report.twiki
 
+#Generating test report
 
+echo $SCENARIO | grep -i -E "upgrade|update"
+
+if [ $? -ne 0 ]; then
+
+cat << EndRepHead > TestRep.txt
+*************
+Summary 
+*************
+
+1. Deployment tests: 
+   1.1. Clean Installation - PASS
+   1.2. Upgrade Installation - PASS
+2. Static Code Analysis - NA
+3. Unit Tests Execution - NO
+4. System tests:
+  4.1. Functionality tests - PASS
+  4.2. Regression tests - PASS
+  4.3. Standard Conformance tests - NA
+  4.4. Performance tests - NA
+  4.5. Scalability tests - NA
+
+REMARKS:
+
+GridSite code is not covered by unit tests. This is a state EMI inherited and there are insufficient resources to remedy that. On top of that, GridSite is due to major refactoring with the instrodunction od caNl.
+
+*************************** Detailed Testing Report ***************************************
+
+1. Deployment log 
+************************
+
+1.1. Clean Installation
+-----------------------------
+- YUM/APT Testing Repo file contents:
+EndRepHead
+
+	cat repo_packages.txt >> TestRep.txt
+
+	printf "\n- YUM/APT Install command:\n\n" >> TestRep.txt
+
+	cat GridSiteInstall.sh >> TestRep.txt
+
+	printf "\n- YUM/APT log:\n\n" >> TestRep.txt
+
+	cat Install_log.txt >> TestRep.txt
+
+	printf "\n- Configuration log:\n\nN/A\n\n" >> TestRep.txt
+
+else
+
+	printf "\n1.2. Upgrade Installation\n--------------------------------\n- YUM/APT Production Repo file contents:\n\n"
+
+	cat prod_packages.txt >> TestRep.txt
+
+	printf "\n- YUM/APT Install command:\n\n" >> TestRep.txt
+
+	cat GridSiteInstall.sh >> TestRep.txt
+
+	printf "\n- YUM/APT Testing Repo file contents:\n\n" >> TestRep.txt
+
+	cat repo_packages.txt >> TestRep.txt
+
+	printf "\n- YUM/APT Upgrade command:\n\n${UPGRADECMD}\n\n- YUM/APT log:" >> TestRep.txt
+
+	cat Install_log.txt >> TestRep.txt
+
+cat << EndRepHead >> TestRep.txt
+- Configuration log:
+
+2. Static Code Analysis
+******************************
+- URL where static code analysis results can be accessed
+
+3. Unit Tests
+*****************
+- URL pointing to the results of the Unit Tests.
+- Code Coverage %, if available.
+
+4. System tests 
+*********************
+- URL where the tests/testsuite can be accessed:
+
+https://twiki.cern.ch/twiki/bin/view/EGEE/SA3Testing#GridSite
+
+- URL where the test results can be accessed:
+
+http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/gridsite/tests/
+
+EndRepHead
+
+fi
