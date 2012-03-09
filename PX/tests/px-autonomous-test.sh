@@ -157,4 +157,21 @@ printf "</verbatim>
 <verbatim>\n" >> report.twiki
 cat test_log.txt >> report.twiki
 
+#Generating test report
+
+PRODUCT="emi.px"
+UNITESTEXEC="NO"
+REMARKS="No unit tests implemented"
+PERFORMANCEEXEC="NO"
+TESTREPOCONTENTS="`cat ./repo_packages.txt`"
+PRODREPOCONTENTS="`cat ./prod_packages.txt`"
+INSTALLCOMMAND="`cat GridSiteInstall.sh`"
+INSTALLLOG="`cat Install_log.txt`"
+CONFIGLOG="Configuration log shown with the installation log, see directly above"
+#UPGRADECMD
+UNITTESTURL="NA"
+TESTPLANURL="http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/"
+FUNCTIONALITYTESTURL="https://twiki.cern.ch/twiki/bin/view/EGEE/SA3Testing#PX"
+
+gen_test_report > TestRep.txt
 
