@@ -207,3 +207,18 @@ Clean installation according to EMI guidelines (CA certificates, proxy certifica
 ---++++ Process
 <verbatim>\n"
 }
+
+function gen_repo_lists()
+{
+	egrep -i "Debian|Ubuntu" /etc/issue
+	if [ $? = 0 ]; then
+		LISTALLCMD="apt-get install -q --yes"
+	else
+		yum install -y -q yum-utils
+		LISTALLCMD="repoquery -a --qf \"%{name} %{version} %{repoid}\""
+	fi
+
+	$LISTALLCMD | grep " EMI" > $1
+	$LISTALLCMD | grep " ETICS" > $2
+
+}
