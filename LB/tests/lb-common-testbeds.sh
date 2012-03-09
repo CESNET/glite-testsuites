@@ -223,3 +223,123 @@ function gen_repo_lists()
 
 	rm -f /tmp/allpkgs.$$.txt
 }
+
+function gen_test_report()
+{
+cat <<EOF
+*********************************
+EMI Test Report Template 
+*********************************
+
+- Product: $PRODUCT
+
+- Release Task:
+
+- ETICS Subsystem Configuration Name:
+
+- VCS Tag:
+
+- EMI Major Release:
+
+- Platforms:
+
+- Author: 
+
+- Date:
+
+- Test Report Template : v. 3.1
+
+*************
+Summary 
+*************
+
+1. Deployment tests: 
+   1.1. Clean Installation - PASS
+   1.2. Upgrade Installation - PASS
+2. Static Code Analysis - NA
+3. Unit Tests Execution - $UNITESTEXEC
+4. System tests:
+  4.1. Functionality tests - PASS
+  4.2. Regression tests - PASS
+  4.3. Standard Conformance tests - NA
+  4.4. Performance tests - $PERFORMANCEEXEC
+  4.5. Scalability tests - NA
+
+REMARKS:
+
+*************************** Detailed Testing Report ***************************************
+
+1. Deployment log 
+************************
+
+1.1. Clean Installation
+-----------------------------
+- YUM/APT Testing Repo file contents:
+
+$TESTREPOCONTENTS
+
+- YUM/APT Install command:
+
+$INSTALLCOMMAND
+
+- YUM/APT log:
+
+$INSTALLLOG
+
+- Configuration log:
+
+$CONFIGLOG
+
+1.2. Upgrade Installation
+--------------------------------
+- YUM/APT Production Repo file contents:
+
+$PRODREPOCONTENTS
+
+- YUM/APT Install command:
+
+$INSTALLCOMMAND
+
+- YUM/APT Testing Repo file contents:
+
+$TESTREPOCONTENTS
+
+- YUM/APT Upgrade command:
+
+$UPGRADECMD
+
+- YUM/APT log:
+
+$INSTALLLOG
+
+- Configuration log:
+
+$CONFIGLOG
+
+2. Static Code Analysis
+******************************
+- URL where static code analysis results can be accessed
+
+N/A
+
+3. Unit Tests
+*****************
+- URL pointing to the results of the Unit Tests.
+
+$UNITTESTURL
+
+- Code Coverage %, if available.
+
+N/A
+
+4. System tests 
+*********************
+- URL where the tests/testsuite can be accessed:
+
+$TESTPLANURL
+
+- URL where the test results can be accessed:
+
+$FUNCTIONALITYTESTURL
+EOF
+}
