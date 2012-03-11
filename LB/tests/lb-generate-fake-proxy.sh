@@ -19,7 +19,7 @@
 # show help and usage
 progname=`basename $0`
 user_id=`id -u`
-CERTS_ROOT=/tmp/test-certs.$$
+CERTS_ROOT=/tmp/test-certs.`id -un`
 USER=trusted_client00
 USER_BOB=trusted_client01
 VOMS_SERVER=trusted_host
@@ -64,16 +64,20 @@ done
 
 PWD=`pwd`
 
-echo "Generating fake proxy certificate - this may take a few minutes"
-echo ""
+if [ ! -d "$CERTS_ROOT" ]; then
+	echo "Generating fake proxy certificate - this may take a few minutes"
+	echo ""
 
-mkdir -p $CERTS_ROOT
-cd $CERTS_ROOT
-wget -q -O org.glite.security.test-utils.tar.gz \
-  'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/org.glite.security.test-utils.tar.gz?view=tar' &> /dev/null || exit 1
-tar xzf org.glite.security.test-utils.tar.gz || exit 1
+	mkdir -p $CERTS_ROOT
+	cd $CERTS_ROOT
+	wget -q -O org.glite.security.test-utils.tar.gz \
+		'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/org.glite.security.test-utils.tar.gz?view=tar' &> /dev/null || exit 1
+	tar xzf org.glite.security.test-utils.tar.gz || exit 1
+	# keep using system default hash (even when different across openssl versions)
+	sed -i.orig 's/openssl x509 -subject_hash_old/openssl x509 -hash/' org.glite.security.test-utils/bin/generate-test-certificates.sh
 
-org.glite.security.test-utils/bin/generate-test-certificates.sh $CERTS_ROOT &> /dev/null || exit 1
+	org.glite.security.test-utils/bin/generate-test-certificates.sh $CERTS_ROOT &> /dev/null || exit 1
+fi
 
 cd $CERTS_ROOT/trusted-certs
 
