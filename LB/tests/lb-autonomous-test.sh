@@ -130,7 +130,7 @@ REMARKS=""
 PERFORMANCEEXEC="YES"
 TESTREPOCONTENTS="`cat ./repo_packages.txt`"
 PRODREPOCONTENTS="`cat ./prod_packages.txt`"
-INSTALLCOMMAND="`cat GridSiteInstall.sh`"
+INSTALLCOMMAND="`cat LBinstall.sh`"
 INSTALLLOG="`cat Install_log.txt`"
 CONFIGLOG="Configuration log shown with the installation log, see directly above."
 #UPGRADECMD
