@@ -156,7 +156,7 @@ printf "</verbatim>
 ---+++ Tests
 
 | !TestPlan | https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan |
-| Tests | http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/gridsite/tests/ |
+| Tests | https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan |
 
 <verbatim>\n" >> report.twiki
 cat test_log.txt >> report.twiki
@@ -169,7 +169,7 @@ REMARKS="No unit tests implemented"
 PERFORMANCEEXEC="NO"
 TESTREPOCONTENTS="`cat ./repo_packages.txt`"
 PRODREPOCONTENTS="`cat ./prod_packages.txt`"
-INSTALLCOMMAND="`cat GridSiteInstall.sh`"
+INSTALLCOMMAND="`cat PXinstall.sh`"
 INSTALLLOG="`cat Install_log.txt`"
 CONFIGLOG="Configuration log shown with the installation log, see directly above"
 #UPGRADECMD
