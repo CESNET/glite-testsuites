@@ -143,7 +143,7 @@ REMARKS="No unit tests implemented"
 PERFORMANCEEXEC="NO"
 TESTREPOCONTENTS="`cat ./repo_packages.txt`"
 PRODREPOCONTENTS="`cat ./prod_packages.txt`"
-INSTALLCOMMAND="`cat GridSiteInstall.sh`"
+INSTALLCOMMAND="`cat caNlInstall.sh`"
 INSTALLLOG="`cat Install_log.txt`"
 CONFIGLOG="caNl does not use any specific configuration procedure. No log provided"
 #UPGRADECMD
