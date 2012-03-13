@@ -100,6 +100,10 @@ printf "Running tests... "
 sh arrange_lb_test_root.sh none glite 80 '-x' > test_log.txt 2> test_err.log
 test_done
 
+printf "Collecting package list... "
+gen_repo_lists ./prod_packages.txt ./repo_packages.txt
+test_done
+
 ENDTIME=`date +%s`
 
 #Generating report section
