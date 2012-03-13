@@ -46,11 +46,13 @@ EndHelpHeader
         echo " -H | --hours           Proxy will be valid for given No. of hours (default is 12)"
         echo " -l | --lsc             Generate VOMS lsc file."
         echo " -V | --novoms          Skip VOMS stuff."
+	echo " -o | --old	      Create old-style non-RFC proxy."
 
 }
 
 GENLSC=0
 VOMS=1
+RFCSWITCH="-rfc"
 while test -n "$1"
 do
         case "$1" in
@@ -58,6 +60,7 @@ do
                 "-H" | "--hours") shift ; PROXYHOURS="-hours $1 " ;;
                 "-l" | "--lsc") GENLSC=1 ;;
                 "-V" | "--novoms") VOMS=0 ;;
+                "-o" | "--old") RFCSWITCH="" ;;
         esac
         shift
 done
@@ -88,7 +91,7 @@ for p in $USER $VOMS_SERVER $USER_BOB; do
 
 if [ $VOMS -eq 1 ]; then
 	for p in $USER $USER_BOB; do
-		voms-proxy-fake -cert ${p}.cert -key ${p}.priv-clear \
+		voms-proxy-fake -cert ${p}.cert -key ${p}.priv-clear $RFCSWITCH\
 			-hostcert ${VOMS_SERVER}.cert -hostkey ${VOMS_SERVER}.priv-clear $PROXYHOURS\
 			-voms ${VO} -out /tmp/x509up_u${p} \
 			-fqan "/${VO}/Role=NULL/Capability=NULL" &> /dev/null || exit 1
