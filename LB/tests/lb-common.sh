@@ -66,6 +66,7 @@ LBREGSANDBOX=glite-lb-register_sandbox
 LBHISTORY=glite-lb-state_history
 LBCMSCLIENT=glite-lb-cmsclient
 LBQUERYEXT=glite-lb-query_ext
+LBNOTIFKEEPER=glite-lb-notif-keeper
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd
@@ -354,6 +355,7 @@ function notif_wait() {
 			break;
 		fi
 	done
+	sleep 1
 	echo
 	$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
 }
