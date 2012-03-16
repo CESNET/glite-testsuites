@@ -255,7 +255,7 @@ test_done
 	if [ $? -eq 0 ]; then
 		test_done
 	else
-		test_error
+		test_failed
 		print_error "Expected owner DN not present in message."
 	fi
 
