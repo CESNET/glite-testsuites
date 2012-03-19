@@ -58,6 +58,7 @@ source ${COMMON}
 #flag=0
 srvbin=""
 clibin=""
+server_host=`hostname -A || hostname -f`
 while test -n "$1"
 do
 	case "$1" in
@@ -188,7 +189,7 @@ else
 fi
 
 printf "CANL client: connect to CANL sample server \n"
-${EMI_CANL_CLIENT} -s localhost -p "${nu_port}"
+${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}"
 if [ $? != 0 ]; then
 	test_failed
 else
