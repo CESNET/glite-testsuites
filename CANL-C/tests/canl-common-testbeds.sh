@@ -53,7 +53,7 @@ if [ $COPYPROXY -eq 1 ]; then
 else
 	rm -rf /tmp/test-certs/grid-security
 	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
-	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh > fake-prox.out.\$\$
+	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh --all > fake-prox.out.\$\$
 	FAKE_CAS=\`cat fake-prox.out.\$\$ | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2

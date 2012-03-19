@@ -16,15 +16,16 @@
 # limitations under the License.
 #
 
+# show help and usage
 progname=`basename $0`
 user_id=`id -u`
-CERTS_ROOT=/tmp/test-certs.$$
+CERTS_ROOT=/tmp/test-certs.`id -un`
 USER=trusted_client00
 USER_BOB=trusted_client01
+USER_SHA512=trusted_clientsha512
 VOMS_SERVER=trusted_host
 VO=vo.org
 
-# show help and usage
 showHelp()
 {
 cat << EndHelpHeader
@@ -46,11 +47,15 @@ EndHelpHeader
         echo " -H | --hours           Proxy will be valid for given No. of hours (default is 12)"
         echo " -l | --lsc             Generate VOMS lsc file."
         echo " -V | --novoms          Skip VOMS stuff."
+	echo " -o | --old	      Create old-style non-RFC proxy."
+	echo " -a | --all	      Generate all certificates."
 
 }
 
 GENLSC=0
 VOMS=1
+RFCSWITCH="-rfc"
+GEN_ALL=""
 while test -n "$1"
 do
         case "$1" in
@@ -58,33 +63,39 @@ do
                 "-H" | "--hours") shift ; PROXYHOURS="-hours $1 " ;;
                 "-l" | "--lsc") GENLSC=1 ;;
                 "-V" | "--novoms") VOMS=0 ;;
+                "-o" | "--old") RFCSWITCH="" ;;
+		"-a" | "--all")	GEN_ALL="--all" ;;
         esac
         shift
 done
 
 PWD=`pwd`
 
-echo "Generating fake proxy certificate - this may take a few minutes"
-echo ""
+if [ ! -d "$CERTS_ROOT" ]; then
+	echo "Generating fake proxy certificate - this may take a few minutes"
+	echo ""
 
-mkdir -p $CERTS_ROOT
-cd $CERTS_ROOT
-wget -q -O org.glite.security.test-utils.tar.gz \
-  'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/org.glite.security.test-utils.tar.gz?view=tar' &> /dev/null || exit 1
-tar xzf org.glite.security.test-utils.tar.gz || exit 1
-
-org.glite.security.test-utils/bin/generate-test-certificates.sh $CERTS_ROOT &> /dev/null || exit 1
+	mkdir -p $CERTS_ROOT
+	cd $CERTS_ROOT
+	wget -q -O org.glite.security.test-utils.tar.gz \
+		'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/org.glite.security.test-utils.tar.gz?view=tar' &> /dev/null || exit 1
+	tar xzf org.glite.security.test-utils.tar.gz || exit 1
+	# keep using system default hash (even when different across openssl versions)
+	sed -i.orig 's/openssl x509 -subject_hash_old/openssl x509 -hash/' org.glite.security.test-utils/bin/generate-test-certificates.sh
+	org.glite.security.test-utils/bin/generate-test-certificates.sh\
+	 $GEN_ALL $CERTS_ROOT &> /dev/null || exit 1
+fi
 
 cd $CERTS_ROOT/trusted-certs
 
-for p in $USER $VOMS_SERVER $USER_BOB; do
+for p in $USER $VOMS_SERVER $USER_BOB $USER_SHA512; do
 	openssl rsa -in ${p}.priv -out ${p}.priv-clear -passin pass:changeit &> /dev/null
 	chmod 600 ${p}.priv-clear
 	done
 
 if [ $VOMS -eq 1 ]; then
 	for p in $USER $USER_BOB; do
-		voms-proxy-fake -cert ${p}.cert -key ${p}.priv-clear \
+		voms-proxy-fake -cert ${p}.cert -key ${p}.priv-clear $RFCSWITCH\
 			-hostcert ${VOMS_SERVER}.cert -hostkey ${VOMS_SERVER}.priv-clear $PROXYHOURS\
 			-voms ${VO} -out /tmp/x509up_u${p} \
 			-fqan "/${VO}/Role=NULL/Capability=NULL" &> /dev/null || exit 1
@@ -124,4 +135,3 @@ echo "======================================================================"
 echo ""
 
 cd $PWD
-
