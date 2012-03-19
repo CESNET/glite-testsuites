@@ -22,6 +22,7 @@ user_id=`id -u`
 CERTS_ROOT=/tmp/test-certs.`id -un`
 USER=trusted_client00
 USER_BOB=trusted_client01
+USER_SHA512=trusted_clientsha512
 VOMS_SERVER=trusted_host
 VO=vo.org
 
@@ -47,12 +48,14 @@ EndHelpHeader
         echo " -l | --lsc             Generate VOMS lsc file."
         echo " -V | --novoms          Skip VOMS stuff."
 	echo " -o | --old	      Create old-style non-RFC proxy."
+	echo " -a | --all	      Generate all certificates."
 
 }
 
 GENLSC=0
 VOMS=1
 RFCSWITCH="-rfc"
+GEN_ALL=""
 while test -n "$1"
 do
         case "$1" in
@@ -61,6 +64,7 @@ do
                 "-l" | "--lsc") GENLSC=1 ;;
                 "-V" | "--novoms") VOMS=0 ;;
                 "-o" | "--old") RFCSWITCH="" ;;
+		"-a" | "--all")	GEN_ALL="--all" ;;
         esac
         shift
 done
@@ -78,13 +82,13 @@ if [ ! -d "$CERTS_ROOT" ]; then
 	tar xzf org.glite.security.test-utils.tar.gz || exit 1
 	# keep using system default hash (even when different across openssl versions)
 	sed -i.orig 's/openssl x509 -subject_hash_old/openssl x509 -hash/' org.glite.security.test-utils/bin/generate-test-certificates.sh
-
-	org.glite.security.test-utils/bin/generate-test-certificates.sh $CERTS_ROOT &> /dev/null || exit 1
+	org.glite.security.test-utils/bin/generate-test-certificates.sh\
+	$GEN_ALL $CERTS_ROOT &> /dev/null || exit 1
 fi
 
 cd $CERTS_ROOT/trusted-certs
 
-for p in $USER $VOMS_SERVER $USER_BOB; do
+for p in $USER $VOMS_SERVER $USER_BOB $USER_SHA512; do
 	openssl rsa -in ${p}.priv -out ${p}.priv-clear -passin pass:changeit &> /dev/null
 	chmod 600 ${p}.priv-clear
 	done
@@ -131,4 +135,3 @@ echo "======================================================================"
 echo ""
 
 cd $PWD
-
