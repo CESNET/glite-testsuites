@@ -58,7 +58,7 @@ source ${COMMON}
 #flag=0
 srvbin=""
 clibin=""
-server_host=`hostname -A || hostname -f`
+server_host=`hostname -A 2> /dev/null || hostname -f 2> /dev/null`
 while test -n "$1"
 do
 	case "$1" in
@@ -118,7 +118,7 @@ else
 fi
 
 #test server with bad cert input
-printf "Testing server with nonexisting host certificates\n"
+printf "Testing server with nonexisting host certificates"
 ${EMI_CANL_SERVER} -c /certcert.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
@@ -127,7 +127,7 @@ else
 fi
 
 #test server with bad key input
-printf "Testing server with nonexisting host key\n"
+printf "Testing server with nonexisting host key"
 ${EMI_CANL_SERVER} -k /keykey.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
@@ -136,7 +136,7 @@ else
 fi
 
 #test server with bad cert and key
-printf "Testing server with nonexisting host cert and key\n"
+printf "Testing server with nonexisting host cert and key"
 ${EMI_CANL_SERVER} -k /keykey.$$ -c /cercert.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
@@ -145,7 +145,7 @@ else
 fi
 
 #test client with server not running
-printf "Testing client: connect to server not running\n"
+printf "Testing client: connect to server not running"
 nu_port=11112
 max_port=11190
 ${SYS_LSOF} -i :${nu_port}
@@ -167,7 +167,7 @@ else
 fi
 
 #test client with nonexisting proxy certificate
-printf "Testing client: use nonexisting proxy certificate\n"
+printf "Testing client: use nonexisting proxy certificate"
 ${EMI_CANL_CLIENT} -c /cercert.$$ &> /dev/null
 if [ $? != 0 ]; then
 	test_done
