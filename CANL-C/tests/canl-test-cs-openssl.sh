@@ -59,6 +59,7 @@ source ${COMMON}
 #flag=0
 srvbin=""
 clibin=""
+server_host=`hostname -A 2> /dev/null || hostname -f 2> /dev/null`
 while test -n "$1"
 do
 	case "$1" in
@@ -135,10 +136,15 @@ if [ ${nu_port} -eq ${max_port} ]; then
 	exit 2
 fi
 
+pipe_srv=/tmp/canl_ossl_srv_pipe.$$
+
+if [[ ! -p $pipe_srv ]]; then
+    mkfifo $pipe_srv
+fi
+
 #then start server
-${OPENSSL} s_server -key /etc/grid-security/hostkey.pem \
--cert /etc/grid-security/hostcert.pem -accept "${nu_port}" \
--nbio &
+cat $pipe_srv | ${OPENSSL} s_server -key /etc/grid-security/hostkey.pem \
+-cert /etc/grid-security/hostcert.pem -quiet -accept "${nu_port}" &
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then
@@ -149,11 +155,36 @@ else
 	exit 2
 fi
 
+client_file="/tmp/client_file.$$"
+if [[ -r $client_file ]]; then
+    rm -rf $client_file
+fi
+
 #proxy_cert=`${GRIDPROXYINFO} | ${SYS_GREP} -E "^path" | ${SYS_SED} "s/path\s*:\s//"`
 printf "CANL client: connecting to openssl server\n"
-${EMI_CANL_CLIENT} -s localhost -p "${nu_port}" #\
+${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}" &> $client_file &
 #	-c ${proxy_cert} -k ${proxy_cert}
-if [ $? -ne 0 ]; then
+
+#give canl_client time to send his message first
+sleep 5
+msg_to_send_cli="hello,TM from ossl server"
+
+echo "${msg_to_send_cli}" > $pipe_srv
+
+t=20
+found=""
+is=0
+while test $t -gt 0 && kill -0 ${last_pid} 2>/dev/null; do 
+	sleep 0.5
+	found=`${SYS_GREP} "${msg_to_send_cli}" "${client_file}"`
+	if [ -n "$found" ]; then
+		is=1
+		break
+	fi
+	t=$((t-1))
+done
+
+if test "$is" -eq 0;then
 	test_failed
 else
 	test_done
@@ -161,9 +192,31 @@ fi
 
 kill ${last_pid} &> /dev/null
 
+#find some unused port first
+nu_port_2=11122
+max_port=11190
+${SYS_LSOF} -i :${nu_port_2}
+while [ $? -eq 0 -a ${nu_port_2} -lt ${max_port} ]
+do
+        nu_port=$((nu_port_2+1))
+        ${SYS_LSOF} -i :${nu_port_2}
+done
+
+if [ ${nu_port_2} -eq ${max_port} ]; then
+        print_error "No port available"
+        test_failed
+	test_end
+	exit 2
+fi
+
+server_file="/tmp/server_file.$$"
+if [[ -r $server_file ]]; then
+    rm -rf $server_file
+fi
+
 printf "Starting canl sample server \n"
 ${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
-	-c /etc/grid-security/hostcert.pem -p "${nu_port}" & 
+	-c /etc/grid-security/hostcert.pem -p "${nu_port_2}" &> "$server_file" & 
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then
@@ -173,9 +226,50 @@ else
 	test_end
 	exit 2
 fi
-printf "Openssl client: connect to CANL sample server \n"
-${OPENSSL} s_client -quiet -connect "localhost:${nu_port}"
 
+pipe=/tmp/canl_ossl_cli_pipe.$$
+
+if [[ ! -p $pipe ]]; then
+    mkfifo $pipe
+fi
+
+printf "Openssl client: connect to CANL sample server \n"
+cat $pipe | ${OPENSSL} s_client -quiet -connect "${server_host}:${nu_port_2}" &
+ssl_pid=$!
+
+msg_to_send="hello,TM from canl server"
+
+echo "${msg_to_send}" > $pipe
+
+t=20
+found=""
+is=0
+while test $t -gt 0 && kill -0 ${ssl_pid} 2>/dev/null; do 
+	sleep 0.5
+	found=`${SYS_GREP} "${msg_to_send}" "${server_file}"`
+	if [ -n "$found" ]; then
+		is=1
+		break
+	fi
+	t=$((t-1))
+done
+
+if test "$is" -eq 0;then
+	test_failed
+else
+	test_done
+fi
+
+rm -rf $pipe
+rm -rf $pipe_srv
+rm -rf $server_file
+rm -rf $client_file
+
+#if test "$t" -eq 0; then
+#	kill -9 ${ssl_pid} && echo "OpenSSL process killed."
+#fi
+
+kill ${ssl_pid} &> /dev/null
 kill ${last_pid} &> /dev/null
 
 test_end
