@@ -63,8 +63,8 @@ else
         fi
 
 	TRUSTED_CERTS=\`cat fake-prox.out.\$\$ | grep -E "^TRUSTED_CERTS" | sed 's/TRUSTED_CERTS=//'\`
-	export x509_USER_CERT=\${TRUSTED_CERTS}/trusted_client00.cert
-	export x509_USER_KEY=\${TRUSTED_CERTS}/trusted_client00.priv-clear
+	export X509_USER_CERT=\${TRUSTED_CERTS}/trusted_client00.cert
+	export X509_USER_KEY=\${TRUSTED_CERTS}/trusted_client00.priv-clear
 	rm fake-prox.out.\$\$
 fi
 
@@ -78,7 +78,7 @@ echo "  REAL TESTS START HERE"
 echo ========================
 echo "</verbatim>"
 echo "<literal>"
-./canl-test-cert-handle.sh --origin \$x509_USER_CERT --key \$x509_USER_KEY \$OUTPUT_OPT
+./canl-test-cert-handle.sh --origin \$X509_USER_CERT --key \$X509_USER_KEY \$OUTPUT_OPT
 ./canl-test-cs-openssl.sh \$OUTPUT_OPT
 ./canl-test-sec-connection.sh \$OUTPUT_OPT
 echo "</literal>"
