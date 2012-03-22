@@ -127,6 +127,7 @@ SYS_WC=wc
 SYS_LS=ls
 SYS_STAT=stat
 SYS_DPKG_QUERY=dpkg-query
+SYS_FIND=find
 
 # not used at the moment
 DEBUG=2

@@ -51,6 +51,10 @@ EndHelpHeader
 	echo " -t | --text            Format output as plain ASCII text."
 	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
 	echo " -x | --html            Format output as html."
+	echo " --stop                 Command to stop the interlogger."
+	echo " --start                Command to start the interlogger."
+	echo " -f | --file-prefix     IL file prefix."
+	echo " -u | --user-name       Name of user account used to run the IL. (default GLITE_USER or 'glite')"
 }
 
 function generate_done_events()
@@ -86,6 +90,11 @@ source ${COMMON}
 
 logfile=$$.tmp
 flag=0
+if [ -z "$GLITE_USER" ]; then
+	USER="glite"
+else
+	USER="$GLITE_USER"
+fi
 while test -n "$1"
 do
 	case "$1" in
@@ -97,6 +106,7 @@ do
 		"--stop") shift ; STOPCOMMAND="$1" ;;
 		"--start") shift ; STARTCOMMAND="$1" ;;
 		"-f" | "--file-prefix") shift ; EVENTFILE=$1 ;;
+		"-u" | "--user-name") shift ; USER=$1 ;;
 	esac
 	shift
 done
@@ -119,7 +129,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $SYS_DOMAINNAME $LBJOBSTATUS
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $SYS_DOMAINNAME $LBJOBSTATUS $SYS_FIND $SYS_WC $SYS_EXPR
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -143,6 +153,11 @@ fi
 			print_error "Failed to register job"
 		else
 			printf "($jobid)"
+			test_done
+
+			printf "Getting No. of sockets (user $USER) for a later test... "
+			SOCKS_PRE=`$SYS_FIND /tmp -maxdepth 1 -type s -user $USER | wc -l`
+			printf "$SOCKS_PRE"
 			test_done
 
 			#Stopping interlogger (if required)
@@ -193,6 +208,22 @@ fi
 			else
 				test_failed
 				print_error "Job is not in appropriate state"
+			fi
+
+
+			printf "Getting No. of sockets (regression into Savannah Bug #92708)... "
+			SOCKS_POST=`find /tmp -maxdepth 1 -type s -user $USER | wc -l`
+			printf "$SOCKS_POST"
+			test_done
+
+			printf "Comparing No. of sockets... "
+			$SYS_EXPR $SOCKS_POST \> $SOCKS_PRE > /dev/null
+			if [ $? -gt 0 ]; then
+				printf "OK, less or equal"
+				test_done
+			else
+				test_failed
+				print_error "There are more sockets after IL handled messages"
 			fi
 
 			#Purge test job
