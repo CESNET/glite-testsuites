@@ -216,14 +216,20 @@ fi
 			printf "$SOCKS_POST"
 			test_done
 
-			printf "Comparing No. of sockets... "
-			$SYS_EXPR $SOCKS_POST \> $SOCKS_PRE > /dev/null
-			if [ $? -gt 0 ]; then
-				printf "OK, less or equal"
-				test_done
+			check_srv_version '>=' "2.3"
+                        if [ $? = 0 ]; then
+				printf "Comparing No. of sockets... "
+				$SYS_EXPR $SOCKS_POST \> $SOCKS_PRE > /dev/null
+				if [ $? -gt 0 ]; then
+					printf "OK, less or equal"
+					test_done
+				else
+					test_failed
+					print_error "There are more sockets after IL handled messages"
+				fi
 			else
-				test_failed
-				print_error "There are more sockets after IL handled messages"
+				printf "Comparing No. of sockets... "
+				test_skipped
 			fi
 
 			#Purge test job
