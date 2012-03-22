@@ -166,7 +166,7 @@ ${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}" &> $client_file &
 #	-c ${proxy_cert} -k ${proxy_cert}
 
 #give canl_client time to send his message first
-sleep 5
+sleep 9
 msg_to_send_cli="hello,TM from ossl server"
 
 echo "${msg_to_send_cli}" > $pipe_srv
