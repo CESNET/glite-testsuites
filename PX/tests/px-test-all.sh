@@ -177,7 +177,7 @@ fi
 test_done
 
 printf "Checking renewal ($REGISTEREDTIMELEFTSEC > $ORIGINALTIMELEFTSEC)? "
-expr $REGISTEREDTIMELEFTSEC > $ORIGINALTIMELEFTSEC > /dev/null
+expr $REGISTEREDTIMELEFTSEC \> $ORIGINALTIMELEFTSEC > /dev/null
 if [ $? -eq 0 ]; then
 	test_done
 else
