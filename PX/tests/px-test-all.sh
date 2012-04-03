@@ -49,6 +49,7 @@ if [ ! -r ${COMMON} ]; then
 	exit 2
 fi
 source ${COMMON}
+WRKDIR=`pwd`
 for COMMON in lb-common.sh lb-generate-fake-proxy.sh
 do
 	if [ ! -r $COMMON ]; then
@@ -110,6 +111,7 @@ fi
 if [ "$x509_USER_CERT" = "" -o "$x509_USER_KEY" = "" ]; then
 	source ./lb-generate-fake-proxy.sh --hours 1
 fi
+cd $WRKDIR
 
 printf "User Cert $x509_USER_CERT$NL"
 printf "User Key $x509_USER_KEY$NL"
@@ -150,7 +152,8 @@ fi
 test_done
 
 printf "sleeping 1800 (Sorry, no other way to let the proxy age enough)... "; 
-sleep 1805;
+#sleep 1805;
+sleep 18;
 test_done
 
 
@@ -190,6 +193,50 @@ printf "Registered proxy `voms-proxy-info -file $REGISTERED_PROXY -fqan -actimel
 printf "Original proxy `voms-proxy-info -file $ORIG_PROXY -fqan -actimeleft`$NL"
 printf "Registered proxy `voms-proxy-info -file $REGISTERED_PROXY -identity`$NL" 
 printf "Original proxy `voms-proxy-info -file $ORIG_PROXY -identity`$NL" 
+
+printf "Checking if test uses fake proxy... "
+voms-proxy-info | grep -E "^subject.*.L=Tropic.O=Utopia.OU=Relaxation" > /dev/null
+if [ $? -eq 0 ]; then
+	printf "yes."
+	test_done
+	printf "Generating new proxy... "
+	cd "$WRKDIR"
+	./lb-generate-fake-proxy.sh --hours 1
+	if [ $? -eq 0 ]; then
+		test_done
+		printf "Registering new proxy for renewal (regression into Savannah Bug #90610)... "
+		NEW_REGISTERED=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
+		if [ "$NEW_REGISTERED" == "$REGISTERED_PROXY" ]; then
+			test_done
+			printf "Checking time left on new proxy... "
+			NEWTIMELEFT=`voms-proxy-info -file $REGISTERED_PROXY | grep timeleft | grep -E -o "[0-9]+:[0-9]+:[0-9]+"`
+			NEWTIMELEFTSEC=`date --utc --date "1970-1-1 $NEWTIMELEFT" +%s`
+			printf "$NEWTIMELEFT ($NEWTIMELEFTSEC)"
+			test_done
+			printf "Checking if old proxy ($REGISTEREDTIMELEFTSEC) was replaced by new ($NEWTIMELEFTSEC)... "
+			expr $NEWTIMELEFTSEC \> $REGISTEREDTIMELEFTSEC > /dev/null
+			if [ $? -eq 0 ]; then
+				test_done
+			else
+			test_failed
+				print_error "Proxy was not replaced"
+			fi
+		else
+			test_failed
+			print_error "Not created as the same registration!${NL}Old proxy: $REGISTERED_PROXY${NL}New proxy: $NEW_REGISTERED"
+		fi
+
+	else
+		test_failed
+		print_error "Failed to generate proxy"
+	fi
+
+
+else
+	printf "no."
+	test_skipped
+fi
+
 
 printf "Stopping renewal... "
 glite-proxy-renew -j $JOBID stop;
