@@ -152,8 +152,7 @@ fi
 test_done
 
 printf "sleeping 1800 (Sorry, no other way to let the proxy age enough)... "; 
-#sleep 1805;
-sleep 18;
+sleep 1805;
 test_done
 
 
