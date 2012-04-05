@@ -224,6 +224,14 @@ if [ $? -eq 0 ]; then
 			test_failed
 			print_error "Not created as the same registration!${NL}Old proxy: $REGISTERED_PROXY${NL}New proxy: $NEW_REGISTERED"
 		fi
+		printf "Removing 2nd registration... "
+		glite-proxy-renew -j $JOBID stop;
+		if [ $? -eq 0 ]; then
+			test_done
+		else
+			test_failed
+			print_error "Failed to stop"
+		fi
 
 	else
 		test_failed
