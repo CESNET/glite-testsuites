@@ -200,7 +200,7 @@ if [ $? -eq 0 ]; then
 	test_done
 	printf "Generating new proxy... "
 	cd "$WRKDIR"
-	./lb-generate-fake-proxy.sh --hours 1
+	./lb-generate-fake-proxy.sh
 	if [ $? -eq 0 ]; then
 		test_done
 		printf "Registering new proxy for renewal (regression into Savannah Bug #90610)... "
