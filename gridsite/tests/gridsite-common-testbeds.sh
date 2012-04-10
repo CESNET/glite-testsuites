@@ -24,10 +24,10 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes"
-	INSTALLPKGS="lintian"
+	INSTALLPKGS="lintian apache2-mpm-prefork netcat-traditional libapache2-mod-ssl"
 else
         INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint"
+	INSTALLPKGS="rpmlint httpd nc mod_ssl"
 fi
 
 cat << EndArrangeScript > arrange_gridsite_test_root.sh 
@@ -43,7 +43,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS
 
-${INSTALLCMD} voms-clients httpd mod_ssl curl wget nc lsof $INSTALLPKGS
+${INSTALLCMD} voms-clients curl wget lsof $INSTALLPKGS
 
 HTTPD_CONFDIR=/tmp
 for dir in /etc/httpd /etc/apache /etc/apache2; do
