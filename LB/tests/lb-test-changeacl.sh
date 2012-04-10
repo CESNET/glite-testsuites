@@ -101,6 +101,7 @@ change_acl()
 #####################
 
 identity="ThisIsJustATestingIdentity"
+identwity="ThisIsanotherTestingIdentity"
 
 {
 test_start
@@ -142,6 +143,18 @@ while [ "$CONT" = "yes" ]; do
 		test_done
         fi
 
+        check_srv_version '>=' "2.3"
+        if [ $? -gt 0 ]; then
+		identities="$identity $identwity"
+		test_done
+        else
+		test_tag_acl="yes"
+		printf "Multiple identities will be tested: Regression into Savannah Bug #92766..."
+		identities="$identity"
+		test_done
+        fi
+
+
 	printf "Testing Tags permissions... "
 	if [ "$test_tag_acl" != "yes" ]; then
 		printf "Capability not detected..."
@@ -162,19 +175,21 @@ while [ "$CONT" = "yes" ]; do
 	test_done
 
 	printf "Changing ACL..."
-	change_acl "$jobid" "ADD" "READ" $identity
-	if [ $? -ne 0 ]; then
-		test_failed
-		break;
-	fi
-
-	if [ "$test_tag_acl" = "yes" ]; then
-		change_acl "$jobid" "ADD" "TAG" $identity
+	for i in $identities; do
+		change_acl "$jobid" "ADD" "READ" $i
 		if [ $? -ne 0 ]; then
 			test_failed
-			break
+			break;
 		fi
-	fi
+
+		if [ "$test_tag_acl" = "yes" ]; then
+			change_acl "$jobid" "ADD" "TAG" $i
+			if [ $? -ne 0 ]; then
+				test_failed
+				break
+			fi
+		fi
+	done
 	test_done
 
 	printf "Checking ACL for new values... "
@@ -182,10 +197,12 @@ while [ "$CONT" = "yes" ]; do
 	[ "$test_tag_acl" = "yes" ] && ops="$ops write"
 	res=0
 	for operation in $ops; do
-		$LBJOBSTATUS $jobid | grep -E "^acl :.*<entry><cred><auri>dn:${identity}</auri></cred><allow><${operation}/></allow></entry>" > /dev/null
-		if [ $? -ne 0 ]; then
-			res=1
-		fi
+		for i in $identities; do
+			$LBJOBSTATUS $jobid | grep -E "^acl :.*<entry><cred><auri>dn:${i}</auri></cred><allow><${operation}/></allow></entry>" > /dev/null
+			if [ $? -ne 0 ]; then
+				res=1
+			fi
+		done
 	done
 	if [ $res -ne 0 ]; then
 		test_failed
@@ -200,10 +217,12 @@ while [ "$CONT" = "yes" ]; do
 	[ "$test_tag_acl" = "yes" ] && perms="$perms TAG"
 	res=0
 	for p in $perms; do
-		change_acl "${jobid}" "REMOVE" $p $identity
-		if [ $? -ne 0 ]; then
-			res=1
-		fi
+		for i in $identities; do
+			change_acl "${jobid}" "REMOVE" $p $i
+			if [ $? -ne 0 ]; then
+				res=1
+			fi
+		done
 	done
 	if [ $res -ne 0 ]; then
 		test_failed
