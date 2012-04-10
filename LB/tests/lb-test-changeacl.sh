@@ -145,12 +145,12 @@ while [ "$CONT" = "yes" ]; do
 
         check_srv_version '>=' "2.3"
         if [ $? -gt 0 ]; then
-		identities="$identity $identwity"
+		identities="$identity"
 		test_done
         else
 		test_tag_acl="yes"
 		printf "Multiple identities will be tested: Regression into Savannah Bug #92766..."
-		identities="$identity"
+		identities="$identity $identwity"
 		test_done
         fi
 
