@@ -54,7 +54,18 @@ for dir in /etc/httpd /etc/apache /etc/apache2; do
 done
 HTTPD_CONF=\$HTTPD_CONFDIR/gridsite-webserver.conf
 
-sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' /usr/share/doc/gridsite-*/httpd-webserver.conf | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> \$HTTPD_CONF
+# Debian compress everything inside /usr/share/doc
+HTTPD_CONF_SRC=`ls -1 /usr/share/doc/gridsite-*/httpd-webserver.conf* | head -n 1`
+if echo \$HTTPD_CONF_SRC | grep '\.gz$' >/dev/null 2>&1; then
+	gzip -dc < \$HTTPD_CONF_SRC > /tmp/httpd-webserver.conf
+	HTTPD_CONF_SRC=/tmp/httpd-webserver.conf
+fi
+if test [ -z "\$HTTPD_CONF_SRC" ]; then
+	echo "gridsite apache config example not found" >&2
+	exit 2
+fi
+
+sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' \$HTTPD_CONF_SRC | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> \$HTTPD_CONF
 echo "AddHandler cgi-script .cgi" >> \$HTTPD_CONF
 echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> \$HTTPD_CONF
 mkdir -p /var/www/htdocs

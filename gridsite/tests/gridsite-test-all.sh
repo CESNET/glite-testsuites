@@ -528,7 +528,7 @@ EOF
 	done
 
 	printf "Check interpretable DEFVERSION... "
-	DEFVERSION=`cat /usr/share/doc/gridsite*/VERSION | grep "^DEFVERSION" | head -n 1 | sed 's/DEFVERSION[ \t]*=[ \t]*//'`
+	DEFVERSION=`cat /usr/share/doc/*gridsite*/VERSION | grep "^DEFVERSION" | head -n 1 | sed 's/DEFVERSION[ \t]*=[ \t]*//'`
 	printf "Oct %o, Hex %x" $DEFVERSION $DEFVERSION
 	if [ $? -eq 0 ]; then
 		test_done
