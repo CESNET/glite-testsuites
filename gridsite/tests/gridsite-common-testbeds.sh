@@ -24,7 +24,7 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ \$? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes"
-	INSTALLPKGS="lintian apache2-mpm-prefork netcat-traditional libapache2-mod-ssl"
+	INSTALLPKGS="lintian apache2 netcat-traditional"
 else
         INSTALLCMD="yum install -q -y --nogpgcheck"
 	INSTALLPKGS="rpmlint httpd nc mod_ssl"
