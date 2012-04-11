@@ -91,6 +91,12 @@ else
 	test_done
 fi
 
+if getent passwd www-data >/dev/null; then
+	HTTPD_USER=www-data
+else
+	HTTPD_USER=apache
+fi
+
 
 	if [ ! -e /var/www/htdocs ]; then
 		mkdir /var/www/htdocs
@@ -172,7 +178,7 @@ https://$(hostname -f)/`
 
 	rm -f /var/www/htdocs/.gacl /var/www/htdocs/test.txt
 	date > /tmp/test.txt
-	chown apache /var/www/htdocs/
+	chown $HTTPD_USER /var/www/htdocs/
 
 	printf "Plain write... "
 	code=`curl --cert /etc/grid-security/hostcert.pem --key /etc/grid-security/hostkey.pem --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' --upload-file /tmp/test.txt https://$(hostname -f)/test.txt`
@@ -279,7 +285,7 @@ cat >/var/www/htdocs/.gacl <<EOF
 </gacl>
 EOF
 
-	chown apache /var/www/htdocs/
+	chown $HTTPD_USER /var/www/htdocs/
 
 	date > /tmp/test.txt
 
@@ -347,7 +353,7 @@ EOF
 	if [ ! -e /var/www/proxycache ]; then
 		mkdir /var/www/proxycache
 	fi
-	chown apache /var/www/proxycache
+	chown $HTTPD_USER /var/www/proxycache
 
 	#delegation
 	id=`htproxyput --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates https://$(hostname -f)/gridsite-delegation.cgi`

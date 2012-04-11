@@ -24,10 +24,12 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes"
-	INSTALLPKGS="lintian apache2 netcat-traditional"
+	INSTALLPKGS="lintian apache2 netcat-traditional psmisc"
+	HTTPD_SERVER_ROOT=/etc/apache2
 else
         INSTALLCMD="yum install -q -y --nogpgcheck"
 	INSTALLPKGS="rpmlint httpd nc mod_ssl"
+	HTTPD_SERVER_ROOT=/etc/httpd
 fi
 
 cat << EndArrangeScript > arrange_gridsite_test_root.sh 
@@ -45,6 +47,12 @@ export GSTSTCOLS
 
 ${INSTALLCMD} voms-clients curl wget lsof $INSTALLPKGS
 
+if [ -d /etc/apache2 -a ! -d /etc/apache2/modules ]; then
+	ln -s ../../var/log/apache2 /etc/apache2/logs
+	ln -s ../../usr/lib/apache2/modules /etc/apache2/modules
+	ln -s ../../var/run/apache2 /etc/apache2/run
+fi
+
 HTTPD_CONFDIR=/tmp
 for dir in /etc/httpd /etc/apache /etc/apache2; do
 	if [ -d \$dir ]; then
@@ -53,6 +61,12 @@ for dir in /etc/httpd /etc/apache /etc/apache2; do
 	fi
 done
 HTTPD_CONF=\$HTTPD_CONFDIR/gridsite-webserver.conf
+
+if getent passwd www-data >/dev/null; then
+	HTTPD_USER=www-data
+else
+	HTTPD_USER=apache
+fi
 
 # Debian compress everything inside /usr/share/doc
 HTTPD_CONF_SRC=\`ls -1 /usr/share/doc/gridsite-*/httpd-webserver.conf* | head -n 1\`
@@ -65,15 +79,27 @@ if [ -z "\$HTTPD_CONF_SRC" ]; then
 	exit 2
 fi
 
-sed -e '1,\$s!/usr/lib/httpd/modules/!modules/!' \$HTTPD_CONF_SRC | sed 's!/var/www/html!/var/www/htdocs!' | sed "s/FULL.SERVER.NAME/\$(hostname -f)/" | sed "s/\(GridSiteGSIProxyLimit\)/# \1/"> \$HTTPD_CONF
+sed \\
+	-e '1,\$s!/usr/lib/httpd/modules/!modules/!' \\
+	-e 's!/var/www/html!/var/www/htdocs!' \\
+	-e  "s/FULL.SERVER.NAME/\$(hostname -f)/" \\
+	-e "s/\(GridSiteGSIProxyLimit\)/# \1/" \\
+	-e "s!^\(ServerRoot\).*!\1 $HTTPD_SERVER_ROOT!" \\
+	-e "s/^User .*/User \$HTTPD_USER/" \\
+	-e "s/^Group .*/Group \$HTTPD_USER/" \\
+  \$HTTPD_CONF_SRC > \$HTTPD_CONF
 echo "AddHandler cgi-script .cgi" >> \$HTTPD_CONF
 echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> \$HTTPD_CONF
+# internal module?
+if [ ! -f \$HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
+	sed -i 's/^\(LoadModule\\s\\+log_config_module.*\)/# \1/' \$HTTPD_CONF
+fi
 mkdir -p /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
 sleep 2
 killall -9 httpd apache2 >/dev/null 2>&1
-echo Starting httpd -f \$HTTPD_CONF
-httpd -f \$HTTPD_CONF
+echo Starting \$SYS_APACHE -f \$HTTPD_CONF
+\$SYS_APACHE -f \$HTTPD_CONF
 
 cd /tmp
 
