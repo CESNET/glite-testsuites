@@ -98,8 +98,8 @@ mkdir -p /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
 sleep 2
 killall -9 httpd apache2 >/dev/null 2>&1
-echo Starting \$SYS_APACHE -f \$HTTPD_CONF
-\$SYS_APACHE -f \$HTTPD_CONF
+echo Starting $SYS_APACHE -f \$HTTPD_CONF
+$SYS_APACHE -f \$HTTPD_CONF
 
 cd /tmp
 
