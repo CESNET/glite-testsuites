@@ -47,6 +47,12 @@ export GSTSTCOLS
 
 ${INSTALLCMD} voms-clients curl wget lsof $INSTALLPKGS
 
+if test -f /usr/sbin/apache2; then
+	SYS_APACHE=apache2
+else
+	SYS_APACHE=httpd
+fi
+
 if [ -d /etc/apache2 -a ! -d /etc/apache2/modules ]; then
 	ln -s ../../var/log/apache2 /etc/apache2/logs
 	ln -s ../../usr/lib/apache2/modules /etc/apache2/modules
@@ -98,8 +104,8 @@ mkdir -p /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
 sleep 2
 killall -9 httpd apache2 >/dev/null 2>&1
-echo Starting $SYS_APACHE -f \$HTTPD_CONF
-$SYS_APACHE -f \$HTTPD_CONF
+echo Starting \$SYS_APACHE -f \$HTTPD_CONF
+\$SYS_APACHE -f \$HTTPD_CONF
 
 cd /tmp
 
