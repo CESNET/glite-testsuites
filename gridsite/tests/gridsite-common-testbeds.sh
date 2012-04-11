@@ -22,7 +22,7 @@ remotehost=$1
 COPYPROXY=$2
 
 egrep -i "Debian|Ubuntu" /etc/issue
-if [ \$? = 0 ]; then 
+if [ $? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes"
 	INSTALLPKGS="lintian apache2 netcat-traditional"
 else
