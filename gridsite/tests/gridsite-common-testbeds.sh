@@ -97,7 +97,7 @@ sed \\
 echo "AddHandler cgi-script .cgi" >> \$HTTPD_CONF
 echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> \$HTTPD_CONF
 # internal module?
-if [ ! -f \$HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
+if [ ! -f $HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
 	sed -i 's/^\(LoadModule\\s\\+log_config_module.*\)/# \1/' \$HTTPD_CONF
 fi
 mkdir -p /var/www/htdocs
