@@ -389,7 +389,7 @@ EOF
 		mkdir -p /tmp/vomsdir.$$
 		mv -f /etc/grid-security/vomsdir/* /tmp/vomsdir.$$/
 		printf "Trying with empty vomsdir. GRST_CRED_2 should not be present... "
-		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
+		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --cacert /tmp/x509up_u0 --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 		if [ "$GRST_CRED_2" = "" ]; then
 			test_done
 		else
@@ -434,7 +434,8 @@ EOF
 			fi
 		done
 
-		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
+exit 0
+		GRST_CRED_2=`curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --cacert /tmp/x509up_u0 --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 
 		if [ "$GRST_CRED_2" = "" ]; then
 			print_error "GRST_CRED_2 not returned"
@@ -464,7 +465,7 @@ EOF
 			test_done
 			printf "Getting list of Role attributes from test.cgi... "
 
-			curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-pre.$$.out
+			curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --cacert /tmp/x509up_u0 --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-pre.$$.out
 
 			if [ ! -s info-roles.$$.out ]; then
 	                        printf "EMPTY!"
@@ -476,7 +477,7 @@ EOF
 				voms-proxy-init -noregen > /dev/null 2> /dev/null
 				test_done
 				printf "Getting another set of Role attributes from test.cgi... "
-				curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-post.$$.out
+				curl --cert /tmp/x509up_u0 --key /tmp/x509up_u0 --capath /etc/grid-security/certificates --cacert /tmp/x509up_u0 --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-post.$$.out
 				if [ ! -s test-roles-post.$$.out ]; then
 					test_failed
 					print_error "List of role attributes is empty!"
