@@ -55,6 +55,17 @@ source lb-common-testbeds.sh
 
 STARTTIME=`date +%s`
 
+egrep -i "Debian|Ubuntu" /etc/issue
+if [ \$? = 0 ]; then
+        INSTALLCMD="apt-get install -q --yes"
+        INSTALLPKGS="lintian"
+else
+        INSTALLCMD="yum install -q -y --nogpgcheck"
+        INSTALLPKGS="rpmlint"
+fi
+
+$INSTALLCMD wget
+
 printf "Getting the 'install' script... "
 # Example script, for real tests it should be downloaded or otherwise obtained
 SCENARIO=${SCENARIO:-"Clean installation"}
