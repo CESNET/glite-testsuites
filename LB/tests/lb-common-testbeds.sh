@@ -205,8 +205,7 @@ Clean installation according to EMI guidelines (CA certificates, proxy certifica
 | Duration | `expr $DURATION / 60` min |
 | Testbed uptime | =`uptime | sed 's/^\s*//'`= |
 
----++++ Process
-<verbatim>\n"
+"
 }
 
 function gen_repo_lists()
