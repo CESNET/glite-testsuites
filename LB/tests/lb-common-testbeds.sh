@@ -214,8 +214,10 @@ function gen_repo_lists()
 	if [ $? = 0 ]; then
 		LISTALLCMD="apt-get install -q --yes"
 		for pkg in `apt-cache pkgnames`; do
-		        apt-cache showpkg $pkg | grep -A 1000 ^Version | grep -B 1000 "^Reverse Depends:" | grep "^[0-9]" | sed "s/^/$pkg /" >> /tmp/allrepos.$$.txt
+		        apt-cache showpkg $pkg | grep -A 1000 ^Version | grep -B 1000 "^Reverse Depends:" | grep "^[0-9]" | sed "s/^/$pkg /" >> /tmp/allpkgs.$$.txt
 		done
+		cat | awk {'print $3'} | sort | uniq > /tmp/allrepos.$$.txt
+
 
 	else
 		yum install -y -q yum-utils
