@@ -216,9 +216,7 @@ function gen_repo_lists()
 		for pkg in `apt-cache pkgnames`; do
 		        apt-cache showpkg $pkg | grep -A 1000 ^Version | grep -B 1000 "^Reverse Depends:" | grep "^[0-9]" | sed "s/^/$pkg /" >> /tmp/allpkgs.$$.txt
 		done
-		cat | awk {'print $3'} | sort | uniq > /tmp/allrepos.$$.txt
-
-
+		cat /tmp/allpkgs.$$.txt | awk {'print $3'} | sort | uniq > /tmp/allrepos.$$.txt
 	else
 		yum install -y -q yum-utils
 		repoquery -a --qf "%{name} %{version} %{repoid}" > /tmp/allpkgs.$$.txt
