@@ -213,6 +213,10 @@ function gen_repo_lists()
 	egrep -i "Debian|Ubuntu" /etc/issue
 	if [ $? = 0 ]; then
 		LISTALLCMD="apt-get install -q --yes"
+		for pkg in `apt-cache pkgnames`; do
+		        apt-cache showpkg $pkg | grep -A 1000 ^Version | grep -B 1000 "^Reverse Depends:" | grep "^[0-9]" | sed "s/^/$pkg /" >> /tmp/allrepos.$$.txt
+		done
+
 	else
 		yum install -y -q yum-utils
 		repoquery -a --qf "%{name} %{version} %{repoid}" > /tmp/allpkgs.$$.txt
