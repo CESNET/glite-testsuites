@@ -216,12 +216,23 @@ function gen_repo_lists()
 	else
 		yum install -y -q yum-utils
 		repoquery -a --qf "%{name} %{version} %{repoid}" > /tmp/allpkgs.$$.txt
+		repoquery -a --qf "%{repoid}" | sort | uniq > /tmp/allrepos.$$.txt
 	fi
 
-	cat /tmp/allpkgs.$$.txt | grep " EMI" > $1
-	cat /tmp/allpkgs.$$.txt | grep " ETICS" > $2
+	grep -i etics /tmp/allrepos.$$.txt > /dev/null
+	if [ $? = 0 ]; then
+		PRODREPO="EMI"
+		TESTREPO="ETICS"
+	else
+		printf " etics repo not found, trying to distinguish between EMI repos "
+		PRODREPO=`cat /tmp/allrepos.$$.txt | grep -o -E "EMI-[0-9]+" | sort | uniq | head -n 1`
+		TESTREPO=`cat /tmp/allrepos.$$.txt | grep -o -E "EMI-[0-9]+" | sort | uniq | tail -n 1`
+	fi
 
-	rm -f /tmp/allpkgs.$$.txt
+	cat /tmp/allpkgs.$$.txt | grep " $PRODREPO" > $1
+	cat /tmp/allpkgs.$$.txt | grep " $TESTREPO" > $2
+
+	rm -f /tmp/allpkgs.$$.txt /tmp/allrepos.$$.txt
 }
 
 function gen_test_report()
