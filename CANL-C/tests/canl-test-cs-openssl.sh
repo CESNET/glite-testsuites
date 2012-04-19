@@ -59,7 +59,7 @@ source ${COMMON}
 #flag=0
 srvbin=""
 clibin=""
-server_host=`hostname -A 2> /dev/null || hostname -f 2> /dev/null`
+server_host=`hostname -f 2> /dev/null || hostname -A 2> /dev/null`
 while test -n "$1"
 do
 	case "$1" in

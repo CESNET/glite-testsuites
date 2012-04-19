@@ -170,7 +170,7 @@ else
 	exit 2
 fi
 
-server_host=`hostname -A  2> /dev/null || hostname -f 2> /dev/null`
+server_host=`hostname -f 2> /dev/null || hostname -A 2> /dev/null`
 ${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}" -k "${sha2_key}"\
 	 -c "${sha2_cert}"
 if [ $? -ne 0 ]; then
