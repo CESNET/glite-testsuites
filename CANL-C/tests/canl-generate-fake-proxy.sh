@@ -88,10 +88,15 @@ fi
 
 cd $CERTS_ROOT/trusted-certs
 
-for p in $USER $VOMS_SERVER $USER_BOB $USER_SHA512; do
+for p in $USER $VOMS_SERVER $USER_BOB; do
 	openssl rsa -in ${p}.priv -out ${p}.priv-clear -passin pass:changeit &> /dev/null
 	chmod 600 ${p}.priv-clear
-	done
+done
+
+if [ -n "${GEN_ALL}" ]; then
+	openssl rsa -in ${USER_SHA512}.priv -out ${USER_SHA512}.priv-clear -passin pass:changeit &> /dev/null
+	chmod 600 ${USER_SHA512}.priv-clear
+fi
 
 if [ $VOMS -eq 1 ]; then
 	for p in $USER $USER_BOB; do
