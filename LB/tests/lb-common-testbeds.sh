@@ -212,31 +212,43 @@ function gen_repo_lists()
 {
 	egrep -i "Debian|Ubuntu" /etc/issue
 	if [ $? = 0 ]; then
-		LISTALLCMD="apt-get install -q --yes"
-		for pkg in `apt-cache pkgnames`; do
-		        apt-cache showpkg $pkg | grep -A 1000 ^Version | grep -B 1000 "^Reverse Depends:" | grep "^[0-9]" | sed "s/^/$pkg /" >> /tmp/allpkgs.$$.txt
-		done
-		cat /tmp/allpkgs.$$.txt | awk {'print $3'} | sort | uniq > /tmp/allrepos.$$.txt
+		apt-cache showpkg `apt-cache pkgnames` | awk '\
+			/^Package:/ { pkg=$2; }
+			/^Versions:/ {
+				getline
+			        print pkg, $0
+			}
+			/.*/ { next }' | sed 's/[()]//g' > /tmp/allpkgs.$$.txt
+
+		#
+		# rough distinguish between PROD and TEST repo on Debian
+		#   1) filtering by name
+		#   2) OS vs non-OS packages
+		#
+		#cat /tmp/allpkgs.$$.txt | cut -f3- -d' ' | sed 's/ /\n/g' | sort | uniq > /tmp/allrepos.$$.txt
+		cat /tmp/allpkgs.$$.txt | grep -Ei '\<(lib)?(glite|emi|canl|gridsite|voms|myproxy|globus)' | grep -Ev '(^emil |canlock)' > /tmp/somepkgs.$$.txt
+		cat /tmp/somepkgs.$$.txt | grep -E 'debian.*(sid|wheezy|squeezy)' > $1
+		cat /tmp/somepkgs.$$.txt | grep -v -E 'debian.*(sid|wheezy|squeezy)' > $2
 	else
 		yum install -y -q yum-utils
 		repoquery -a --qf "%{name} %{version} %{repoid}" > /tmp/allpkgs.$$.txt
 		repoquery -a --qf "%{repoid}" | sort | uniq > /tmp/allrepos.$$.txt
+
+		grep -i etics /tmp/allrepos.$$.txt > /dev/null
+		if [ $? = 0 ]; then
+			PRODREPO="EMI"
+			TESTREPO="ETICS"
+		else
+			printf " etics repo not found, trying to distinguish between EMI repos "
+			PRODREPO=`cat /tmp/allrepos.$$.txt | grep -o -E "EMI-[0-9]+" | sort | uniq | head -n 1`
+			TESTREPO=`cat /tmp/allrepos.$$.txt | grep -o -E "EMI-[0-9]+" | sort | uniq | tail -n 1`
+		fi
+
+		cat /tmp/allpkgs.$$.txt | grep " $PRODREPO" > $1
+		cat /tmp/allpkgs.$$.txt | grep " $TESTREPO" > $2
 	fi
 
-	grep -i etics /tmp/allrepos.$$.txt > /dev/null
-	if [ $? = 0 ]; then
-		PRODREPO="EMI"
-		TESTREPO="ETICS"
-	else
-		printf " etics repo not found, trying to distinguish between EMI repos "
-		PRODREPO=`cat /tmp/allrepos.$$.txt | grep -o -E "EMI-[0-9]+" | sort | uniq | head -n 1`
-		TESTREPO=`cat /tmp/allrepos.$$.txt | grep -o -E "EMI-[0-9]+" | sort | uniq | tail -n 1`
-	fi
-
-	cat /tmp/allpkgs.$$.txt | grep " $PRODREPO" > $1
-	cat /tmp/allpkgs.$$.txt | grep " $TESTREPO" > $2
-
-	rm -f /tmp/allpkgs.$$.txt /tmp/allrepos.$$.txt
+	rm -f /tmp/allpkgs.$$.txt /tmp/allrepos.$$.txt /tmp/somepkgs.$$.txt
 }
 
 function gen_test_report()
