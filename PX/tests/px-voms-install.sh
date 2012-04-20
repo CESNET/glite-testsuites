@@ -35,14 +35,14 @@ done
 
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
-        INSTALLCMD="apt-get install -q --yes"
-	INSTALLPKGS="lintian"
+	INSTALLCMD="apt-get install -q --yes"
+	INSTALLPKGS=""
 else
-        INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint"
+	INSTALLCMD="yum install -q -y --nogpgcheck"
+	INSTALLPKGS="xml-commons-apis"
 fi
 
-${INSTALLCMD} emi-voms-mysql xml-commons-apis wget
+${INSTALLCMD} emi-voms-mysql wget ${INSTALLPKGS}
 
 #get CAS
 if [ ! -f lb-generate-fake-proxy.sh ]; then
