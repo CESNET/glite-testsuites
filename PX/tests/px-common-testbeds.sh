@@ -24,7 +24,10 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
 	INSTALLCMD="apt-get install -q --yes"
-	INSTALLPKGS="lintian"
+	# XXX: remove that hack after myproxy is in Debian stable
+	#INSTALLPKGS="lintian"
+	INSTALLPKGS="
+aptitude -t testing install lintian"
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
 	INSTALLPKGS="rpmlint"
