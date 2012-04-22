@@ -227,8 +227,8 @@ function gen_repo_lists()
 		#
 		#cat /tmp/allpkgs.$$.txt | cut -f3- -d' ' | sed 's/ /\n/g' | sort | uniq > /tmp/allrepos.$$.txt
 		cat /tmp/allpkgs.$$.txt | grep -Ei '\<(lib)?(glite|emi|canl|gridsite|voms|myproxy|globus)' | grep -Ev '(^emil |canlock)' > /tmp/somepkgs.$$.txt
-		cat /tmp/somepkgs.$$.txt | grep -E 'debian.*(sid|wheezy|squeezy)' > $1
-		cat /tmp/somepkgs.$$.txt | grep -v -E 'debian.*(sid|wheezy|squeezy)' > $2
+		cat /tmp/somepkgs.$$.txt | grep -E 'debian.*(sid|wheezy|squeeze)' > $1
+		cat /tmp/somepkgs.$$.txt | grep -v -E 'debian.*(sid|wheezy|squeeze)' > $2
 	else
 		yum install -y -q yum-utils
 		repoquery -a --qf "%{name} %{version} %{repoid}" > /tmp/allpkgs.$$.txt
