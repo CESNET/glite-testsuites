@@ -214,7 +214,7 @@ fi
 				egrep -i "Debian|Ubuntu" /etc/issue >/dev/null 2>&1
 				if [ $? = 0 ]; then
 					printf "Get dpkg version... "
-					sysversion=`$SYS_DPKG_QUERY -W glite-lb-ws-interface | $SYS_SED 's/^[^\s]*\s\+//' | $SYS_SED 's/-.*//'`
+					sysversion=`$SYS_DPKG_QUERY -W glite-lb-ws-interface | $SYS_SED 's/^[^ \t]*\s\+//' | $SYS_SED 's/-.*//'`
 				else
 					printf "Get rpm version... "
 					sysversion=`$SYS_RPM -qi glite-lb-ws-interface | $SYS_GREP -E "^Version" | $SYS_SED 's/^Version\s*:\s*//' | $SYS_SED 's/\s.*$//'`
