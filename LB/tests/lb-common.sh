@@ -419,7 +419,7 @@ $src"
 	if test $? -eq 0; then
 		test_done
 	else
-		test_failed
+		test_skipped
 	fi
 
 	echo "Packages compliance check output:"
