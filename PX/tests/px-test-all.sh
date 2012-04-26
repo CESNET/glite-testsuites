@@ -263,6 +263,13 @@ else
 	test_done
 fi
 
+UTOPIA=`voms-proxy-info -all | grep -A 100 "extension information" | grep "^issuer" | grep "L=Tropic" | grep "O=Utopia" | grep "OU=Relaxation"`
+if [ "$UTOPIA" != "" ]; then
+        printf "Possibly fake VOMS extensions. Regenerating... "
+        voms-proxy-init -voms vo.org -key $x509_USER_KEY -cert $x509_USER_CERT | sed "s/\$/$NL/"
+fi
+
+
 test_end
 } 
 
