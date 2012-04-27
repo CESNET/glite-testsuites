@@ -27,7 +27,7 @@ if [ $? = 0 ]; then
 	# XXX: remove that hack after myproxy is in Debian stable
 	#INSTALLPKGS="lintian"
 	INSTALLPKGS="
-aptitude -t testing install lintian"
+aptitude -t testing -y install lintian"
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
 	INSTALLPKGS="rpmlint"
