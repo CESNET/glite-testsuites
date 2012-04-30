@@ -270,6 +270,41 @@ if [ "$UTOPIA" != "" ]; then
 fi
 
 
+printf "Checking VOMS attributes size to decide if it's possible to determine the status of bug #92806 (regression into bug #92806)... "
+attrsize=`voms-proxy-info -all | grep ^attribute | sed -r 's/attribute\s*:\s*//' | wc -c`
+if [ "$attrsize" == "" ]; then
+	attrsize=0
+fi
+if [ $attrsize -gt 1024 ]; then
+	printf "Registering proxy for renewal"
+	ORIG_PROXY=`voms-proxy-info | grep -E "^path" | sed 's/^path\s*:\s*//'`
+	REGISTERED=`glite-proxy-renew -s localhost -f $ORIG_PROXY -j $JOBID start`
+
+	if [ "$REGISTERED" = "" ]; then
+		printf "failed to renew with $attrsize bytes of attributes"
+		test_failed
+		print_error "Could not set renewal"
+	else 
+		printf "renewed with $attrsize bytes of attributes"
+		test_done
+
+		printf "Stopping renewal... "
+		glite-proxy-renew -j $JOBID stop;
+		if [ $? -eq 0 ]; then
+			test_done
+		else
+			test_failed
+			print_error "Failed to stop"
+		fi
+		
+	fi
+else
+	printf "only $attrsize bytes of attributes"
+	test_skipped
+fi
+
+
+
 test_end
 } 
 
