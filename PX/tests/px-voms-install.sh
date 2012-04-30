@@ -18,11 +18,17 @@
 
 function add_voms_user_w_attrs() {
 	longrand=""
-	for it in {0..250}; do longrand="${longrand}$RANDOM"; done
+	for it in {0..40}; do longrand="${longrand}$RANDOM"; done
 	voms-admin --nousercert --vo vo.org create-user "$1" "$2" "$3" "$4"
 	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute1 $RANDOM
 	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute2 $RANDOM
 	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute3 $longrand
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute4 $longrand
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute5 $longrand
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute6 $longrand
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute7 $longrand
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute8 $longrand
+	voms-admin --nousercert --vo vo.org set-user-attribute "$1" "$2" attribute9 $longrand
 	voms-admin --nousercert --vo vo.org add-member "/vo.org/Testers" "$1" "$2"
 	voms-admin --nousercert --vo vo.org assign-role "/vo.org/Testers" Tester "$1" "$2"
 }
@@ -106,6 +112,12 @@ source /etc/profile.d/grid-env.sh
 voms-admin --vo vo.org create-attribute-class "attribute1" "The first test attribute" 0
 voms-admin --vo vo.org create-attribute-class "attribute2" "The second test attribute" 0
 voms-admin --vo vo.org create-attribute-class "attribute3" "The third test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute4" "The fourth test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute5" "The fifth test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute6" "The sixth test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute7" "The seventh test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute8" "The eighth test attribute" 0
+voms-admin --vo vo.org create-attribute-class "attribute9" "The ninth test attribute" 0
 
 voms-admin --vo vo.org create-group Testers
 voms-admin --vo vo.org create-role Tester
