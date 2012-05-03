@@ -192,7 +192,7 @@ fi
 		printf "Getting job rate (should be around $expected_rate, testing if > 0): "
 		#rate=`$LB_STATS -n $SEC_COVERAGE CE$datestr$$ 5 | ${SYS_GREP} "Average" | ${SYS_AWK} '{ print $6 }'`
 		rate=`$LB_STATS CE$datestr$$ 5 | ${SYS_GREP} "Average" | ${SYS_AWK} '{ print $6 }'`
-		cresult=`$SYS_EXPR $rate \> 0`
+		cresult=`$SYS_ECHO "$rate > 0" | $SYS_BC`
 		printf "$rate"
 		if [ "$cresult" -eq "1" ]; then
 			test_done
@@ -204,7 +204,7 @@ fi
 		printf "Getting average 'Submitted' -> 'Running' transfer time (should be a number > 10): "
 		$LB_FROMTO CE$datestr$$ 1 5 > fromto.out.$$
 		average=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_AWK} '{ print $5 }'`
-		cresult=`$SYS_EXPR $average \> 10`
+		cresult=`$SYS_ECHO "$average > 10" | $SYS_BC`
 		printf "$average"
 		if [ "$cresult" -eq "1" ]; then
 			test_done
@@ -215,7 +215,7 @@ fi
 
 		printf "Getting the dispersion index (should be a number >= 0): "
 		dispersion=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Dispersion index" | ${SYS_AWK} '{ print $3 }'`
-		cresult=`$SYS_EXPR $dispersion \>= 0`
+		cresult=`$SYS_ECHO "$dispersion >= 0" | $SYS_BC`
 		printf "$dispersion"
 		if [ "$cresult" -eq "1" ]; then
 			test_done
@@ -230,7 +230,7 @@ fi
 		printf "Getting average 'Submitted' -> 'Done/OK' transfer time (should be a number > 20): "
 		$LB_FROMTO CE$datestr$$ 1 6 0 > fromto.out.$$
 		doneaverage=`$SYS_CAT fromto.out.$$ | ${SYS_GREP} "Average duration" | ${SYS_AWK} '{ print $5 }'`
-		donecresult=`$SYS_EXPR $doneaverage \> 20`
+		donecresult=`$SYS_ECHO "$doneaverage > 20" | $SYS_BC`
 		printf "$doneaverage"
 		if [ "$donecresult" -eq "1" ]; then
 			test_done
