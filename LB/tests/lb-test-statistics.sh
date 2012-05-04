@@ -125,7 +125,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LBJOBSTATUS $SYS_DATE $SYS_EXPR $LB_STATS $LB_FROMTO $SYS_BC
+check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LBJOBSTATUS $SYS_DATE $LB_STATS $LB_FROMTO $SYS_BC
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -241,7 +241,7 @@ fi
 
 		printf "Comparing. 'Submitted' -> 'Running' should take longer than 'Submitted' -> 'Done/OK': "
 
-		donecresult=`$SYS_EXPR $doneaverage \> $average`
+		donecresult=`$SYS_ECHO "$doneaverage > $average" | $SYS_BC`
 		if [ "$donecresult" -eq "1" ]; then
 			printf "OK"
 			test_done
@@ -260,13 +260,13 @@ fi
 		let i=0 
 		$SYS_CAT fromto.out.ces.$$ | while read ce; do
 			printf "$i.\t$ce:\t${averages[$i]}\t${dispersions[$i]}"
-			cresult=`$SYS_EXPR ${averages[$i]} \>= 0`
+			cresult=`$SYS_ECHO "${averages[$i]} >= 0" | $SYS_BC`
 			if [ "$cresult" -ne "1" ]; then
 				test_failed
 				print_error "Bad average value"
 			fi
 			# Also check dispersion
-			cresult=`$SYS_EXPR ${dispersions[$i]} \>= 0`
+			cresult=`$SYS_ECHO "${dispersions[$i]} >= 0" | $SYS_BC`
 			if [ "$cresult" -eq "1" ]; then
 				test_done
 			else
@@ -289,7 +289,7 @@ fi
                 let i=0 
                 $SYS_CAT rates.out.ces.$$ | while read ce; do
                         printf "$i.\t$ce:\t${rates[$i]}"
-                        cresult=`$SYS_EXPR ${rates[$i]} \>= 0`
+                        cresult=`$SYS_ECHO "${rates[$i]} >= 0" | $SYS_BC`
                         if [ "$cresult" -eq "1" ]; then
                                 test_done
                         else
