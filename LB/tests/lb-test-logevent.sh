@@ -128,6 +128,11 @@ if [ $? != 0 ]; then
 	exit 2
 fi
 
+	joblist=$$_jobs_to_purge.txt
+
+	# if we will hit the time when the logger pick and delete the event
+	# file, we may need to repeat the test once more
+	for i in 1 2; do
 		# Register job:
 		printf "Registering testing job "
 		jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -139,6 +144,8 @@ fi
 			printf "($jobid)"
 			test_done
 		fi
+
+		echo $jobid > ${joblist}
 
 		printf "Logging events\n"
 
@@ -256,46 +263,60 @@ fi
 		fi
 
 		printf "Testing if event file exists ($EVENTFILE.$UNIQUE) "
-		if [ -f $EVENTFILE.$UNIQUE ]; then
+		EVENTFILE_RAW=events.tested.original.$$.txt
+		cp $EVENTFILE.$UNIQUE $EVENTFILE_RAW 2>/dev/null
+		if [ $? = 0 ]; then
 			test_done
 
 			#Test the contents of the file
 
 			#process events file
-			$LBPARSEEFILE -f $EVENTFILE.$UNIQUE 2>&1 | $SYS_GREP -v "Parsing file" > events.tested.$$.txt 
+			$LBPARSEEFILE -f $EVENTFILE_RAW 2>&1 | $SYS_GREP -v "Parsing file" > events.tested.$$.txt 
 
 			generate_reference_file events.reference.$$.txt
 
 			printf "Comparing results (<) with expectations (>) ... "
 			diff events.tested.$$.txt events.reference.$$.txt
+
 			if [ $? = 0 ]; then
 				printf "(MATCH)"
 				test_done
+				break
 			else
-				printf "Comparison failed, details above"
-				test_failed
+				printf "Comparison failed, "
+				if [ $i -ge 2 ]; then
+					printf "details above. It shouldn't happen second time."
+					test_failed
+				else
+					printf "repeating test once more"
+					test_skipped
+				fi
 			fi
-
-			echo Cleaning up
-			$SYS_RM events.tested.$$.txt
-			$SYS_RM events.reference.$$.txt
 		else
-			test_failed
-			echo ""
-			echo "* Test file not found. Possible reasons:"
-			echo "*   - Local logger is not running and the file was never created."
-			echo "*   - You have not specified a correct event file prefix."
-			echo "*     Note that you need to give the same prefix used to start"
-			echo "*     the local logger daemon."
-			#echo "*   - Interlogger is running and has already processed and removed"
-			#echo "*     the file. Stop the interlogger for this test."
-			echo ""
-		fi
+			printf "Test file not found, "
+			if [ $i -ge 2 ]; then
+				printf "it shouldn't happend second time."
+				test_failed
 
-		#Purge test job
-		joblist=$$_jobs_to_purge.txt
-		echo $jobid > ${joblist}
-		try_purge ${joblist}
+				echo "* Test file not found. Possible reasons:"
+				echo "*   - Local logger is not running and the file was never created."
+				echo "*   - You have not specified a correct event file prefix."
+				echo "*     Note that you need to give the same prefix used to start"
+				echo "*     the local logger daemon."
+				echo ""
+			else
+				printf "repeating test once more"
+			fi
+		fi
+	done
+
+	echo Cleaning up
+	$SYS_RM events.tested.$$.txt
+	$SYS_RM events.reference.$$.txt
+	$SYS_RM $EVENTFILE_RAW
+
+	#Purge test job
+	try_purge ${joblist}
 
 
 test_end
