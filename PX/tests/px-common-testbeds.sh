@@ -24,10 +24,7 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
 	INSTALLCMD="apt-get install -q --yes"
-	# XXX: remove that hack after myproxy is in Debian stable
-	#INSTALLPKGS="lintian"
-	INSTALLPKGS="
-aptitude -t testing -y install lintian"
+	INSTALLPKGS="lintian"
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
 	INSTALLPKGS="rpmlint"
@@ -67,7 +64,7 @@ if [ $COPYPROXY -eq 1 ]; then
 else
 	rm -rf /tmp/test-certs/grid-security
 	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
-	FAKE_CAS=\`source ./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
+	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
                 exit 2
