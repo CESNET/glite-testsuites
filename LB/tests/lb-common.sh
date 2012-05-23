@@ -67,6 +67,8 @@ LBHISTORY=glite-lb-state_history
 LBCMSCLIENT=glite-lb-cmsclient
 LBQUERYEXT=glite-lb-query_ext
 LBNOTIFKEEPER=glite-lb-notif-keeper
+LBDUMP=glite-lb-dump
+LBLOAD=glite-lb-load
 
 LB_LOGD=glite-lb-logd 
 LB_INTERLOGD=glite-lb-interlogd
