@@ -66,6 +66,7 @@ source ${COMMON}
 
 logfile=$$.tmp
 flag=0
+REPS=9
 while test -n "$1"
 do
 	case "$1" in
@@ -74,6 +75,7 @@ do
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
 		"-x" | "--html")  setOutputHTML ;;
+		"-R" | "--reps") shift; REPS=$1 ;;
 	esac
 	shift
 done
@@ -150,45 +152,64 @@ while true; do
 	sleep 1
 	test_done
 
-	states[0]="Submitted"
-	states[1]="Running"
-	states[2]="Running"
-	states[3]="Submitted"
-	states[4]="Running"
-	states[5]="Submitted"
-	states[6]="Unknown"
-	states[7]="Submitted"
-	states[8]="Running"
-	states[9]="Submitted"
+	states[10]="Submitted"
+	states[11]="Running"
+	states[12]="Running"
+	states[13]="Submitted"
+	states[14]="Running"
+	states[15]="Submitted"
+	states[16]="Unknown"
+	states[17]="Submitted"
+	states[18]="Running"
+	states[19]="Submitted"
+	states[20]="Ready"
+	states[21]="Done"
+	states[22]="Submitted"
+
+	desc[10]="Simple job"
+	desc[11]="Simple job"
+	desc[12]="Collection"
+	desc[13]="Col Subjob"
+	desc[14]="Col Subjob"
+	desc[15]="Col Subjob"
+	desc[16]="Grey job  "
+	desc[17]="DAG       "
+	desc[18]="DAG Subjob"
+	desc[19]="DAG Subjob"
+	desc[20]="Simple job"
+	desc[21]="Input SB"
+	desc[22]="Output SB"
+
 	for i in {a..z}; do idchars="$i${idchars}"; done
 	for i in {A..Z}; do idchars="$i${idchars}"; done
 	for i in {0..9}; do idchars="$i${idchars}"; done
 	idchars="${idchars}-_"
 
 	# Register jobs
-	for y in {1..9}; do
+	for (( y=1; y<=$REPS; y++ )); do
 		printf "Registering testing jobs. Simple, registration only... "
-		jobid[${y}0]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
-		printf "(${jobid[${y}0]})"
+		jobid[${y}10]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+		printf "(${jobid[${y}10]})"
 		test_done
 
 		printf "Simple, state running... "
-		jobid[${y}1]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
-		$LB_RUNNING_SH -j ${jobid[${y}1]} > /dev/null 2> /dev/null
-		printf "(${jobid[${y}1]})"
+		jobid[${y}11]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+		$LB_RUNNING_SH -j ${jobid[${y}11]} > /dev/null 2> /dev/null
+		printf "(${jobid[${y}11]})"
 		test_done
 
 		printf "Collection, various states... "
 		${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -C -n 3 > coll.reg.$$.out
-		jobid[${y}2]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
-		printf "${jobid[${y}2]}"
+		jobid[${y}12]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+		printf "${jobid[${y}12]}"
 		test_done
-		for i in {0..2}; do
+		for i in {10..12}; do
 			let q=i+3
-			jobid[${y}${q}]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[$i\]" | $SYS_SED 's/EDG_WL_SUB_JOBID\[[0-9]*\]="//' | $SYS_SED 's/"$//'`
+			let w=$i-10
+			jobid[${y}${q}]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[$w\]" | $SYS_SED 's/EDG_WL_SUB_JOBID\[[0-9]*\]="//' | $SYS_SED 's/"$//'`
 			printf " - ${jobid[${y}$q]}\n"
 		done
-		$LB_RUNNING_SH -j ${jobid[${y}4]} > /dev/null 2> /dev/null
+		$LB_RUNNING_SH -j ${jobid[${y}14]} > /dev/null 2> /dev/null
 
 		$SYS_RM coll.reg.$$.out
 
@@ -200,24 +221,53 @@ while true; do
 			uniq="$uniq${idchars:${q}:1}";
 		done
 
-		jobid[${y}6]=`echo ${jobid[${y}0]} | $SYS_GREP -o -E "https://.*/"`
-		jobid[${y}6]="${jobid[${y}6]}$uniq"
-		printf "${jobid[${y}6]}"
+		jobid[${y}16]=`echo ${jobid[${y}10]} | $SYS_GREP -o -E "https://.*/"`
+		jobid[${y}16]="${jobid[${y}16]}$uniq"
+		printf "${jobid[${y}16]}"
 
-		glite-lb-logevent -j ${jobid[${y}6]} -c UI=000000:NS=0000000004:WM=000010:BH=0000000000:JSS=000004:LM=000004:LRMS=000000:APP=000002:LBS=000000 -s LogMonitor -e Running --node="worker node" > /dev/null 2> /dev/null
+		glite-lb-logevent -j ${jobid[${y}16]} -c UI=000000:NS=0000000004:WM=000010:BH=0000000000:JSS=000004:LM=000004:LRMS=000000:APP=000002:LBS=000000 -s LogMonitor -e Running --node="worker node" > /dev/null 2> /dev/null
 		test_done
 
 		printf "DAG, various states... "
 		${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application -S -n 2 > coll.reg.$$.out
-		jobid[${y}7]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
-		printf "${jobid[${y}7]}"
+		jobid[${y}17]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+		printf "${jobid[${y}17]}"
 		test_done
-		for i in {0..1}; do
+		for i in {10..11}; do
 			let q=i+8
-			jobid[${y}${q}]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[$i\]" | $SYS_SED 's/EDG_WL_SUB_JOBID\[[0-9]*\]="//' | $SYS_SED 's/"$//'`
+			let w=$i-10
+			jobid[${y}${q}]=`$SYS_CAT coll.reg.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[$w\]" | $SYS_SED 's/EDG_WL_SUB_JOBID\[[0-9]*\]="//' | $SYS_SED 's/"$//'`
 			printf " - ${jobid[${y}$q]}\n"
 		done
-		$LB_RUNNING_SH -j ${jobid[${y}8]} > /dev/null 2> /dev/null
+		$LB_RUNNING_SH -j ${jobid[${y}18]} > /dev/null 2> /dev/null
+
+		printf "Regular job with input and output sandbox... "
+                ${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application > sbtestjob.$$.out
+                jobid[${y}20]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+                seqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "EDG_WL_SEQUENCE" | ${SYS_SED} 's/EDG_WL_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
+                $SYS_RM sbtestjob.$$.out
+		printf "${jobid[${y}20]}"
+		test_done
+
+                $LBREGSANDBOX --jobid ${jobid[${y}20]} --input --from http://users.machine/path/to/sandbox.file --to file://where/it/is/sandbox.file --sequence $seqcode > sbtestjob.$$.out
+                jobid[${y}21]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_JOBID" | ${SYS_SED} 's/GLITE_LB_ISB_JOBID=//' | ${SYS_SED} 's/"//g'`
+                isbseqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_SEQUENCE" | ${SYS_SED} 's/GLITE_LB_ISB_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
+                seqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_WMS_SEQUENCE_CODE" | ${SYS_SED} 's/GLITE_WMS_SEQUENCE_CODE=//' | ${SYS_SED} 's/"//g'`
+                $SYS_RM sbtestjob.$$.out
+		printf " - Input:  ${jobid[${y}21]}"
+		test_done
+
+                $LBREGSANDBOX --jobid ${jobid[${y}20]} --output --from file://where/it/is/sandbox.file2 --to http://users.machine/path/to/sandbox.file2 --sequence $seqcode > sbtestjob.$$.out
+                jobid[${y}22]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_OSB_JOBID" | ${SYS_SED} 's/GLITE_LB_OSB_JOBID=//' | ${SYS_SED} 's/"//g'`
+                osbseqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_OSB_SEQUENCE" | ${SYS_SED} 's/GLITE_LB_OSB_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
+                $SYS_RM sbtestjob.$$.out
+
+                isbseqcode=`$LBLOGEVENT --source LRMS --jobid ${jobid[${y}21]} --sequence $isbseqcode --event FileTransfer --result OK`
+		printf " - Output: ${jobid[${y}22]}"
+		test_done
+
+		$LB_READY_SH -j ${jobid[${y}20]} > /dev/null 2> /dev/null
+		
 
 	done
 
@@ -226,15 +276,15 @@ while true; do
 	test_done
 
 	printf "Checking states...\n"
-	for y in {1..9}; do
-		for i in {0..9}; do
+	for (( y=1; y<=$REPS; y++ )); do
+		for i in {10..22}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
-				printf "${jobid[${y}$i]}\t$real"
+				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
 				test_done
 			else
 				test_failed
-				print_error "${jobid[${y}$i]} in state $real, should be ${states[$i]}"
+				print_error "${jobid[${y}$i]} (${desc[$i]}) in state $real, should be ${states[$i]}"
 			fi
 		done
 	done
@@ -261,8 +311,8 @@ while true; do
 
 	printf "Purging test jobs... "
 	joblist=$$_jobs_to_purge.txt
-	for y in {1..9}; do
-		for i in {0..9}; do
+	for (( y=1; y<=$REPS; y++ )); do
+		for i in {10..22}; do
 			echo ${jobid[${y}$i]} >> ${joblist}
 		done
 	done
@@ -271,9 +321,9 @@ while true; do
 
 	isThereZombie=0
 	printf "Checking states...\n"
-	for y in {1..9}; do
-		for i in {0..9}; do
-			if [ $i -eq 6 ]; then
+	for (( y=1; y<=$REPS; y++ )); do
+		for i in {10..22}; do
+			if [ $i -eq 16 ]; then
 				continue
 			fi
 			$LBJOBSTATUS ${jobid[${y}$i]} 2>&1 | grep "Identifier removed" > /dev/null
@@ -303,15 +353,15 @@ while true; do
 #	mysql --batch -u lbserver lbserverZS -e "select * from events where jobid='$uu'" > ev.post
 
 	printf "Checking states...\n"
-	for y in {1..9}; do
-		for i in {0..9}; do
+	for (( y=1; y<=$REPS; y++ )); do
+		for i in {10..22}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
-				printf "${jobid[${y}$i]}\t$real"
+				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
 				test_done
 			else
 				test_failed
-				print_error "${jobid[${y}$i]} in state \"$real\", should be \"${states[$i]}\""
+				print_error "${jobid[${y}$i]} (${desc[$i]}) in state \"$real\", should be \"${states[$i]}\""
 			fi
 		done
 	done
