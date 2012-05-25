@@ -169,7 +169,8 @@ while [ "$CONT" = "yes" ]; do
 
 	test_state $jobid Submitted Registered
 
-	EDG_WL_SEQUENCE="UI=000003:NS=0000000000:WM=000000:BH=0000000000:JSS=000000:LM=000000:LRMS=000000:APP=000000:LBS=000000"	
+	#EDG_WL_SEQUENCE="UI=000003:NS=0000000000:WM=000000:BH=0000000000:JSS=000000:LM=000000:LRMS=000000:APP=000000:LBS=000000"	
+	EDG_WL_SEQUENCE="no_seqcodes_with_CREAM"
 
 	printf "logging Accepted"
 	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMAccepted --from="CREAMExecutor" --from_host="sending component hostname" --from_instance="sending component instance" --local_jobid=$local_jobid`
@@ -207,6 +208,7 @@ while [ "$CONT" = "yes" ]; do
 
 	printf "\nTesting job submitted to CREAM-CE via WMS\n"
 
+	EDG_WL_SEQUENCE="UI=000003:NS=0000000000:WM=000000:BH=0000000000:JSS=000000:LM=000000:LRMS=000000:APP=000000:LBS=000000"
 	jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application`
         if [ $? != 0 ]; then
                 test_failed
@@ -265,29 +267,15 @@ while [ "$CONT" = "yes" ]; do
 
 	printf "logging EnQueued"
 	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s WorkloadManager -e EnQueued --queue="destination queue" --job="job description in receiver language" --result=OK --reason="detailed description of transfer"`
-#	check_return_and_test_state $? $jobid Ready Pending
+	check_return_and_test_state $? $jobid Ready Pending
 
 	printf "\nlogging DeQueued"
 	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s JobController -e DeQueued --queue="queue name" --local_jobid="new jobId assigned by the receiving component"`
-#	check_return_and_test_state $? $jobid Ready Pending
-
-#	printf "logging CREAMAccepted"
-#        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMAccepted --from="CREAMExecutor" --from_host="sending component hostname" --from_instance="sending component instance" --local_jobid="CREAM_FAKE_JOBID"`
-#       check_return_and_test_state $? $jobid Ready Registered
+	check_return_and_test_state $? $jobid Ready Pending
 
 	printf "\nlogging Transfer"
 	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s JobController -e Transfer --destination="LRMS" --dest_host="destination hostname" --dest_instance="destination instance" --job="job description in receiver language" --result=OK --reason="detailed description of transfer" --dest_jobid="destination internal jobid"`
 	check_return_and_test_state $? $jobid Ready Pending
-
-#	printf "logging CREAMStore CmdStart"
-#        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMInterface -e CREAMStore --command=CmdStart --result=Start`
-#        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMInterface -e CREAMStore --command=CmdStart --result=Ok`
-#        check_return_and_test_state $? $jobid Ready Pending	
-
-#	printf "logging CREAMStatus Pending"
-#        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Registered --new_state=Pending --result=Arrived`
-#        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Registered --new_state=Pending --result=Done`
-#        check_return_and_test_state $? $jobid Ready Pending
 
         printf "logging CREAMStatus Idle"
         EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Pending --new_state=Idle --result=Arrived`
