@@ -54,6 +54,7 @@ EndHelpHeader
 	echo " -t | --text            Format output as plain ASCII text."
 	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
 	echo " -x | --html            Format output as html."
+	echo " -R | --reps <R>        Perform R repetitions for each job type. (Default 9)"
 }
 
 # read common definitions and functions
@@ -165,6 +166,11 @@ while true; do
 	states[20]="Ready"
 	states[21]="Done"
 	states[22]="Submitted"
+	states[23]="Submitted"
+	states[24]="Running"
+	states[25]="Submitted"
+	states[26]="Running"
+	states[27]="Submitted"
 
 	desc[10]="Simple job"
 	desc[11]="Simple job"
@@ -179,6 +185,11 @@ while true; do
 	desc[20]="Simple job"
 	desc[21]="Input SB"
 	desc[22]="Output SB"
+	desc[23]="Simple job"
+	desc[24]="Input Coll"
+	desc[25]="SBC Subjob"
+	desc[26]="SBC Subjob"
+	desc[27]="Output SB"
 
 	for i in {a..z}; do idchars="$i${idchars}"; done
 	for i in {A..Z}; do idchars="$i${idchars}"; done
@@ -268,6 +279,29 @@ while true; do
 
 		$LB_READY_SH -j ${jobid[${y}20]} > /dev/null 2> /dev/null
 		
+		printf "Regular job with input and output sandbox collections... "
+                ${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application > sbtestjob.$$.out
+                jobid[${y}23]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+                seqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "EDG_WL_SEQUENCE" | ${SYS_SED} 's/EDG_WL_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
+                $SYS_RM sbtestjob.$$.out
+                printf "${jobid[${y}23]}"
+                test_done
+
+                $LBREGSANDBOX --jobid ${jobid[${y}23]} --input --from http://users.machine/path/to/sandbox.file --to file://where/it/is/sandbox.file --sequence $seqcode -n 2 > sbtestjob.$$.out 2> sbtestjob.$$.err
+		jobid[${y}24]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_JOBID" | ${SYS_SED} 's/GLITE_LB_ISB_JOBID=//' | ${SYS_SED} 's/"//g'`
+		isbseqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_ISB_SEQUENCE" | ${SYS_SED} 's/GLITE_LB_ISB_SEQUENCE=//' | ${SYS_SED} 's/"//g'`
+		seqcode=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_WMS_SEQUENCE_CODE" | ${SYS_SED} 's/GLITE_WMS_SEQUENCE_CODE=//' | ${SYS_SED} 's/"//g'`
+		jobid[${y}25]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[0\]" | ${SYS_SED} 's/EDG_WL_SUB_JOBID\[0\]=//' | ${SYS_SED} 's/"//g'`
+		jobid[${y}26]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "EDG_WL_SUB_JOBID\[1\]" | ${SYS_SED} 's/EDG_WL_SUB_JOBID\[1\]=//' | ${SYS_SED} 's/"//g'`
+		isbseqcode=`$LBLOGEVENT --source LRMS --jobid ${jobid[${y}26]} --sequence $isbseqcode --event FileTransfer --result START`
+		printf " - Input:  ${jobid[${y}24]}\n   -       ${jobid[${y}25]}\n   -       ${jobid[${y}26]}\n"
+		$SYS_RM sbtestjob.$$.out
+
+                $LBREGSANDBOX --jobid ${jobid[${y}23]} --output --from file://where/it/is/sandbox.file2 --to http://users.machine/path/to/sandbox.file2 --sequence $seqcode > sbtestjob.$$.out
+                jobid[${y}27]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_OSB_JOBID" | ${SYS_SED} 's/GLITE_LB_OSB_JOBID=//' | ${SYS_SED} 's/"//g'`
+		printf " - Output: ${jobid[${y}27]}\n"
+		$SYS_RM sbtestjob.$$.out
+
 
 	done
 
@@ -277,7 +311,7 @@ while true; do
 
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..22}; do
+		for i in {10..27}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
@@ -312,7 +346,7 @@ while true; do
 	printf "Purging test jobs... "
 	joblist=$$_jobs_to_purge.txt
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..22}; do
+		for i in {10..27}; do
 			echo ${jobid[${y}$i]} >> ${joblist}
 		done
 	done
@@ -322,7 +356,7 @@ while true; do
 	isThereZombie=0
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..22}; do
+		for i in {10..27}; do
 			if [ $i -eq 16 ]; then
 				continue
 			fi
@@ -354,7 +388,7 @@ while true; do
 
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..22}; do
+		for i in {10..27}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
@@ -367,7 +401,7 @@ while true; do
 	done
 
 	printf "Purging test jobs... "
-	${LBPURGE} -j ${joblist} > /dev/null
+#	${LBPURGE} -j ${joblist} > /dev/null
 	$SYS_RM ${joblist}
 	test_done
 		
