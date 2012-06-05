@@ -93,6 +93,7 @@ get_state()
 {
 	$SSL_CMD ${1}?text
 	$SYS_CAT https.$$.tmp | $SYS_GREP -E "^Status=" | $SYS_SED 's/^.*=//'
+	$SYS_RM https.$$.tmp
 }
 
 {
@@ -171,6 +172,8 @@ while true; do
 	states[25]="Submitted"
 	states[26]="Running"
 	states[27]="Submitted"
+	states[28]="Waiting"
+	states[29]="Waiting"
 
 	desc[10]="Simple job"
 	desc[11]="Simple job"
@@ -190,6 +193,8 @@ while true; do
 	desc[25]="SBC Subjob"
 	desc[26]="SBC Subjob"
 	desc[27]="Output SB"
+	desc[28]="CREAM job"
+	desc[29]="CREAM-WMS"
 
 	for i in {a..z}; do idchars="$i${idchars}"; done
 	for i in {A..Z}; do idchars="$i${idchars}"; done
@@ -252,6 +257,8 @@ while true; do
 		done
 		$LB_RUNNING_SH -j ${jobid[${y}18]} > /dev/null 2> /dev/null
 
+		$SYS_RM coll.reg.$$.out
+
 		printf "Regular job with input and output sandbox... "
                 ${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application > sbtestjob.$$.out
                 jobid[${y}20]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -300,8 +307,34 @@ while true; do
                 $LBREGSANDBOX --jobid ${jobid[${y}23]} --output --from file://where/it/is/sandbox.file2 --to http://users.machine/path/to/sandbox.file2 --sequence $seqcode > sbtestjob.$$.out
                 jobid[${y}27]=`$SYS_CAT sbtestjob.$$.out | $SYS_GREP "GLITE_LB_OSB_JOBID" | ${SYS_SED} 's/GLITE_LB_OSB_JOBID=//' | ${SYS_SED} 's/"//g'`
 		printf " - Output: ${jobid[${y}27]}\n"
-		$SYS_RM sbtestjob.$$.out
+		$SYS_RM sbtestjob.$$.out sbtestjob.$$.err
 
+		printf "CREAM job... "
+	        local_jobid="CREAM-test-"`date +%s`
+	        jobid[${y}28]="https://"$GLITE_WMS_QUERY_SERVER/"$local_jobid"
+	        ${LBJOBREG} -j ${jobid[${y}28]} -m ${GLITE_WMS_QUERY_SERVER} -s CREAMExecutor -c > /dev/null
+
+	        EDG_WL_SEQUENCE="UI=000003:NS=0000000000:WM=000000:BH=0000000000:JSS=000000:LM=000000:LRMS=000000:APP=000000:LBS=000000"
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}28]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMAccepted --from="CREAMExecutor" --from_host="sending component hostname" --from_instance="sending component instance" --local_jobid=$local_jobid`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}28]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Registered --new_state=Pending --result=Arrived`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}28]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Registered --new_state=Pending --result=Done`
+                printf "${jobid[${y}28]}\n"
+
+		printf "CREAM job through WMS... "
+	        jobid[${y}29]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application`
+	        jobid[${y}29]=`echo "${jobid[${y}29]}" | ${SYS_GREP} "new jobid" | ${SYS_AWK} '{ print $3 }'`
+
+	        EDG_WL_SEQUENCE="UI=000003:NS=0000000000:WM=000000:BH=0000000000:JSS=000000:LM=000000:LRMS=000000:APP=000000:LBS=000000"
+
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s NetworkServer -e Accepted --from="UserInterface" --from_host="sending component hostname" --from_instance="sending component instance" --local_jobid="new jobId (Condor Globus ...)"`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s WorkloadManager -e DeQueued --queue="queue name" --local_jobid="new jobId assigned by the receiving component"`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s WorkloadManager -e HelperCall --helper_name="name of the called component" --helper_params="parameters of the call" --src_role=CALLING`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s WorkloadManager -e Match --dest_id="${DESTINATION:-destination CE/queue}"`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s WorkloadManager -e HelperReturn --helper_name="name of the called component" --retval="returned data" --src_role=CALLING`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMAccepted --from="CREAMExecutor" --from_host="sending component hostname" --from_instance="sending component instance" --local_jobid="CREAM_FAKE_JOBID"`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s CREAMInterface -e CREAMStore --command=CmdStart --result=Start`
+	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s CREAMInterface -e CREAMStore --command=CmdStart --result=Ok`
+                printf "${jobid[${y}29]}\n"
 
 	done
 
@@ -311,7 +344,7 @@ while true; do
 
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..27}; do
+		for i in {10..29}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
@@ -346,7 +379,7 @@ while true; do
 	printf "Purging test jobs... "
 	joblist=$$_jobs_to_purge.txt
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..27}; do
+		for i in {10..29}; do
 			echo ${jobid[${y}$i]} >> ${joblist}
 		done
 	done
@@ -356,7 +389,7 @@ while true; do
 	isThereZombie=0
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..27}; do
+		for i in {10..29}; do
 			if [ $i -eq 16 ]; then
 				continue
 			fi
@@ -388,7 +421,7 @@ while true; do
 
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..27}; do
+		for i in {10..29}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
