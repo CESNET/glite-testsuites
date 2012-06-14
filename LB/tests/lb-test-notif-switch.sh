@@ -80,11 +80,11 @@ do
 done
 
 # redirecting all output to $logfile
-touch $logfile
-if [ ! -w $logfile ]; then
-	echo "Cannot write to output file $logfile"
-	exit $TEST_ERROR
-fi
+#touch $logfile
+#if [ ! -w $logfile ]; then
+#	echo "Cannot write to output file $logfile"
+#	exit $TEST_ERROR
+#fi
 
 DEBUG=2
 
