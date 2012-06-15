@@ -174,6 +174,7 @@ while true; do
 	states[27]="Submitted"
 	states[28]="Waiting"
 	states[29]="Waiting"
+	states[30]="Submitted"
 
 	desc[10]="Simple job"
 	desc[11]="Simple job"
@@ -195,6 +196,7 @@ while true; do
 	desc[27]="Output SB"
 	desc[28]="CREAM job"
 	desc[29]="CREAM-WMS"
+	desc[30]="Simple ACLs"
 
 	for i in {a..z}; do idchars="$i${idchars}"; done
 	for i in {A..Z}; do idchars="$i${idchars}"; done
@@ -318,7 +320,8 @@ while true; do
 	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}28]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMAccepted --from="CREAMExecutor" --from_host="sending component hostname" --from_instance="sending component instance" --local_jobid=$local_jobid`
 	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}28]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Registered --new_state=Pending --result=Arrived`
 	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}28]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Registered --new_state=Pending --result=Done`
-                printf "${jobid[${y}28]}\n"
+                printf "${jobid[${y}28]}"
+		test_done
 
 		printf "CREAM job through WMS... "
 	        jobid[${y}29]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application`
@@ -334,7 +337,17 @@ while true; do
 	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMAccepted --from="CREAMExecutor" --from_host="sending component hostname" --from_instance="sending component instance" --local_jobid="CREAM_FAKE_JOBID"`
 	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s CREAMInterface -e CREAMStore --command=CmdStart --result=Start`
 	        EDG_WL_SEQUENCE=`${LBLOGEVENT} -j ${jobid[${y}29]} -c $EDG_WL_SEQUENCE -s CREAMInterface -e CREAMStore --command=CmdStart --result=Ok`
-                printf "${jobid[${y}29]}\n"
+                printf "${jobid[${y}29]}"
+		test_done
+
+		printf "Simple, with ACLs... "
+		jobid[${y}30]=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
+		seqcode="UI=000000:NS=0000000000:WM=000000:BH=0000000000:JSS=000000:LM=000000:LRMS=000000:APP=000002:LBS=000000"
+		printf "(${jobid[${y}30]})"
+		seqcode=`$LBLOGEVENT -e ChangeACL -s UserInterface -p -j "${jobid[${y}30]}" --user_id "RemovedIdentity" --user_id_type DN --permission "READ" --permission_type ALLOW --operation "ADD" -c $seqcode`
+		seqcode=`$LBLOGEVENT -e ChangeACL -s UserInterface -p -j "${jobid[${y}30]}" --user_id "TestIdentity" --user_id_type DN --permission "READ" --permission_type ALLOW --operation "ADD" -c $seqcode`
+		$LBLOGEVENT -e ChangeACL -s UserInterface -p -j "${jobid[${y}30]}" --user_id "RemovedIdentity" --user_id_type DN --permission "READ" --permission_type ALLOW --operation "REMOVE" -c $seqcode > /dev/null
+		test_done
 
 	done
 
@@ -344,7 +357,7 @@ while true; do
 
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..29}; do
+		for i in {10..30}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
@@ -354,6 +367,15 @@ while true; do
 				print_error "${jobid[${y}$i]} (${desc[$i]}) in state $real, should be ${states[$i]}"
 			fi
 		done
+		aclline=`$LBJOBSTATUS ${jobid[${y}30]} | $SYS_GREP -E "^acl"`
+		acltest=`$SYS_ECHO $aclline | $SYS_GREP -o "<auri>.*<\/auri>" | $SYS_SED 's/<[\/]*auri>//g'`
+		if [ "$acltest" == "dn:TestIdentity" ]; then
+			printf "${jobid[${y}30]} (${desc[$i]}) ACL \"$acltest\""
+			test_done
+		else
+			test_failed
+			print_error "Job ${jobid[${y}30]} has improper ACL setting: \"$aclline\""
+		fi
 	done
 
 	printf "Sleep 1 to get a unique second... "
@@ -379,7 +401,7 @@ while true; do
 	printf "Purging test jobs... "
 	joblist=$$_jobs_to_purge.txt
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..29}; do
+		for i in {10..30}; do
 			echo ${jobid[${y}$i]} >> ${joblist}
 		done
 	done
@@ -389,7 +411,7 @@ while true; do
 	isThereZombie=0
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..29}; do
+		for i in {10..30}; do
 			if [ $i -eq 16 ]; then
 				continue
 			fi
@@ -421,7 +443,7 @@ while true; do
 
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
-		for i in {10..29}; do
+		for i in {10..30}; do
 			real=`get_state ${jobid[${y}$i]}`
 			if [ "$real" == "${states[$i]}" ]; then
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
@@ -431,10 +453,17 @@ while true; do
 				print_error "${jobid[${y}$i]} (${desc[$i]}) in state \"$real\", should be \"${states[$i]}\""
 			fi
 		done
+		if [ "$acltest" == "dn:TestIdentity" ]; then
+			printf "${jobid[${y}30]} (${desc[$i]}) ACL \"$acltest\""
+			test_done
+		else
+			test_failed
+			print_error "Job ${jobid[${y}30]} has improper ACL setting: \"$aclline\""
+		fi
 	done
 
 	printf "Purging test jobs... "
-#	${LBPURGE} -j ${joblist} > /dev/null
+	${LBPURGE} -j ${joblist} > /dev/null
 	$SYS_RM ${joblist}
 	test_done
 		
