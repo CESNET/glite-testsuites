@@ -242,7 +242,7 @@ test_done
 				#Drop notification
 	                        printf "Dropping the test notification (${notifid})"
         	                dropresult=`${LBNOTIFY} drop ${notifid} 2>&1`
-                	        if [ -z $dropresult ]; then
+                	        if [ "$dropresult" == "" ]; then
                         	        test_done
 	                        else
         	                        test_failed
