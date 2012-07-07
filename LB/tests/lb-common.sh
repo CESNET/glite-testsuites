@@ -368,13 +368,17 @@ function check_rpmlint() {
 	local out=''
 	local ret=0
 
-	echo "Packages compliance check output:"
+	printf "Packages compliance check output:${lf}"
 	while test -n "$1"; do
 		for pkg in `rpm -qa --queryformat '%{NAME} ' $1`; do
-			echo $pkg
+			printf "$pkg${lf}"
 			out="`rpmlint $pkg`"
-			echo "$out"
-			echo
+			if test -n "$is_html"; then
+				echo "<pre>$out</pre>"
+			else
+				echo "$out"
+			fi
+			printf "${lf}\n"
 			if echo $out | grep -i '^E:' >/dev/null; then
 				ret=1
 			fi
@@ -426,9 +430,14 @@ $src"
 
 	echo "Packages compliance check output:"
 	for pkg in $pkgs; do
-		echo $pkg:
+		printf "$pkg:${lf}"
 		out="`lintian $dir/${pkg}_*.dsc`"
-		echo "$out"
+		if test -n "$is_html"; then
+			echo "<pre>$out</pre>"
+		else
+			echo "$out"
+		fi
+		printf "${lf}\n"
 		if echo $out | grep -i '^E:' >/dev/null; then
 			ret=1
 		fi
