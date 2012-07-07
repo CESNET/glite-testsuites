@@ -274,7 +274,7 @@ EMI Test Report Template
 
 - Date:
 
-- Test Report Template : v. 3.1
+- Test Report Template : v. 3.2
 
 *************
 Summary 
@@ -291,6 +291,7 @@ Summary
   4.3. Standard Conformance tests - NA
   4.4. Performance tests - $PERFORMANCEEXEC
   4.5. Scalability tests - NA
+  4.6. Integration tests - NA
 
 REMARKS:
 

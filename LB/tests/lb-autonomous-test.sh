@@ -165,10 +165,17 @@ REMARKS=""
 PERFORMANCEEXEC="YES"
 TESTREPOCONTENTS="`cat ./repo_packages.txt`"
 PRODREPOCONTENTS="`cat ./prod_packages.txt`"
-INSTALLCOMMAND="`cat LBinstall.sh`"
+echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
+if [ $? != 0]; then
+	INSTALLCOMMAND="`cat LBinstall.sh`"
+	UPGRADECMD=""
+else
+	INSTALCOMMAND="# Copy here initial part of Upgrade Command
+"
+	UPGRADECMD="`cat LBinstall.sh`"
+fi
 INSTALLLOG="`cat Install_log.txt`"
 CONFIGLOG="Configuration log shown with the installation log, see directly above."
-#UPGRADECMD
 UNITTESTURL="See Build Report. Unit tests are an integral part of the build."
 TESTPLANURL="http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/"
 FUNCTIONALITYTESTURL="https://twiki.cern.ch/twiki/bin/view/EGEE/SA3Testing#LB"
