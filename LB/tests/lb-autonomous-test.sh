@@ -38,7 +38,7 @@ EndHelpHeader
 }
 
 egrep -i "Debian|Ubuntu" /etc/issue
-if [ \$? = 0 ]; then
+if [ $? = 0 ]; then
         INSTALLCMD="apt-get install -q --yes"
         INSTALLPKGS="lintian"
 else
