@@ -166,7 +166,7 @@ PERFORMANCEEXEC="YES"
 TESTREPOCONTENTS="`cat ./repo_packages.txt`"
 PRODREPOCONTENTS="`cat ./prod_packages.txt`"
 echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
-if [ $? != 0]; then
+if [ $? != 0 ]; then
 	INSTALLCOMMAND="`cat LBinstall.sh`"
 	UPGRADECMD=""
 else
