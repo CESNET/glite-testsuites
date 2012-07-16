@@ -116,9 +116,15 @@ if test -z "$VO"; then
 	fatal 2 "No VO!"
 fi
 
+#
+# For available CEs, check:
+#
+#   lcg-infosites --vo voce ce
+#
 JDL_HEADER="LBAddress = \"$LB_HOST\";
 VirtualOrganisation = \"$VO\";
-${NOREQ}Requirements = other.GlueCEInfoHostname==\"ce2.egee.cesnet.cz\";
+#${NOREQ}Requirements = other.GlueCEInfoHostname==\"ce2.egee.cesnet.cz\";
+${NOREQ}Requirements = other.GlueCEInfoHostname==\"cream1.egee.cesnet.cz\" || other.GlueCEInfoHostname==\"cream2.grid.cesnet.cz\";
 
 RetryCount=2;"
 
