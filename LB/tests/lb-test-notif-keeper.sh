@@ -104,7 +104,7 @@ else
 fi
 
 printf "Checking for presence of the notif-keeper tool... "
-NOTIFKEEPER=`which $LBNOTIFKEEPER`
+NOTIFKEEPER=`PATH=/sbin:$GLITE_LOCATION/sbin:$GLITE_LB_LOCATION/sbin which $LBNOTIFKEEPER`
 if [ ! -f "$NOTIFKEEPER" ]; then
 	printf "Not present"
 	test_skipped
