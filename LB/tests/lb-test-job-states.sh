@@ -132,7 +132,7 @@ while [ "$CONT" = "yes" ]; do
 	
 	# check_binaries
 	printf "Testing if all binaries are available"
-	check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LBJOBSTATUS
+	check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $LBJOBREG $SYS_AWK $LBJOBSTATUS $LBQUERYEXT
 	if [ $? -gt 0 ]; then
 		test_failed
 		print_error "Some binaries are missing"
@@ -148,9 +148,13 @@ while [ "$CONT" = "yes" ]; do
 		break
 	fi
 	
+	fromdate=`$SYS_DATE --utc "+%Y-%m-%d %H:%M:%S"`
+	sleep 1 #Making the recorded time unique
 	# Register job:
 	printf "Registering testing job "
-	jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application`
+	JDL="[Executable = \"/bin/echo\";Arguments = \"Hello World\";StdOutput = \"message.txt\";StdError = \"stderror\";OutputSandbox = {\"message.txt\",\"stderror\"};VirtualOrganisation = \"VOCE\";]"
+	$SYS_ECHO $JDL > job.$$.jdl
+	jobid=`${LBJOBREG} -s Application -m ${GLITE_WMS_QUERY_SERVER} -l job.$$.jdl`
 	if [ $? != 0 ]; then
 		test_failed
 		print_error "Failed to register job"
@@ -177,7 +181,7 @@ while [ "$CONT" = "yes" ]; do
 	check_return_and_test_state $? $jobid Waiting
 
 	printf "logging EnQueued"
-	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s NetworkServer -e EnQueued --queue="destination queue" --job="job description in receiver language" --result=OK --reason="detailed description of transfer"`
+	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s NetworkServer -e EnQueued --queue="destination queue" --job="$JDL" --result=OK --reason="detailed description of transfer"`
 	check_return_and_test_state $? $jobid Waiting
 
 	printf "logging DeQueued"
@@ -197,7 +201,7 @@ while [ "$CONT" = "yes" ]; do
 	check_return_and_test_state $? $jobid Waiting
 
 	printf "logging EnQueued"
-	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s WorkloadManager -e EnQueued --queue="destination queue" --job="job description in receiver language" --result=OK --reason="detailed description of transfer"`
+	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s WorkloadManager -e EnQueued --queue="destination queue" --job="$JDL" --result=OK --reason="detailed description of transfer"`
 	check_return_and_test_state $? $jobid Ready
 
 	printf "logging DeQueued"
@@ -205,7 +209,7 @@ while [ "$CONT" = "yes" ]; do
 	check_return_and_test_state $? $jobid Ready
 
 	printf "logging Transfer"
-	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s JobController -e Transfer --destination="LRMS" --dest_host="destination hostname" --dest_instance="destination instance" --job="job description in receiver language" --result=OK --reason="detailed description of transfer" --dest_jobid="destination internal jobid"`
+	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s JobController -e Transfer --destination="LRMS" --dest_host="destination hostname" --dest_instance="destination instance" --job="$JDL" --result=OK --reason="detailed description of transfer" --dest_jobid="destination internal jobid"`
 	check_return_and_test_state $? $jobid Ready
 
 	printf "logging Accepted"
@@ -213,7 +217,7 @@ while [ "$CONT" = "yes" ]; do
 	check_return_and_test_state $? $jobid Ready
 
 	printf "logging Transfer"
-	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s LogMonitor -e Transfer --destination="LRMS" --dest_host="destination hostname" --dest_instance="destination instance" --job="job description in receiver language" --result=OK --reason="detailed description of transfer" --dest_jobid="destination internal jobid"`
+	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s LogMonitor -e Transfer --destination="LRMS" --dest_host="destination hostname" --dest_instance="destination instance" --job="$JDL" --result=OK --reason="detailed description of transfer" --dest_jobid="destination internal jobid"`
 	check_return_and_test_state $? $jobid Scheduled
 
 	printf "logging Running"
@@ -227,6 +231,54 @@ while [ "$CONT" = "yes" ]; do
 	printf "logging Clear"
 	EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s LogMonitor -e Clear --reason=USER`
 	check_return_and_test_state $? $jobid Cleared
+
+	printf "Checking implementation of additional attribute queries (regression into bug #42670)... "
+	check_srv_version '>=' "2.3"
+	if [ $? -eq 0 ]; then
+		test_done
+		sleep 1
+		bydate=`$SYS_DATE --utc "+%Y-%m-%d %H:%M:%S"`
+
+		printf "EDG_WLL_QUERY_ATTR_STATEENTERTIME... "
+		printf "last_update_time<\"$bydate\"\nlast_update_time>\"$fromdate\"\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -gt 0 ]; then test_failed && print_error "Test job not included among results" && cat query_output.$$.txt; else test_done; fi
+
+		printf "EDG_WLL_QUERY_ATTR_STATEENTERTIME negative... "
+		printf "last_update_time<\"$fromdate\"\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -eq 0 ]; then test_failed && print_error "Test job included among results" && cat query_output.$$.txt; else test_done; fi
+
+		printf "EDG_WLL_QUERY_ATTR_LASTUPDATETIME... "
+		printf "state_enter_time<\"$bydate\"\nstate_enter_time>\"$fromdate\"\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -gt 0 ]; then test_failed && print_error "Test job not included among results" && cat query_output.$$.txt; else test_done; fi
+
+		printf "EDG_WLL_QUERY_ATTR_LASTUPDATETIME negative... "
+		printf "state_enter_time<\"$fromdate\"\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -eq 0 ]; then test_failed && print_error "Test job included among results" && cat query_output.$$.txt; else test_done; fi
+
+		printf "EDG_WLL_QUERY_ATTR_JDL_ATTR... "
+		printf "jdl_attr=VOCE VirtualOrganisation\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -C -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -gt 0 ]; then test_failed && print_error "Test job not included among results" && cat query_output.$$.txt; else test_done; fi
+
+		printf "EDG_WLL_QUERY_ATTR_JDL_ATTR negative... "
+		printf "jdl_attr<>VOCE VirtualOrganisation\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -C -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -eq 0 ]; then test_failed && print_error "Test job included among results" && cat query_output.$$.txt; else test_done; fi
+
+		$SYS_RM query_input.$$.txt query_output.$$.txt job.$$.jdl
+	else
+		test_skipped
+	fi
 
 	#Purge test job
 	joblist=$$_jobs_to_purge.txt
