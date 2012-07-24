@@ -160,6 +160,7 @@ echo ./lb-test-threaded.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-harvester.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-nagios-probe.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-packaging.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo ./lb-test-dump-load.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo perl ./lb-test-purge.pl --i-want-to-purge $remotehost:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo 'echo "</literal>"' >> arrange_lb_test_user.sh
 echo 'echo "<verbatim>"' >> arrange_lb_test_user.sh
