@@ -238,6 +238,7 @@ while true; do
 			q=$q+1;
 			uniq="$uniq${idchars:${q}:1}";
 		done
+		SKIP_GREY=0
 
 		jobid[${y}16]=`echo ${jobid[${y}10]} | $SYS_GREP -o -E "https://.*/"`
 		jobid[${y}16]="${jobid[${y}16]}$uniq"
@@ -363,8 +364,14 @@ while true; do
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
 				test_done
 			else
-				test_failed
-				print_error "${jobid[${y}$i]} (${desc[$i]}) in state $real, should be ${states[$i]}"
+				if [ $i -eq 16 ]; then #Skip grey
+					printf "${jobid[${y}$i]}\t${desc[$i]}\t<Support off>"
+					test_skipped
+					SKIP_GREY=1
+				else
+					test_failed
+					print_error "${jobid[${y}$i]} (${desc[$i]}) in state $real, should be ${states[$i]}"
+				fi
 			fi
 		done
 		aclline=`$LBJOBSTATUS ${jobid[${y}30]} | $SYS_GREP -E "^acl"`
@@ -412,7 +419,7 @@ while true; do
 	printf "Checking states...\n"
 	for (( y=1; y<=$REPS; y++ )); do
 		for i in {10..30}; do
-			if [ $i -eq 16 ]; then
+			if [ $i -eq 16 ]; then #Skip grey
 				continue
 			fi
 			$LBJOBSTATUS ${jobid[${y}$i]} 2>&1 | grep "Identifier removed" > /dev/null
@@ -449,8 +456,13 @@ while true; do
 				printf "${jobid[${y}$i]}\t${desc[$i]}\t$real"
 				test_done
 			else
-				test_failed
-				print_error "${jobid[${y}$i]} (${desc[$i]}) in state \"$real\", should be \"${states[$i]}\""
+				if [ $i -eq 16 -a $SKIP_GREY -eq 1 ]; then #Skip grey
+					printf "${jobid[${y}$i]}\t${desc[$i]}\t---"
+					test_skipped
+				else
+					test_failed
+					print_error "${jobid[${y}$i]} (${desc[$i]}) in state \"$real\", should be \"${states[$i]}\""
+				fi
 			fi
 		done
 		if [ "$acltest" == "dn:TestIdentity" ]; then
