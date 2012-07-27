@@ -189,7 +189,7 @@ test_done
 	test_done
 
 	printf "Running notif-keeper (notify on all my jobs)... $NL"
-	$LBNOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
+	$NOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
 
 	printf "Registering job..."
 	jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application 2>&1 | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -223,7 +223,7 @@ test_done
 	test_done
 
 	printf "Re-running notif-keeper... $NL"
-	$LBNOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
+	$NOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
 	
 	printf "Registering job..."
 	jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application 2>&1 | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -269,7 +269,7 @@ test_done
 	test_done
 
 	printf "Re-running notif-keeper... $NL"
-	$LBNOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
+	$NOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
 
 	printf "Registering job..."
 	jobid=`${LBJOBREG} -m ${GLITE_WMS_QUERY_SERVER} -s application 2>&1 | $SYS_GREP "new jobid" | ${SYS_AWK} '{ print $3 }'`
@@ -316,7 +316,7 @@ test_done
 	test_done
 
 	printf "Re-running notif-keeper... $NL"
-	$LBNOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
+	$NOTIFKEEPER --file-prefix $NOTIFPREFIX --site-notif $SITENOTIF
 
 	kill $recpid >/dev/null 2>&1
 
