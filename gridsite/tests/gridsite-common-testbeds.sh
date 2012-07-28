@@ -75,7 +75,7 @@ else
 fi
 
 # Debian compress everything inside /usr/share/doc
-HTTPD_CONF_SRC=\`ls -1 /usr/share/doc/gridsite-*/httpd-webserver.conf* | head -n 1\`
+HTTPD_CONF_SRC=\`ls -1 /usr/share/doc/gridsite*/httpd-webserver.conf* | head -n 1\`
 if echo \$HTTPD_CONF_SRC | grep '\.gz$' >/dev/null 2>&1; then
 	gzip -dc < \$HTTPD_CONF_SRC > /tmp/httpd-webserver.conf
 	HTTPD_CONF_SRC=/tmp/httpd-webserver.conf
