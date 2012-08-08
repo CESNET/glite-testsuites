@@ -156,12 +156,12 @@ fi
 			rm threads.$$.tmp
 
 			#Purge test jobs
-#			joblist=$$_jobs_to_purge.txt
-#			for i in {0..30}
-#			do
-#				echo ${jobid[$i]} >> ${joblist}
-#			done
-#			try_purge ${joblist}
+			joblist=$$_jobs_to_purge.txt
+			for i in {0..30}
+			do
+				echo ${jobid[$i]} >> ${joblist}
+			done
+			try_purge ${joblist}
 
 		fi
 		
