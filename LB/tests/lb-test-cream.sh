@@ -201,6 +201,25 @@ while [ "$CONT" = "yes" ]; do
         EDG_WL_SEQUENCE=`${LBLOGEVENT} -j $jobid -c $EDG_WL_SEQUENCE -s CREAMExecutor -e CREAMStatus --old_state=Really-running --new_state=Done-ok --result=Done`
         check_return_and_test_state $? $jobid Done Done-ok
 
+	check_srv_version '>=' "2.4"
+	if [ $? -eq 0 ]; then
+		test_done
+
+		printf "EDG_WLL_QUERY_ATTR_JOB_TYPE... " 
+		printf "job_type=cream\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -C -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -gt 0 ]; then test_failed && print_error "Test job not included among results" && cat query_output.$$.txt; else test_done; fi
+
+		printf "EDG_WLL_QUERY_ATTR_JOB_TYPE... negative"
+		printf "job_type<>cream\njobid<>\"https://$GLITE_WMS_QUERY_SERVER/none\"\n" > query_input.$$.txt
+		${LBQUERYEXT} -C -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
+		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
+		if [ $? -eq 0 ]; then test_failed && print_error "Test job included among results" && cat query_output.$$.txt; else test_done; fi
+	else
+		test_skipped
+	fi
+
 	#Purge test job
         joblist=$$_jobs_to_purge.txt
         echo $jobid > ${joblist}
