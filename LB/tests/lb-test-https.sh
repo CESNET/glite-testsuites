@@ -226,7 +226,7 @@ test_done
 					fi
 
 					printf "Checking for validity period (to distinguis from job listing)... "
-					$SYS_GREP -E "Valid until:</th><td>[0-9 :-]+</td>" https.$$.tmp > /dev/null 2> /dev/null
+					$SYS_GREP -E "Valid until:?</th><td>[0-9 :-]+</td>" https.$$.tmp > /dev/null 2> /dev/null
 
 					if [ "$?" != "0" ]; then
 						test_failed
@@ -307,10 +307,10 @@ test_done
 				if [ ! "$LineNO" = "0" ]; then
 					test_done
 					printf "Checking for items... "
-					for item in msg_brokers msg_prefixes 
+					for item in 'msg_brokers|Messaging brokers' 'msg_prefixes|Messaging prefixes' 
 					do
 						printf "$item... "
-						$SYS_GREP -E "$item.*=" https.$$.tmp > /dev/null
+						$SYS_GREP -E "$item(.*=)?" https.$$.tmp > /dev/null
 						if [ "$?" = "0" ]; then
 							test_done
 						else
