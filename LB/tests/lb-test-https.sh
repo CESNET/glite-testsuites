@@ -302,7 +302,7 @@ test_done
 			check_srv_version '>=' "2.3"
 			if [ $? = 0 ]; then
 				printf "Downloading remote configuration... "
-				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/?configuration > https.$$.tmp
+				$SSL_CMD https://${GLITE_WMS_QUERY_SERVER}/?configuration?text > https.$$.tmp
 				LineNO=`$SYS_WC -l https.$$.tmp | $SYS_AWK '{ print $1 }' `
 				if [ ! "$LineNO" = "0" ]; then
 					test_done
