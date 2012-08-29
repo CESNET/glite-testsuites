@@ -155,7 +155,7 @@ fi
 printf "$SSL_CLIENT"
 test_done
 	printf "Reading server configuration"
-	$SSL_CMD "https://${GLITE_WMS_QUERY_SERVER}/?configuration"
+	$SSL_CMD "https://${GLITE_WMS_QUERY_SERVER}/?configuration?text"
         if [ "$?" != "0" ]; then
 		test_failed
 		print_error "Could not read server configuration"
