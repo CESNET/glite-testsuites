@@ -37,13 +37,14 @@ CERTFILE=\$1
 GLITE_USER=\$2
 GSTSTCOLS=\$3
 OUTPUT_OPT=\$4
+CVSROOT=':pserver:anonymous@glite.cvs.cern.ch:/cvs/glite'
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
 echo "Terminal width:   \$GSTSTCOLS "
 echo "Output format:    \$OUTPUT_OPT "
 
-export GSTSTCOLS
+export GSTSTCOLS CVSROOT
 
 ${INSTALLCMD} voms-clients curl wget lsof $INSTALLPKGS
 
@@ -121,7 +122,7 @@ if [ $COPYPROXY -eq 1 ]; then
 	chown \`id -un\`:\`id -gn\` x509up_u\`id -u\`
 else
 	rm -rf /tmp/test-certs/grid-security
-	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
+	cvs co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
 	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh > fake-prox.out.\$\$
 	FAKE_CAS=\`cat fake-prox.out.\$\$ | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
@@ -149,7 +150,7 @@ fi
 cd ~/
 mkdir GridSite_testing
 cd GridSite_testing
-cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/gridsite
+cvs co org.glite.testsuites.ctb/gridsite
 cd org.glite.testsuites.ctb/gridsite/tests
 echo ========================
 echo "  REAL TESTS START HERE"

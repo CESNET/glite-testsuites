@@ -36,13 +36,14 @@ CERTFILE=\$1
 GLITE_USER=\$2
 LBTSTCOLS=\$3
 OUTPUT_OPT=\$4
+CVSROOT=':pserver:anonymous@glite.cvs.cern.ch:/cvs/glite'
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
 echo "Terminal width:   \$LBTSTCOLS "
 echo "Output format:    \$OUTPUT_OPT "
 
-export LBTSTCOLS
+export LBTSTCOLS CVSROOT
 
 ${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget sudo bc $INSTALLPKGS
 
@@ -87,7 +88,7 @@ if [ $COPYPROXY -eq 1 ]; then
 	chown \$GLITE_USER:\$GLITE_USER x509up_u\${glite_id}
 else
 	rm -rf /tmp/test-certs/grid-security
-	cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
+	cvs co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
 	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
@@ -110,7 +111,7 @@ echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_lb_test_user.sh
 echo mkdir -p LB_testing >> arrange_lb_test_user.sh
 echo cd LB_testing >> arrange_lb_test_user.sh
-echo cvs -d :pserver:anonymous@glite.cvs.cern.ch:/cvs/jra1mw co org.glite.testsuites.ctb/LB >> arrange_lb_test_user.sh
+echo cvs -d \$CVSROOT co org.glite.testsuites.ctb/LB >> arrange_lb_test_user.sh
 echo ls >> arrange_lb_test_user.sh
 echo cd org.glite.testsuites.ctb/LB/tests >> arrange_lb_test_user.sh
 echo ulimit -c unlimited >> arrange_lb_test_user.sh
