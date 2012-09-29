@@ -216,6 +216,8 @@ while [ "$CONT" = "yes" ]; do
 		${LBQUERYEXT} -C -m $GLITE_WMS_QUERY_SERVER -i query_input.$$.txt > query_output.$$.txt 2> /dev/null
 		$SYS_GREP $jobid query_output.$$.txt > /dev/null 2> /dev/null
 		if [ $? -eq 0 ]; then test_failed && print_error "Test job included among results" && cat query_output.$$.txt; else test_done; fi
+
+		${SYS_RM} query_input.$$.txt query_output.$$.txt
 	else
 		test_skipped
 	fi

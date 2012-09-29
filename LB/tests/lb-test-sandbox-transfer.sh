@@ -311,6 +311,8 @@ fi
 				printf "output SB... "
 				$SYS_GREP $osbjobid query_output.$$.txt > /dev/null 2> /dev/null
 				if [ $? -eq 0 ]; then test_failed && print_error "Test job included among results" && cat query_output.$$.txt; else test_done; fi
+
+				${SYS_RM} query_input.$$.txt query_output.$$.tx
 			else
 				test_skipped
 			fi
