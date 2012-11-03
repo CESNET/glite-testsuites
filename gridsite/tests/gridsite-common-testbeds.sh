@@ -105,8 +105,16 @@ mkdir -p /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
 sleep 2
 killall -9 httpd apache2 >/dev/null 2>&1
-echo Starting \$SYS_APACHE -f \$HTTPD_CONF
-\$SYS_APACHE -f \$HTTPD_CONF
+if selinuxenabled >/dev/null 2>&1; then
+	# SL6 doesn't like much starting apache inside rc scripts
+	# change identity 'system_u:system_r:initrc_t:s0'
+	echo "SELinux enabled, don't panic!"
+	echo Starting sudo -r unconfined_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
+	sudo -r unconfined_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
+else
+	echo Starting \$SYS_APACHE -f \$HTTPD_CONF
+	\$SYS_APACHE -f \$HTTPD_CONF
+fi
 
 cd /tmp
 
