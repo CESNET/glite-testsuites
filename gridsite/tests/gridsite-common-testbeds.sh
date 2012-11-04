@@ -109,6 +109,8 @@ if selinuxenabled >/dev/null 2>&1; then
 	# SL6 doesn't like much starting apache inside rc scripts
 	# change identity 'system_u:system_r:initrc_t:s0'
 	echo "SELinux enabled, don't panic!"
+	# fix the sudo first
+	sed -i 's/^\(Defaults.*requiretty\)/#\1/' /etc/sudoers
 	echo Starting sudo -r system_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
 	sudo -r system_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
 else
