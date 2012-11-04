@@ -46,7 +46,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS CVSROOT
 
-${INSTALLCMD} voms-clients curl wget lsof $INSTALLPKGS
+${INSTALLCMD} voms-clients curl wget lsof sudo $INSTALLPKGS
 
 if test -f /usr/sbin/apache2; then
 	SYS_APACHE=apache2
@@ -109,8 +109,8 @@ if selinuxenabled >/dev/null 2>&1; then
 	# SL6 doesn't like much starting apache inside rc scripts
 	# change identity 'system_u:system_r:initrc_t:s0'
 	echo "SELinux enabled, don't panic!"
-	echo Starting sudo -r unconfined_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
-	sudo -r unconfined_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
+	echo Starting sudo -r system_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
+	sudo -r system_r -t unconfined_t \$SYS_APACHE -f \$HTTPD_CONF
 else
 	echo Starting \$SYS_APACHE -f \$HTTPD_CONF
 	\$SYS_APACHE -f \$HTTPD_CONF
