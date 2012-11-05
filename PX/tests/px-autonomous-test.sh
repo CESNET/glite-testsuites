@@ -127,12 +127,10 @@ test_done
 
 
 printf "Installing... "
-sh PXinstall.sh > Install_log.txt 2> Install_err.log
-test_done
+sh PXinstall.sh > Install_log.txt 2> Install_err.log && test_done || test_failed
 
 printf "Running tests... "
-sh arrange_px_test_root.sh none glite 80 '-x' > test_log.txt 2> test_err.log
-test_done
+sh arrange_px_test_root.sh none glite 80 '-x' > test_log.txt 2> test_err.log && test_done || test_failed
 
 printf "Collecting package list... "
 gen_repo_lists ./prod_packages.txt ./repo_packages.txt
