@@ -36,7 +36,7 @@ ulimit -c unlimited
 
 # define variables
 GLITE_LB_LOCATION=${GLITE_LB_LOCATION:-$GLITE_LOCATION}
-GLITE_LOCATION=${GLITE_LOCATION:-'/opt/glite'}
+GLITE_LOCATION=${GLITE_LOCATION:-'/usr'}
 SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
 for dir in $GLITE_LOCATION $GLITE_LOCATION/lib64/glite-lb $GLITE_LOCATION/lib/glite-lb; do
 	if test -d "$dir/examples"; then PATH="$dir/examples:$PATH"; fi
