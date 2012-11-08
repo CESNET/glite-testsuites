@@ -86,15 +86,27 @@ printf "Getting the 'install' script... "
 # Example script, for real tests it should be downloaded or otherwise obtained
 SCENARIO=${SCENARIO:-"Clean installation"}
 test -s GridSiteInstall.sh || cat << EndInstallScript > GridSiteInstall.sh
-rpm -Uvhi http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+#CATEGORY=EMI2-RELEASE
+#PRETEST="wget --no-check-certificate -O /tmp/test http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm && wget --no-check-certificate -O /tmp/test http://emisoft.web.cern.ch/emisoft/dist/EMI/2/sl6/x86_64/base/emi-release-2.0.0-1.sl6.noarch.rpm && wget --no-check-certificate -O /tmp/test http://etics-repository.cern.ch/repository/pm/registered/repomd/id/c1dd37c2-c249-4477-a81e-5e1a7abcf2d5/sl6_x86_64_gcc446EPEL/etics-registered-build-by-id-protect.repo"
+#COMPONENT=gridsite
+#SCENARIO="Clean installation"
+rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
 yum install -y yum-priorities yum-protectbase
-rpm -i http://emisoft.web.cern.ch/emisoft/dist/EMI/1/sl5/x86_64/base/emi-release-1.0.0-1.sl5.noarch.rpm
+rpm -ivh http://emisoft.web.cern.ch/emisoft/dist/EMI/2/sl6/x86_64/base/emi-release-2.0.0-1.sl6.noarch.rpm
+cd /etc/yum.repos.d
+wget http://etics-repository.cern.ch/repository/pm/registered/repomd/id/c1dd37c2-c249-4477-a81e-5e1a7abcf2d5/sl6_x86_64_gcc446EPEL/etics-registered-build-by-id-protect.repo
+echo priority=39 >> etics-registered-build-by-id-protect.repo
+echo timeout=120 >> etics-registered-build-by-id-protect.repo
+cd
 
-#cd /etc/yum.repos.d/
-#wget http://etics-repository.cern.ch/repository/pm/registered/repomd/id/2efadb29-61fb-4d5f-be8f-17b799a269e0/sl5_x86_64_gcc412EPEL/etics-registered-build-by-id-protect.repo
-#echo priority=45 >> etics-registered-build-by-id-protect.repo
+yum install --nogpgcheck -y gridsite gridsite-commands gridsite-debuginfo gridsite-devel gridsite-gsexec gridsite-service-clients gridsite-services
 
-yum install -y gridsite-apache gridsite-commands gridsite-debuginfo gridsite-devel.x86_64 gridsite-gsexec gridsite-service-clients gridsite-services gridsite-shared
+#
+# example how to use external VOMS server tests
+# (deployed localy by default)
+#
+mkdir /etc/vomses
+echo '"vo.org" "emicert-voms.civ.zcu.cz" "15000" "/DC=org/DC=terena/DC=tcs/C=CZ/O=University of West Bohemia/CN=emicert-voms.civ.zcu.cz" "vo.org"' > /etc/vomses/emicert-voms.civ.zcu.cz
 EndInstallScript
 test_done
 

@@ -92,6 +92,10 @@ else
 fi
 UPROXY="/tmp/x509up_u`id -u`"
 
+printf "Proxy status:$NL<verbatim>$NL"
+voms-proxy-info
+printf "</verbatim>$NL"
+
 if getent passwd www-data >/dev/null; then
 	HTTPD_USER=www-data
 else
