@@ -290,6 +290,8 @@ EOF
 
 	date > /tmp/test.txt
 
+	printf "Running GridSite commands with arguments --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ /tmp/test.txt https://$(hostname -f)/$NL"
+
 	printf "Testing htcp... "
 	htcp --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ /tmp/test.txt https://$(hostname -f)/
 	if [ $? -eq 0 ]; then 
