@@ -71,7 +71,7 @@ done
 
 PWD=`pwd`
 
-if [ ! -d "$CERTS_ROOT" ]; then
+if [ ! -d "$CERTS_ROOT" -o ! -e "${CERTS_ROOT}/trusted-certs/trusted_clientsha512.cert" ]; then
 	echo "Generating fake proxy certificate - this may take a few minutes"
 	echo ""
 
