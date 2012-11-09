@@ -90,7 +90,8 @@ if [ $? -gt 0 ]; then
 else
 	test_done
 fi
-UPROXY="/tmp/x509up_u`id -u`"
+UCERT="/tmp/test-certs.root/trusted-certs/trusted_client00.cert"
+UKEY="/tmp/test-certs.root/trusted-certs/trusted_client00.priv-clear"
 
 printf "Proxy status:$NL<verbatim>$NL"
 voms-proxy-info
@@ -116,7 +117,7 @@ EOF
 	$SYS_RM /var/www/htdocs/.gacl
 
 	printf "Plain read... "
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n'  https://$(hostname -f)/test.html`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n'  https://$(hostname -f)/test.html`
 	printf "Return code $code"
 	if [ "$code" = "403" ]; then 
 		test_done
@@ -135,7 +136,7 @@ EOF
 
 
 	printf "With gacl... "
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n'  https://$(hostname -f)/test.html`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n'  https://$(hostname -f)/test.html`
 	printf "Return code $code"
 	if [ "$code" = "200" ]; then 
 		test_done
@@ -147,7 +148,7 @@ EOF
 	printf "Get index (list & read permissions)\n"
 
 	printf "Plain read... "
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' https://$(hostname -f)/`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' https://$(hostname -f)/`
 	printf "Return code $code"
 	if [ "$code" = "403" ]; then 
 		test_done
@@ -159,7 +160,7 @@ cat >/var/www/htdocs/.gacl <<EOF
 <gacl>
   <entry>
     <person>
-      <dn>`openssl x509 -noout -subject -in ${UPROXY} | sed -e 's/^subject= //'`</dn>
+      <dn>`openssl x509 -noout -subject -in ${UCERT} | sed -e 's/^subject= //'`</dn>
     </person>
     <allow><read/><list/></allow>
   </entry>
@@ -167,7 +168,7 @@ cat >/var/www/htdocs/.gacl <<EOF
 EOF
 
 	printf "With gacl... "
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' \
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' \
 https://$(hostname -f)/`
 	printf "Return code $code"
 	if [ "$code" = "200" ]; then 
@@ -186,7 +187,7 @@ https://$(hostname -f)/`
 	chown $HTTPD_USER /var/www/htdocs/
 
 	printf "Plain write... "
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' --upload-file /tmp/test.txt https://$(hostname -f)/test.txt`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' --upload-file /tmp/test.txt https://$(hostname -f)/test.txt`
 	printf "Return code $code"
 	if [ "$code" = "403" ]; then 
 		test_done
@@ -198,7 +199,7 @@ cat >/var/www/htdocs/.gacl <<EOF
 <gacl>
   <entry>
     <person>
-      <dn>`openssl x509 -noout -subject -in ${UPROXY} | sed -e 's/^subject= //'`</dn>
+      <dn>`openssl x509 -noout -subject -in ${UCERT} | sed -e 's/^subject= //'`</dn>
     </person>
     <allow><write/></allow>
   </entry>
@@ -206,7 +207,7 @@ cat >/var/www/htdocs/.gacl <<EOF
 EOF
 
 	printf "With gacl... "
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' --upload-file /tmp/test.txt https://$(hostname -f)/test.txt`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' --upload-file /tmp/test.txt https://$(hostname -f)/test.txt`
 	cmp -s /tmp/test.txt /var/www/htdocs/test.txt
 	printf "Return code $code"
 	if [ $? -eq 0 -a "$code" = "201" ]; then 
@@ -217,7 +218,7 @@ EOF
 
 	printf "Try deletion... "
 	mv  /var/www/htdocs/.gacl /var/www/htdocs/.gacl.bak
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' -X DELETE https://$(hostname -f)/test.txt`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' -X DELETE https://$(hostname -f)/test.txt`
 	printf "Return code $code"
 	if [ $? -eq 0 -a "$code" = "403" ]; then 
 		test_done
@@ -228,7 +229,7 @@ EOF
 	mv /var/www/htdocs/.gacl.bak /var/www/htdocs/.gacl
 
 	printf "With gacl... "
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' -X DELETE https://$(hostname -f)/test.txt`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /dev/null --silent --write-out '%{http_code}\n' -X DELETE https://$(hostname -f)/test.txt`
 	printf "Return code $code"
 	if [ $? -eq 0 -a "$code" = "200" ]; then 
 		test_done
@@ -244,7 +245,7 @@ cat >/var/www/htdocs/.gacl <<EOF
 <gacl>
   <entry>
     <person>
-      <dn>`openssl x509 -noout -subject -in ${UPROXY} | sed -e 's/^subject= //'`</dn>
+      <dn>`openssl x509 -noout -subject -in ${UCERT} | sed -e 's/^subject= //'`</dn>
     </person>
     <allow><read/></allow>
   </entry>
@@ -261,7 +262,7 @@ EOF
 	
 	printf "Run test.cgi... "
 	chmod +x /var/www/htdocs/test.cgi
-	code=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --output /tmp/gridsite.log --silent --write-out '%{http_code}\n'  https://$(hostname -f)/test.cgi`
+	code=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --output /tmp/gridsite.log --silent --write-out '%{http_code}\n'  https://$(hostname -f)/test.cgi`
 	printf "Return code $code"
 	if [ "$code" = "200" ]; then 
 		test_done
@@ -283,7 +284,7 @@ cat >/var/www/htdocs/.gacl <<EOF
 <gacl>
   <entry>
     <person>
-      <dn>`openssl x509 -noout -subject -in ${UPROXY} | sed -e 's/^subject= //'`</dn>
+      <dn>`openssl x509 -noout -subject -in ${UCERT} | sed -e 's/^subject= //'`</dn>
     </person>
     <allow><read/><write/><list/></allow>
   </entry>
@@ -294,52 +295,52 @@ EOF
 
 	date > /tmp/test.txt
 
-	printf "Running GridSite commands with arguments --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ /tmp/test.txt https://$(hostname -f)/$NL"
+	printf "Running GridSite commands with arguments --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ /tmp/test.txt https://$(hostname -f)/$NL"
 
 	printf "Testing htcp... "
-	htcp --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ /tmp/test.txt https://$(hostname -f)/
+	htcp --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ /tmp/test.txt https://$(hostname -f)/
 	if [ $? -eq 0 ]; then 
 		test_done
 	else
 		test_failed
 	fi
 	printf "Checking by htls... "
-	htls --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test.txt > /dev/null
+	htls --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test.txt > /dev/null
 	if [ $? -eq 0 ]; then 
 		test_done
 	else
 		test_failed
 	fi
 	printf "Testing htmv... "
-	htmv --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test.txt https://$(hostname -f)/test2.txt
+	htmv --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test.txt https://$(hostname -f)/test2.txt
 	if [ $? -eq 0 ]; then 
 		test_done
 	else
 		test_failed
 	fi
 	printf "htcp, file 2... "
-	htcp --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test2.txt /tmp
+		htcp --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test2.txt /tmp
 	if [ $? -eq 0 ]; then 
 		test_done
 	else
 		test_failed
 	fi
 	printf "Testing htrm... "
-	htrm --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test2.txt
+	htrm --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test2.txt
 	if [ $? -eq 0 ]; then 
 		test_done
 	else
 		test_failed
 	fi
 	printf "Checking by htls... "
-	htls --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test2.txt 2> /dev/null
+	htls --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/test2.txt 2> /dev/null
 	if [ $? -eq 22 ]; then 
 		test_done
 	else
 		test_failed
 	fi
 	printf "Checking directory contents with htls... "
-	htls --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/ > /dev/null
+	htls --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates/ https://$(hostname -f)/ > /dev/null
 	if [ $? -eq 0 ]; then 
 		test_done
 	else
@@ -363,7 +364,7 @@ EOF
 	chown $HTTPD_USER /var/www/proxycache
 
 	#delegation
-	id=`htproxyput --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates https://$(hostname -f)/gridsite-delegation.cgi`
+	id=`htproxyput --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates https://$(hostname -f)/gridsite-delegation.cgi`
 	printf "id: $id"
 	if [ $? -eq 0 -a -n "$id" ]; then 
 		test_done
@@ -371,9 +372,9 @@ EOF
 		test_failed
 	fi
 
-	expiry=`htproxyunixtime --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
+	expiry=`htproxyunixtime --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
 
-	newid=`htproxyrenew --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
+	newid=`htproxyrenew --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
 	printf "newid: $newid"
 	if [ $? -eq 0 -a -n "$newid" ]; then 
 		test_done
@@ -381,7 +382,7 @@ EOF
 		test_failed
 	fi
 
-	htproxydestroy --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi
+	htproxydestroy --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi
 
 
 	printf "Test handling of VOMS .lsc files (Regression test for bug #39254 and #82023)\n"
@@ -396,7 +397,7 @@ EOF
 		mkdir -p /tmp/vomsdir.$$
 		mv -f /etc/grid-security/vomsdir/* /tmp/vomsdir.$$/
 		printf "Trying with empty vomsdir. GRST_CRED_2 should not be present... "
-		GRST_CRED_2=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
+		GRST_CRED_2=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 		if [ "$GRST_CRED_2" = "" ]; then
 			test_done
 		else
@@ -442,7 +443,7 @@ EOF
 		done
 
 exit 0
-		GRST_CRED_2=`curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
+		GRST_CRED_2=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 
 		if [ "$GRST_CRED_2" = "" ]; then
 			print_error "GRST_CRED_2 not returned"
@@ -472,7 +473,7 @@ exit 0
 			test_done
 			printf "Getting list of Role attributes from test.cgi... "
 
-			curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-pre.$$.out
+			curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-pre.$$.out
 
 			if [ ! -s info-roles.$$.out ]; then
 	                        printf "EMPTY!"
@@ -484,7 +485,7 @@ exit 0
 				voms-proxy-init -noregen > /dev/null 2> /dev/null
 				test_done
 				printf "Getting another set of Role attributes from test.cgi... "
-				curl --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-post.$$.out
+				curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-post.$$.out
 				if [ ! -s test-roles-post.$$.out ]; then
 					test_failed
 					print_error "List of role attributes is empty!"
