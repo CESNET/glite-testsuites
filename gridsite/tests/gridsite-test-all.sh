@@ -90,6 +90,7 @@ if [ $? -gt 0 ]; then
 else
 	test_done
 fi
+UPROXY="/tmp/x509up_u`id -u`"
 UCERT="/tmp/test-certs.root/trusted-certs/trusted_client00.cert"
 UKEY="/tmp/test-certs.root/trusted-certs/trusted_client00.priv-clear"
 
