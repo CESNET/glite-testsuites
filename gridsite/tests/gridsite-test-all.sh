@@ -373,9 +373,9 @@ EOF
 		test_failed
 	fi
 
-	expiry=`htproxyunixtime --cert ${UPROXY} --key ${UPROXY} --capath etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
+	expiry=`htproxyunixtime --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
 
-	newid=`htproxyrenew --cert ${UPROXY} --key ${UPROXY} --capath etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
+	newid=`htproxyrenew --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi`
 	printf "newid: $newid"
 	if [ $? -eq 0 -a -n "$newid" ]; then 
 		test_done
@@ -383,7 +383,7 @@ EOF
 		test_failed
 	fi
 
-	htproxydestroy --cert ${UPROXY} --key ${UPROXY} --capath etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi
+	htproxydestroy --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates --delegation-id $id https://$(hostname -f)/gridsite-delegation.cgi
 
 
 	printf "Test handling of VOMS .lsc files (Regression test for bug #39254 and #82023)\n"
