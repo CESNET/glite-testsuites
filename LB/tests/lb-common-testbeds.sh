@@ -186,8 +186,11 @@ function gen_deployment_header()
 DURATION=`expr $1 - $2`
 SCENARIO="$3"
 
-ISSUE=`cat /etc/issue | head -n 1`
+ISSUE=`cat /etc/issue | head -n 1 | sed -r 's/[\\\r].*$//'`
 PLATFORM=`uname -i`
+if [ "$PLATFORM" == "unknown" ]; then
+    PLATFORM="`uname -sr`"
+fi
 TESTBED=`hostname -f`
 DISTRO=`cat /etc/issue | head -n 1 | sed 's/\s.*$//'`
 VERSION=`cat /etc/issue | head -n 1 | grep -E -o "[0-9]+\.[0-9]+"`
