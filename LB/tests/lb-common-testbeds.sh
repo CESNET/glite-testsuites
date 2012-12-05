@@ -137,13 +137,16 @@ echo echo "  REAL TESTS START HERE" >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh
 echo 'echo "</verbatim>"' >> arrange_lb_test_user.sh
 echo 'echo "<literal>"' >> arrange_lb_test_user.sh
+echo 'log_fprefix=/var/spool/glite/lb-locallogger' >> arrange_lb_test_user.sh
+echo 'if [ ! -d $log_fprefix ]; then log_fprefix=/var/glite/log; fi' >> arrange_lb_test_user.sh
+echo 'log_fprefix=$log_fprefix/dglogd.log' >> arrange_lb_test_user.sh
 echo ./lb-test-permissions.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-event-delivery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo ./lb-test-il-recovery.sh -f /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo ./lb-test-il-recovery.sh -f \$log_fprefix \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-job-registration.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-https.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-job-states.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo ./lb-test-logevent.sh /var/glite/log/dglogd.log \$OUTPUT_OPT >> arrange_lb_test_user.sh
+echo ./lb-test-logevent.sh \$log_fprefix \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-collections.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-notif-recovery.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-notif-msg.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
