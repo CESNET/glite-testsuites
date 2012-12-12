@@ -68,6 +68,10 @@ if [ ! -r ${COMMON} ]; then
 	exit 2
 fi
 source ${COMMON}
+
+export GLITE_LOCATION GLITE_MYSQL_ROOT_PASSWORD GLITE_RTM_TEST_ADDITIONAL_ARGS
+
+
 while test -n "$1"
 do
 	case "$1" in
