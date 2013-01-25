@@ -172,7 +172,8 @@ test_done
 
 					if [ "$?" != "0" ]; then
 						test_failed
-						print_error "JobID not found among data returned"
+						print_error "JobID not found among data returned:"
+						$SYS_CAT https.$$.tmp
 					else
 						test_done
 					fi
@@ -220,7 +221,8 @@ test_done
 
 					if [ "$?" != "0" ]; then
 						test_failed
-						print_error "Notification ID not found among data returned"
+						print_error "Notification ID not found among data returned:"
+						$SYS_CAT https.$$.tmp
 					else
 						test_done
 					fi
