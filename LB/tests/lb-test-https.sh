@@ -213,7 +213,7 @@ test_done
 				else
 					test_done
 
-					printf "Checking for jobid (verifying content)..."
+					printf "Checking NotifID (verifying content)..."
 
 					notifunique=`${SYS_ECHO} ${notifid} | ${SYS_SED} 's/^.*NOTIF://'`
 
