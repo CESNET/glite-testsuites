@@ -217,7 +217,7 @@ test_done
 
 					notifunique=`${SYS_ECHO} ${notifid} | ${SYS_SED} 's/^.*NOTIF://'`
 
-					$SYS_GREP $notifunique https.$$.tmp > /dev/null 2> /dev/null
+					$SYS_GREP -- $notifunique https.$$.tmp > /dev/null 2> /dev/null
 
 					if [ "$?" != "0" ]; then
 						test_failed
