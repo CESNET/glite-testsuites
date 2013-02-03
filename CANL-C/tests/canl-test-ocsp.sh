@@ -119,7 +119,7 @@ ${OPENSSL} x509 -in /etc/grid-security/hostcert.pem -noout\
 
 ocsp_line=`grep OCSP "$server_cert_file"`
 
-echo "Server certificate has OSCP url specified"
+printf "Server certificate has OSCP url specified"
 if [[ ! -z $server_cert_file ]]
 then
    test_done
@@ -141,7 +141,7 @@ else
 fi
 
 
-printf "CANL client: connect to CANL sample server and server cert OCSP verified \n"
+printf "CANL client: connect to CANL sample server (OCSP on)\n"
 ${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}" -o
 if [ $? != 0 ]; then
 	test_failed
