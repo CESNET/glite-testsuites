@@ -114,7 +114,24 @@ ENDTIME=`date +%s`
 
 #Generating report section
 gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > report.twiki
+echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
+if [ $? -eq 0 ]; then
+        printf "\n---++++ Production Repo Contents
 
+<verbatim>\n" >> report.twiki
+        cat ./prod_packages.txt >> report.twiki
+        printf "</verbatim>\n" >> report.twiki
+fi
+
+printf "\n---++++ Test Repo Contents
+
+<verbatim>\n" >> report.twiki
+cat ./repo_packages.txt >> report.twiki
+printf "</verbatim>
+
+---++++ Process
+
+<verbatim>\n" >> report.twiki
 cat caNlInstall.sh >> report.twiki
 printf "</verbatim>
 
