@@ -127,6 +127,15 @@ else
    test_failed
 fi
 
+nu_port=11112
+max_port=11190
+${SYS_LSOF} -i :${nu_port}
+while [ $? -eq 0 -a ${nu_port} -lt ${max_port} ]
+do
+        nu_port=$((nu_port+1))
+        ${SYS_LSOF} -i :${nu_port}
+done
+
 printf "Starting canl sample server \n"
 ${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
         -c /etc/grid-security/hostcert.pem -p "${nu_port}" &
