@@ -146,6 +146,8 @@ fi
 cat $pipe_srv | ${OPENSSL} s_server -key /etc/grid-security/hostkey.pem \
 -cert /etc/grid-security/hostcert.pem -quiet -accept "${nu_port}" &
 last_pid=$!
+# give it a time to start before checks
+sleep 1
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then
 	test_done
