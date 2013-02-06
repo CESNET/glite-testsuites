@@ -23,7 +23,7 @@ COPYPROXY=$2
 
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then 
-        INSTALLCMD="apt-get install -q --yes"
+        INSTALLCMD="apt-get install -q --yes --force-yes"
 	INSTALLPKGS="lintian apache2 netcat-traditional psmisc"
 	HTTPD_SERVER_ROOT=/etc/apache2
 else
