@@ -180,6 +180,7 @@ cat > launch.sh <<EOF
 #! /bin/sh
 hostname -f
 echo "\$@"
+sleep 10
 EOF
 chmod +x launch.sh
 
@@ -248,6 +249,7 @@ cat > launch.sh <<EOF
 #! /bin/sh
 hostname -f
 echo "$@"
+sleep 10
 EOF
 chmod +x launch.sh
 
@@ -327,7 +329,7 @@ for ((pass=0;pass<N;pass++)); do
 done
 
 echo -en "[wild] sleep before cancel...${lf}"
-sleep 10
+sleep 5
 for ((i=0; i<${#job_cats[*]}; i++)); do
 	if test x"${job_cats[$i]}" = x"cancel" -o x"${job_cats[$i]}" = x"cancel_coll" ; then
 		cancel ${jobs[$i]}
