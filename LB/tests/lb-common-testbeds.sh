@@ -24,7 +24,7 @@ COPYPROXY=$2
 
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
-	INSTALLCMD="apt-get install -q --yes"
+	INSTALLCMD="aptitude install -y --allow-untrusted"
 	INSTALLPKGS="lintian"
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
