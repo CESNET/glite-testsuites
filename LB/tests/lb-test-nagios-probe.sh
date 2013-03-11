@@ -88,7 +88,7 @@ DEBUG=2
 test_start
 
 
-printf "Checking if the probe is available..."
+printf "Checking if the server probe is available..."
 
 PROBE="$GLITE_LOCATION/libexec/grid-monitoring/probes/emi.lb/LB-probe"
 
@@ -111,7 +111,7 @@ if [ -f "$PROBE" ]; then
 		exit 2
 	fi
 
-	printf "Running the nagios probe..."
+	printf "Running the L&B server nagios probe..."
 	PROBEOUTPUT=`${PROBE} -H $GLITE_WMS_QUERY_SERVER 2> /dev/null`
 	PROBECODE=$?
 
@@ -126,6 +126,33 @@ if [ -f "$PROBE" ]; then
 			test_failed
 		fi
 	fi
+
+else
+	printf " Probe not available"
+	test_skipped
+fi
+
+printf "Checking if the interlogger probe is available..."
+
+PROBE="$GLITE_LOCATION/libexec/grid-monitoring/probes/emi.lb/LB-probe"
+
+if [ -f "$PROBE" ]; then
+	test_done
+	printf "Running the L&B interlogger nagios probe..."
+        PROBEOUTPUT=`${PROBE} 2> /dev/null`
+        PROBECODE=$?
+
+        printf " \"$PROBEOUTPUT\", ret. code $PROBECODE"
+        $SYS_ECHO $PROBEOUTPUT | $SYS_GREP -E "^OK" > /dev/null 2> /dev/null
+        if [ $? -eq 0 -a $PROBECODE -eq 0 ]; then
+                test_done
+        else
+                if [ "$PROBEOUTPUT" != "" -a $PROBECODE -ne 0 ]; then
+                        test_warning
+                else
+                        test_failed
+                fi
+        fi
 
 else
 	printf " Probe not available"
