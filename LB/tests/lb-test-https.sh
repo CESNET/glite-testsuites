@@ -337,12 +337,17 @@ test_done
 						ItLine=`$SYS_GREP -E "$item" https.$$.tmp`
 						if [ "$?" = "0" ]; then
 							ItValue=`$SYS_ECHO $ItLine | $SYS_GREP -o -E -i "<td>[0-9]+</td>" | $SYS_GREP -o -E -i "[0-9]+"`
-							printf "$ItValue "
-							if [ "$ItValue" != "" -a $ItValue -gt 0 ]; then
-								test_done
+							printf "'$ItValue' "
+							if [ -n "$ItValue" ]; then
+								if [ "$ItValue" != "" -a $ItValue -gt 0 ]; then
+									test_done
+								else
+									test_failed
+									print_error "A numeric value greater than zero should have been returned"
+								fi
 							else
 								test_failed
-								print_error "A numeric value greater tha zero should have been returned"
+								print_error "A numeric value greater than zero should have been returned"
 							fi
 						else
 							test_failed
