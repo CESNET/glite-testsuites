@@ -49,6 +49,7 @@ ${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget sudo bc $INST
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start
+/etc/init.d/postgresql stop
 for conf in /etc/postgresql/8.4/main/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf; do
 	if [ -f \$conf ]; then
 		break;
@@ -60,7 +61,8 @@ local all all trust
 host all all 127.0.0.1/32 ident
 host all all ::1/128 ident
 EOF
-/etc/init.d/postgresql reload
+/etc/init.d/postgresql start
+sleep 5
 createuser -U postgres -S -R -D rtm
 
 #if [ -f ~/.activemqrc ]; then
