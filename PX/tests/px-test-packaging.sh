@@ -48,21 +48,13 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-for COMMON in PX/px-common.sh LB/lb-common.sh
+for COMMON in lb-common.sh px-common.sh
 do
-	SUBSYS=`dirname $COMMON`
-	FILE=`basename $COMMON`
-        if [ ! -r ${FILE} ]; then
-                printf "Downloading common definitions '${COMMON}'"
-                wget -q -O ${FILE} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/$SUBSYS/tests/$FILE?view=co > /dev/null
-                if [ ! -r ${FILE} ]; then
-                        exit 2
-                else
-                        chmod +x $FILE
-                        test_done
-                fi
-        fi
-	source $FILE
+	if [ ! -r ${COMMON} ]; then
+		printf "Common definitions '${COMMON}' missing!"
+		exit 2
+	fi
+	source $COMMON
 done
 
 while test -n "$1"

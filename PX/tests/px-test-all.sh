@@ -52,14 +52,19 @@ source ${COMMON}
 WRKDIR=`pwd`
 for COMMON in lb-common.sh lb-generate-fake-proxy.sh
 do
-	if [ ! -r $COMMON ]; then
-	        printf "Downloading common definitions '$COMMON'"
-	        wget -O $COMMON http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/$COMMON?view=co > /dev/null
-	        if [ ! -r $COMMON ]; then
-	                exit 2
-	        else
-	                test_done
-	        fi
+	if [ ! -r ${COMMON} ]; then
+		if [ -r `dirname $0`/../../LB/tests/${COMMON} ]; then
+			printf "Creating symbolic link for '${COMMON}'"
+			ln -s ../../LB/tests/${COMMON} .
+		else
+			printf "Downloading common definitions '${COMMON}'"
+			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
+			if [ ! -r ${COMMON} ]; then
+				exit 2
+			else
+				test_done
+			fi
+		fi
 	fi
 done
 source lb-common.sh

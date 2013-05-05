@@ -35,7 +35,7 @@ CERTFILE=\$1
 GLITE_USER=\$2
 GSTSTCOLS=\$3
 OUTPUT_OPT=\$4
-CVSROOT=:pserver:anonymous@glite.cvs.cern.ch:/cvs/glite
+GITROOT=git://github.com/CESNET/glite-testsuites.git
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
@@ -44,7 +44,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS CVSROOT
 
-${INSTALLCMD} wget lsof cvs voms-clients globus-proxy-utils $INSTALLPKGS
+${INSTALLCMD} wget lsof git voms-clients globus-proxy-utils $INSTALLPKGS
 
 cd /tmp
 
@@ -53,8 +53,9 @@ if [ $COPYPROXY -eq 1 ]; then
 	chown \`id -un\`:\`id -gn\` x509up_u\`id -u\`
 else
 	rm -rf /tmp/test-certs/grid-security
-	cvs co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
-	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh --all > fake-prox.out.\$\$
+	[ -r glite-testsuites/LB/tests/lb-generate-fake-proxy.sh ] || wget -q -P glite-testsuites/LB/tests/ https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/lb-generate-fake-proxy.sh
+	chmod +x glite-testsuites/LB/tests/lb-generate-fake-proxy.sh
+	glite-testsuites/LB/tests/lb-generate-fake-proxy.sh --all > fake-prox.out.\$\$
 	FAKE_CAS=\`cat fake-prox.out.\$\$ | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
@@ -72,8 +73,8 @@ fi
 cd ~/
 mkdir caNl_testing
 cd caNl_testing
-cvs co org.glite.testsuites.ctb/CANL-C
-cd org.glite.testsuites.ctb/CANL-C/tests
+git clone --depth 0 \$GITROOT
+cd glite-testsuites/CANL-C/tests
 echo ========================
 echo "  REAL TESTS START HERE"
 echo ========================

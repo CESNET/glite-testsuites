@@ -37,7 +37,7 @@ CERTFILE=\$1
 GLITE_USER=\$2
 GSTSTCOLS=\$3
 OUTPUT_OPT=\$4
-CVSROOT=':pserver:anonymous@glite.cvs.cern.ch:/cvs/glite'
+GITROOT=git://github.com/CESNET/glite-testsuites.git
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
@@ -120,11 +120,11 @@ fi
 
 cd /tmp
 
-CVSPATH=\`which cvs\`
+VCSPATH=\`which git\`
 
-if [ "\$CVSPATH" = "" ]; then
-        printf "CVS binary not present"
-	${INSTALLCMD} cvs
+if [ "\$VCSPATH" = "" ]; then
+        printf "git binary not present"
+	${INSTALLCMD} git
 fi
 
 if [ $COPYPROXY -eq 1 ]; then
@@ -132,8 +132,9 @@ if [ $COPYPROXY -eq 1 ]; then
 	chown \`id -un\`:\`id -gn\` x509up_u\`id -u\`
 else
 	rm -rf /tmp/test-certs/grid-security
-	cvs co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
-	./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh > fake-prox.out.\$\$
+	[ -r glite-testsuites/LB/tests/lb-generate-fake-proxy.sh ] || wget -q -P glite-testsuites/LB/tests/ https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/lb-generate-fake-proxy.sh
+	chmod +x glite-testsuites/LB/tests/lb-generate-fake-proxy.sh
+	glite-testsuites/LB/tests/lb-generate-fake-proxy.sh > fake-prox.out.\$\$
 	FAKE_CAS=\`cat fake-prox.out.\$\$ | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
@@ -151,7 +152,7 @@ fi
 if [ ! -d /etc/vomses ]; then
 	echo Installing experimental VOMS server
 	if [ ! -f ./px-voms-install.sh ]; then
-		wget -O px-voms-install.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/px-voms-install.sh?view=co
+		wget https://raw.github.com/CESNET/glite-testsuites/master/PX/tests/px-voms-install.sh
 		chmod +x px-voms-install.sh
 	fi
 	source ./px-voms-install.sh -u root
@@ -160,8 +161,8 @@ fi
 cd ~/
 mkdir GridSite_testing
 cd GridSite_testing
-cvs co org.glite.testsuites.ctb/gridsite
-cd org.glite.testsuites.ctb/gridsite/tests
+git clone --depth 0 \$GITROOT
+cd glite-testsuites/gridsite/tests
 echo ========================
 echo "  REAL TESTS START HERE"
 echo ========================

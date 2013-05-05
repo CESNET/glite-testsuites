@@ -52,12 +52,17 @@ $INSTALLCMD wget
 for COMMON in lb-common.sh test-common.sh lb-common-testbeds.sh
 do
 	if [ ! -r ${COMMON} ]; then
-		printf "Downloading common definitions '${COMMON}'"
-		wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/$COMMON?view=co > /dev/null
-		if [ ! -r ${COMMON} ]; then
-			exit 2
-		else 
-			test_done
+		if [ -r `dirname $0`/../../LB/tests/${COMMON} ]; then
+			printf "Creating symbolic link for '${COMMON}'"
+			ln -s ../../LB/tests/${COMMON} .
+		else
+			printf "Downloading common definitions '${COMMON}'"
+			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
+			if [ ! -r ${COMMON} ]; then
+				exit 2
+			else
+				test_done
+			fi
 		fi
 	fi
 done
@@ -151,7 +156,7 @@ printf "</verbatim>
 ---+++ Tests
 
 | <literal>TestPlan</literal> | https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan |
-| <literal>TestPlan</literal> Tests | http://glite.cvs.cern.ch/cgi-bin/glite.cgi/org.glite.testsuites.ctb/LB/tests/ |
+| <literal>TestPlan</literal> Tests | https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/ |
 | <literal>TestPlan</literal> Test Documentation | http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf |
 
 <verbatim>\n" >> report.twiki
@@ -175,7 +180,7 @@ fi
 INSTALLLOG="`cat Install_log.txt`"
 CONFIGLOG="Configuration log shown with the installation log, see directly above."
 UNITTESTURL="See Build Report. Unit tests are an integral part of the build."
-TESTPLANURL="http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/"
+TESTPLANURL="https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/"
 FUNCTIONALITYTESTURL="https://twiki.cern.ch/twiki/bin/view/EGEE/SA3Testing#LB"
 
 gen_test_report > TestRep.txt

@@ -36,7 +36,7 @@ CERTFILE=\$1
 GLITE_USER=\$2
 PXTSTCOLS=\$3
 OUTPUT_OPT=\$4
-CVSROOT=':pserver:anonymous@glite.cvs.cern.ch:/cvs/glite'
+GITROOT=git://github.com/CESNET/glite-testsuites.git
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
@@ -49,11 +49,11 @@ ${INSTALLCMD} globus-proxy-utils voms-clients curl wget $INSTALLPKGS
 
 cd /tmp
 
-CVSPATH=\`which cvs\`
+VCSPATH=\`which git\`
 
-if [ "\$CVSPATH" = "" ]; then
-        printf "CVS binary not present"
-	${INSTALLCMD} cvs
+if [ "\$VCSPATH" = "" ]; then
+        printf "git binary not present"
+	${INSTALLCMD} git
 fi
 
 glite_id=\`id -u \$GLITE_USER\`
@@ -65,8 +65,9 @@ if [ $COPYPROXY -eq 1 ]; then
 	chown \$GLITE_USER:\$GLITE_USER x509up_u\${glite_id}
 else
 	rm -rf /tmp/test-certs/grid-security
-	cvs co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
-	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
+	[ -r glite-testsuites/LB/tests/lb-generate-fake-proxy.sh ] || wget -q -P glite-testsuites/LB/tests/ https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/lb-generate-fake-proxy.sh
+	chmod +x glite-testsuites/LB/tests/lb-generate-fake-proxy.sh
+	FAKE_CAS=\`glite-testsuites/LB/tests/lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
                 exit 2
@@ -78,7 +79,7 @@ fi
 if [ ! -d /etc/vomses ]; then
         echo Installing experimental VOMS server
         if [ ! -f ./px-voms-install.sh ]; then
-                wget -O px-voms-install.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/px-voms-install.sh?view=co
+                wget https://raw.github.com/CESNET/glite-testsuites/master/PX/tests/px-voms-install.sh
                 chmod +x px-voms-install.sh
         fi
         source ./px-voms-install.sh -u glite
@@ -97,9 +98,9 @@ echo export PXTSTCOLS=\$PXTSTCOLS >> arrange_px_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_px_test_user.sh
 echo mkdir PX_testing >> arrange_px_test_user.sh
 echo cd PX_testing >> arrange_px_test_user.sh
-echo cvs -d \$CVSROOT co org.glite.testsuites.ctb/PX >> arrange_px_test_user.sh
+echo git clone --depth 0 \$GITROOT >> arrange_px_test_user.sh
 echo ls >> arrange_px_test_user.sh
-echo cd org.glite.testsuites.ctb/PX/tests >> arrange_px_test_user.sh
+echo cd glite-testsuites/PX/tests >> arrange_px_test_user.sh
 echo ulimit -c unlimited >> arrange_px_test_user.sh
 echo 'export HNAME=\`hostname -f\`' >> arrange_px_test_user.sh
 echo 'env | egrep "GLITE|\$HNAME|PATH"' >> arrange_px_test_user.sh

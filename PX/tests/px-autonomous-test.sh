@@ -55,10 +55,10 @@ for COMMON in px-common.sh test-common.sh px-common-testbeds.sh
 do
 	if [ ! -r ${COMMON} ]; then
 		printf "Downloading common definitions '${COMMON}'"
-		wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/$COMMON?view=co > /dev/null
+		wget -q https://raw.github.com/CESNET/glite-testsuites/master/PX/tests/$COMMON
 		if [ ! -r ${COMMON} ]; then
 			exit 2
-		else 
+		else
 			test_done
 		fi
 	fi
@@ -66,15 +66,23 @@ done
 source px-common.sh
 source px-common-testbeds.sh
 #also read L&B common definitions for common functions.
-if [ ! -r lb-common-testbeds.sh ]; then
-	printf "Downloading common definitions 'lb-common-testbeds.sh'"
-        wget -O lb-common-testbeds.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common-testbeds.sh?view=co > /dev/null
-        if [ ! -r lb-common-testbeds.sh ]; then
-                exit 2
-        else
-                test_done
-        fi
-fi
+for COMMON in lb-common-testbeds.sh
+do
+	if [ ! -r ${COMMON} ]; then
+		if [ -r `dirname $0`/../../LB/tests/${COMMON} ]; then
+			printf "Creating symbolic link for '${COMMON}'"
+			ln -s ../../LB/tests/${COMMON} .
+		else
+			printf "Downloading common definitions '${COMMON}'"
+			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
+			if [ ! -r ${COMMON} ]; then
+				exit 2
+			else
+				test_done
+			fi
+		fi
+	fi
+done
 source lb-common-testbeds.sh
 
 
@@ -171,7 +179,7 @@ printf "</verbatim>
 
 ---+++ Tests
 
-| !TestPlan | https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan |
+| !TestPlan | https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan |
 | Tests | https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan |
 
 <verbatim>\n" >> report.twiki
@@ -190,7 +198,7 @@ INSTALLLOG="`cat Install_log.txt`"
 CONFIGLOG="Configuration log shown with the installation log, see directly above"
 #UPGRADECMD
 UNITTESTURL="NA"
-TESTPLANURL="http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/PX/tests/"
+TESTPLANURL="https://github.com/CESNET/glite-testsuites/tree/master/PX/tests/"
 FUNCTIONALITYTESTURL="https://twiki.cern.ch/twiki/bin/view/EGEE/SA3Testing#PX"
 
 gen_test_report > TestRep.txt

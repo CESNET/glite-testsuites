@@ -55,7 +55,7 @@ ${INSTALLCMD} emi-voms-mysql wget ${INSTALLPKGS}
 
 #get CAS
 if [ ! -f lb-generate-fake-proxy.sh ]; then
-	wget -O lb-generate-fake-proxy.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh?view=co
+	wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/lb-generate-fake-proxy.sh
 	chmod +x lb-generate-fake-proxy.sh
 fi
 

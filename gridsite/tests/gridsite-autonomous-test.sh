@@ -57,11 +57,10 @@ for COMMON in gridsite-common.sh test-common.sh gridsite-common-testbeds.sh
 do
 	if [ ! -r ${COMMON} ]; then
 		printf "Downloading common definitions '${COMMON}'"
-		wget -O ${COMMON} http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/gridsite/tests/$COMMON?view=co > /dev/null
+		wget -q https://raw.github.com/CESNET/glite-testsuites/master/gridsite/tests/$COMMON
 		if [ ! -r ${COMMON} ]; then
 			exit 2
 		else 
-			chmod +x $COMMON
 			test_done
 		fi
 	fi
@@ -69,16 +68,23 @@ done
 source gridsite-common.sh
 source gridsite-common-testbeds.sh
 #also read L&B common definitions for common functions.
-if [ ! -r lb-common-testbeds.sh ]; then
-	printf "Downloading common definitions 'lb-common-testbeds.sh'"
-        wget -O lb-common-testbeds.sh http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/LB/tests/lb-common-testbeds.sh?view=co > /dev/null
-        if [ ! -r lb-common-testbeds.sh ]; then
-                exit 2
-        else
-		chmod +x lb-common-testbeds.sh
-                test_done
-        fi
-fi
+for COMMON in lb-common-testbeds.sh
+do
+	if [ ! -r ${COMMON} ]; then
+		if [ -r `dirname $0`/../../LB/tests/${COMMON} ]; then
+			printf "Creating symbolic link for '${COMMON}'"
+			ln -s ../../LB/tests/${COMMON} .
+		else
+			printf "Downloading common definitions '${COMMON}'"
+			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
+			if [ ! -r ${COMMON} ]; then
+				exit 2
+			else
+				test_done
+			fi
+		fi
+	fi
+done
 source lb-common-testbeds.sh
 
 
@@ -164,7 +170,7 @@ printf "</verbatim>
 ---+++ Tests
 
 | !TestPlan | https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan |
-| Tests | http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/gridsite/tests/ |
+| Tests | https://github.com/CESNET/glite-testsuites/tree/master/gridsite/tests/ |
 
 <verbatim>\n" >> report.twiki
 cat test_log.txt >> report.twiki
@@ -182,7 +188,7 @@ INSTALLLOG="`cat Install_log.txt`"
 CONFIGLOG="GridSite does not use any specific configuration procedure. No log provided"
 #UPGRADECMD
 UNITTESTURL="NA"
-TESTPLANURL="http://jra1mw.cvs.cern.ch/cgi-bin/jra1mw.cgi/org.glite.testsuites.ctb/gridsite/tests/"
+TESTPLANURL="https://github.com/CESNET/glite-testsuites/tree/master/gridsite/tests/"
 FUNCTIONALITYTESTURL="https://twiki.cern.ch/twiki/bin/view/EGEE/SA3Testing#GridSite"
 
 gen_test_report > TestRep.txt

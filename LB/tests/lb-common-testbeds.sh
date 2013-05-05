@@ -36,7 +36,7 @@ CERTFILE=\$1
 GLITE_USER=\$2
 LBTSTCOLS=\$3
 OUTPUT_OPT=\$4
-CVSROOT=':pserver:anonymous@glite.cvs.cern.ch:/cvs/glite'
+GITROOT=git://github.com/CESNET/glite-testsuites.git
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
@@ -73,11 +73,11 @@ createuser -U postgres -S -R -D rtm
 
 cd /tmp
 
-CVSPATH=\`which cvs\`
+VCSPATH=\`which git\`
 
-if [ "\$CVSPATH" = "" ]; then
-        printf "CVS binary not present"
-	${INSTALLCMD} cvs
+if [ "\$VCSPATH" = "" ]; then
+	printf "git binary not present"
+	${INSTALLCMD} git
 fi
 
 glite_id=\`id -u \$GLITE_USER\`
@@ -89,8 +89,9 @@ if [ $COPYPROXY -eq 1 ]; then
 	chown \$GLITE_USER:\$GLITE_USER x509up_u\${glite_id}
 else
 	rm -rf /tmp/test-certs/grid-security
-	cvs co org.glite.testsuites.ctb/LB > /dev/null 2>/dev/null
-	FAKE_CAS=\`./org.glite.testsuites.ctb/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
+	[ -r glite-testsuites/LB/tests/lb-generate-fake-proxy.sh ] || wget -q -P glite-testsuites/LB/tests/ https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/lb-generate-fake-proxy.sh
+	chmod +x glite-testsuites/LB/tests/lb-generate-fake-proxy.sh
+	FAKE_CAS=\`glite-testsuites/LB/tests/lb-generate-fake-proxy.sh | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'\`
 	if [ "\$FAKE_CAS" = "" ]; then
                 echo "Failed generating proxy" >&2
                 exit 2
@@ -112,9 +113,9 @@ echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_lb_test_user.sh
 echo mkdir -p LB_testing >> arrange_lb_test_user.sh
 echo cd LB_testing >> arrange_lb_test_user.sh
-echo cvs -d \$CVSROOT co org.glite.testsuites.ctb/LB >> arrange_lb_test_user.sh
+echo git clone --depth 0 \$GITROOT >> arrange_lb_test_user.sh
 echo ls >> arrange_lb_test_user.sh
-echo cd org.glite.testsuites.ctb/LB/tests >> arrange_lb_test_user.sh
+echo cd glite-testsuites/LB/tests >> arrange_lb_test_user.sh
 echo ulimit -c unlimited >> arrange_lb_test_user.sh
 echo 'export HNAME=\`hostname -f\`' >> arrange_lb_test_user.sh
 echo 'export GLITE_WMS_QUERY_SERVER=\$HNAME:9000' >> arrange_lb_test_user.sh

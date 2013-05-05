@@ -77,12 +77,12 @@ if [ ! -d "$CERTS_ROOT" -o ! -e "${CERTS_ROOT}/trusted-certs/trusted_clientsha51
 
 	mkdir -p $CERTS_ROOT
 	cd $CERTS_ROOT
-	wget -q -O org.glite.security.test-utils.tar.gz \
-		'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/org.glite.security.test-utils.tar.gz?view=tar' &> /dev/null || exit 1
-	tar xzf org.glite.security.test-utils.tar.gz || exit 1
-	# keep using system default hash (even when different across openssl versions)
-	sed -i.orig 's/openssl x509 -subject_hash_old/openssl x509 -hash/' org.glite.security.test-utils/bin/generate-test-certificates.sh
-	org.glite.security.test-utils/bin/generate-test-certificates.sh\
+	if [ ! -d glite-security-test-utils ]; then
+		git clone --depth 0 http://scientific.zcu.cz/git/glite-security-test-utils.git || exit 1
+		# keep using system default hash (even when different across openssl versions)
+		sed -i.orig 's/openssl x509 -subject_hash_old/openssl x509 -hash/' glite-security-test-utils/bin/generate-test-certificates.sh	
+	fi
+	glite-security-test-utils/bin/generate-test-certificates.sh\
 	$GEN_ALL $CERTS_ROOT &> /dev/null || exit 1
 fi
 

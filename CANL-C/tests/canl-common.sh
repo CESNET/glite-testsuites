@@ -180,10 +180,8 @@ return 0
 
 function get_canl_examples()
 {
-	wget -q -O canl_examples.tar.gz \
-        	'http://jra1mw.cvs.cern.ch:8180/cgi-bin/jra1mw.cgi/emi.canl.canl-c/examples.tar.gz?view=tar' &> /dev/null || return 1
-	tar xzf canl_examples.tar.gz || return 1
-	rm -rf canl_examples.tar.gz
+	u=https://raw.github.com/CESNET/canl-c/master/examples
+	wget -q $u/canl_sample_client.c $u/canl_sample_server.c $u/delegation.c $u/grid-proxy-init.c
 	make -s || return 1
 	rm -rf examples/
 	return 0
