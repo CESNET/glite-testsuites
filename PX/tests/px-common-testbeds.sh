@@ -52,8 +52,9 @@ cd /tmp
 VCSPATH=\`which git\`
 
 if [ "\$VCSPATH" = "" ]; then
-        printf "git binary not present"
+        printf "git binary not present, installing..."
 	${INSTALLCMD} git
+	echo " done"
 fi
 
 glite_id=\`id -u \$GLITE_USER\`
