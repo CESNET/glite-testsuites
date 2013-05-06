@@ -45,7 +45,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export LBTSTCOLS CVSROOT
 
-${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget sudo bc $INSTALLPKGS
+${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget ca-certificates sudo bc $INSTALLPKGS
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start

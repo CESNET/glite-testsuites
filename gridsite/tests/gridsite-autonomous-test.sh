@@ -50,7 +50,7 @@ else
 	UPGRADECMD="yum update"
 fi
 
-$INSTALLCMD wget
+$INSTALLCMD wget ca-certificates
 
 # read common definitions and functions
 for COMMON in gridsite-common.sh test-common.sh gridsite-common-testbeds.sh

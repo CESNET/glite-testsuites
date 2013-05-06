@@ -46,7 +46,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS CVSROOT
 
-${INSTALLCMD} voms-clients curl wget lsof sudo $INSTALLPKGS
+${INSTALLCMD} voms-clients curl wget ca-certificates lsof sudo $INSTALLPKGS
 
 if test -f /usr/sbin/apache2; then
 	SYS_APACHE=apache2

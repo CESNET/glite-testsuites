@@ -48,7 +48,7 @@ else
         INSTALLPKGS="rpmlint"
 fi
 
-$INSTALLCMD wget
+$INSTALLCMD wget ca-certificates
 
 # read common definitions and functions
 for COMMON in px-common.sh test-common.sh px-common-testbeds.sh

@@ -44,7 +44,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS CVSROOT
 
-${INSTALLCMD} wget lsof git voms-clients globus-proxy-utils $INSTALLPKGS
+${INSTALLCMD} wget ca-certificates lsof git voms-clients globus-proxy-utils $INSTALLPKGS
 
 cd /tmp
 

@@ -45,7 +45,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export PXTSTCOLS CVSROOT
 
-${INSTALLCMD} globus-proxy-utils voms-clients curl wget $INSTALLPKGS
+${INSTALLCMD} globus-proxy-utils voms-clients curl wget ca-certificates $INSTALLPKGS
 
 cd /tmp
 
