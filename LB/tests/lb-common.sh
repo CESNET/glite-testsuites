@@ -446,3 +446,85 @@ $src"
 	rm -rf $dir
 	return $ret
 }
+
+function check_build_help() {
+	local progname=$1
+
+	cat << EndHelpHeader
+Script for checking warnings in the build reports.
+
+Prerequisities:
+   - build reports copied into /tmp/reports
+   - permited file names are *-build.log or *.build (output files from mock
+     or pbuilder)
+
+Returned values:
+    Exit TEST_OK: Test Passed or Not Performed
+    Exit TEST_ERROR: Test Failed
+EndHelpHeader
+
+	echo "Usage: $progname [OPTIONS]"
+	echo "Options:"
+	echo " -h | --help            Show this help message."
+	echo " -o | --output 'file'   Redirect all output to the 'file' (stdout by default)."
+	echo " -t | --text            Format output as plain ASCII text."
+	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
+	echo " -x | --html            Format output as html."
+}
+
+function check_build() {
+	local dir=${1:-'/tmp/reports'}
+	local logs=`cd "$dir"; ls -1 *-build.log *.build 2>/dev/null`
+	local ret=0
+	local fatal=0
+
+	printf "Build reports available"
+	if [ -z "$logs" ]; then
+		printf ": no";
+		test_skipped
+		return 0
+	fi
+	test_done
+
+	for log in $logs; do
+		printf "Checking $log"
+		egrep 'warning: assignment makes pointer from integer without a cast' "$dir/$log" >/dev/null || \
+		egrep 'warning: implicit declaration of function' "$dir/$log" >/dev/null
+		fatal=$?
+		if [ $fatal -eq 2 ]; then
+			test_skipped
+			continue
+		fi
+		# all relevant warning
+		out="`grep 'warning: ' \"$dir/$log\" | egrep -v 'libtool|#ident|dpkg-[^:]+:'`"
+		# filter-out warning considered OK but displayed
+#echo "####$out####"
+#echo "####`echo \"\$out\" | grep -v '^Makefile:'`####"
+		if [ -n "`echo \"\$out\" | grep -v '^Makefile:'`" ]; then
+			if [ $fatal -eq 0 ]; then
+				test_failed
+				print_error "fatal warnings found"
+				ret=1
+			else
+				test_warning
+			fi
+		else
+			test_done
+		fi
+		if [ -n "$out" ]; then
+			if test -n "$is_html"; then
+				printf "<pre>"
+			else
+				printf "${lf}"
+			fi
+			printf '%s' "$out"
+			if test -n "$is_html"; then
+				printf "</pre>\n"
+			else
+				printf "${lf}${lf}"
+			fi
+		fi
+	done
+
+	return $ret
+}

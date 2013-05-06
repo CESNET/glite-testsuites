@@ -120,6 +120,7 @@ echo 'echo "</PRE>"' >> arrange_px_test_user.sh
 echo 'echo "<literal>"' >> arrange_px_test_user.sh
 echo ./px-test-all.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
 echo ./px-test-packaging.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
+echo ./px-test-build.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
 echo 'echo "</literal>"' >> arrange_px_test_user.sh
 echo 'echo "<PRE>"' >> arrange_px_test_user.sh
 echo echo ================== >> arrange_px_test_user.sh
