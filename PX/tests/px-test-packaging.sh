@@ -48,13 +48,13 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-for COMMON in lb-common.sh px-common.sh
+for COMMON in px-common.sh ../../LB/tests/lb-common.sh
 do
 	if [ ! -r ${COMMON} ]; then
 		printf "Common definitions '${COMMON}' missing!"
 		exit 2
 	fi
-	source $COMMON
+	source ${COMMON}
 done
 
 while test -n "$1"

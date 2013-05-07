@@ -55,8 +55,12 @@ ${INSTALLCMD} emi-voms-mysql wget ca-certificates ${INSTALLPKGS}
 
 #get CAS
 if [ ! -f lb-generate-fake-proxy.sh ]; then
-	wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/lb-generate-fake-proxy.sh
-	chmod +x lb-generate-fake-proxy.sh
+	if [ -f ../../LB/tests/lb-generate-fake-proxy.sh ]; then
+		ln -s ../../LB/tests/lb-generate-fake-proxy.sh .
+	else
+		wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/lb-generate-fake-proxy.sh
+		chmod +x lb-generate-fake-proxy.sh
+	fi
 fi
 
 FAKE_CAS=`sh ./lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`

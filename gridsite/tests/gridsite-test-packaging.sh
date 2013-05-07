@@ -48,7 +48,7 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-for COMMON in gridsite-common.sh lb-common.sh
+for COMMON in gridsite-common.sh ../../LB/tests/lb-common.sh
 do
 	if [ ! -r ${COMMON} ]; then
 		printf "Common definitions '${COMMON}' missing!"

@@ -43,33 +43,17 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=px-common.sh
-if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
-	exit 2
-fi
-source ${COMMON}
-WRKDIR=`pwd`
-for COMMON in lb-common.sh lb-generate-fake-proxy.sh
+for COMMON in px-common.sh ../../LB/tests/lb-common.sh
 do
 	if [ ! -r ${COMMON} ]; then
-		if [ -r `dirname $0`/../../LB/tests/${COMMON} ]; then
-			printf "Creating symbolic link for '${COMMON}'"
-			ln -s ../../LB/tests/${COMMON} .
-		else
-			printf "Downloading common definitions '${COMMON}'"
-			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
-			if [ ! -r ${COMMON} ]; then
-				exit 2
-			else
-				test_done
-			fi
-		fi
+		printf "Common definitions '${COMMON}' missing!"
+		exit 2
 	fi
+	source ${COMMON}
 done
-source lb-common.sh
-chmod +x lb-generate-fake-proxy.sh
+[ -f lb-generate-fake-proxy.sh ] || ln -s ../../LB/tests/lb-generate-fake-proxy.sh .
 
+WRKDIR=`pwd`
 
 logfile=$$.tmp
 flag=0
