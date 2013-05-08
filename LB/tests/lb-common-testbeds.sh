@@ -45,7 +45,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export LBTSTCOLS CVSROOT
 
-${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget ca-certificates sudo bc $INSTALLPKGS
+${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget ca-certificates sudo bc gcc make $INSTALLPKGS
 
 /etc/init.d/postgresql initdb >/dev/null 2>&1
 /etc/init.d/postgresql start
@@ -117,6 +117,7 @@ echo cd LB_testing >> arrange_lb_test_user.sh
 echo git clone --depth 0 \$GITROOT >> arrange_lb_test_user.sh
 echo ls >> arrange_lb_test_user.sh
 echo cd glite-testsuites/LB/tests >> arrange_lb_test_user.sh
+echo make >> arrange_lb_test_user.sh
 echo ulimit -c unlimited >> arrange_lb_test_user.sh
 echo 'export HNAME=\`hostname -f\`' >> arrange_lb_test_user.sh
 echo 'export GLITE_WMS_QUERY_SERVER=\$HNAME:9000' >> arrange_lb_test_user.sh

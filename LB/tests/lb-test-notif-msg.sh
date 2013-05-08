@@ -157,7 +157,7 @@ test_done
                                         test_failed
                                         print_error "Could not read server configuration"
                                 else
-					BROKER=`$SYS_CAT configuration.$$.tmp | $SYS_GREP -E "^msg_brokers=" | $SYS_SED -r 's/^msg_brokers=\s*//' | $SYS_SED -r 's/\s+.*$//' | $SYS_SED 's/tcp:\/\///'`
+					BROKER=`$SYS_CAT configuration.$$.tmp | $SYS_GREP -E "^msg_brokers=" | $SYS_SED -r 's/^msg_brokers=\s*//' | $SYS_SED -r 's/[, ].*$//' | $SYS_SED 's/tcp:\/\///'`
 					rm configuration.$$.tmp
 					test_done
 				fi
@@ -215,6 +215,32 @@ test_done
 				else
 					test_failed
 					print_error "Fewer messages than expected"
+				fi
+
+				printf "Checking standard compliance with RFC 4627 "
+				./cms-split.pl < $$_notifications.txt
+				errout=""
+				ok=1
+				for file in cms-*.json; do
+					out="`./JSON_checker < $file 2>&1`"
+					if [ $? -eq 0 ]; then
+						printf "."
+					else
+						printf "!"
+						ok=0
+						errout="$errout$out"
+						cat $file >&2
+					fi
+					rm $file
+				done
+				if [ $ok -eq 1 ]; then
+					printf " OK"
+					test_done
+				else
+					test_failed
+					if [ -n "$errout" ]; then
+						print_error "$errout"
+					fi
 				fi
 
 				$SYS_RM $$_notifications.txt
