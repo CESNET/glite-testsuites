@@ -370,7 +370,7 @@ function check_rpmlint() {
 
 	printf "Packages compliance check output:${lf}"
 	while test -n "$1"; do
-		for pkg in `rpm -qa --queryformat '%{NAME} ' $1`; do
+		for pkg in `rpm -qa --queryformat '%{NAME} ' "$1"`; do
 			printf "$pkg${lf}"
 			out="`rpmlint $pkg`"
 			if test -n "$is_html"; then
