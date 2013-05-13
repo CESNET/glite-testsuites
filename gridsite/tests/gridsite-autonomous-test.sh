@@ -143,30 +143,30 @@ echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
 if [ $? -eq 0 ]; then
         printf "\n<H4>Production Repo Contents</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
         cat ./prod_packages.txt >> report.twiki
-        printf "</verbatim>\n" >> report.twiki
+        printf "</PRE>\n" >> report.twiki
 fi
 
 printf "\n<H4>Test Repo Contents</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 cat ./repo_packages.txt >> report.twiki
-printf "</verbatim>
+printf "</PRE>
 
 ---<H4>Process</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 
 cat GridSiteInstall.sh >> report.twiki
-printf "</verbatim>
+printf "</PRE>
 
 ---<H4>Full Output of the Installation</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 cat Install_log.txt >> report.twiki
 
-printf "</verbatim>
+printf "</PRE>
 
 ---<H3>Tests</H3>
 
@@ -175,7 +175,7 @@ printf "</verbatim>
 <tr><td> Tests </td><td> <A HREF="https://github.com/CESNET/glite-testsuites/tree/master/gridsite/tests/">https://github.com/CESNET/glite-testsuites/tree/master/gridsite/tests/</A> </td></tr>
 </table>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 cat test_log.txt >> report.twiki
 
 #Generating test report

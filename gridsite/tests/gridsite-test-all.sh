@@ -94,9 +94,9 @@ UPROXY="/tmp/x509up_u`id -u`"
 UCERT="/tmp/test-certs.root/trusted-certs/trusted_client00.cert"
 UKEY="/tmp/test-certs.root/trusted-certs/trusted_client00.priv-clear"
 
-printf "Proxy status:$NL<verbatim>$NL"
+printf "Proxy status:$NL<PRE>$NL"
 voms-proxy-info
-printf "</verbatim>$NL"
+printf "</PRE>$NL"
 
 if getent passwd www-data >/dev/null; then
 	HTTPD_USER=www-data

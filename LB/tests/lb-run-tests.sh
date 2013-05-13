@@ -76,7 +76,7 @@ if [ -z $outformat ]; then
 fi 
 
 # check_binaries
-printf "<verbatim>\nTesting if all binaries are available"
+printf "<PRE>\nTesting if all binaries are available"
 check_binaries $GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $SYS_SCP
 if [ $? -gt 0 ]; then
 	test_failed

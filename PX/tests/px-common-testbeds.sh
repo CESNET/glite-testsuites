@@ -116,12 +116,12 @@ else
 echo echo ======================== >> arrange_px_test_user.sh
 echo echo "  REAL TESTS START HERE" >> arrange_px_test_user.sh
 echo echo ======================== >> arrange_px_test_user.sh
-echo 'echo "</verbatim>"' >> arrange_px_test_user.sh
+echo 'echo "</PRE>"' >> arrange_px_test_user.sh
 echo 'echo "<literal>"' >> arrange_px_test_user.sh
 echo ./px-test-all.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
 echo ./px-test-packaging.sh \$OUTPUT_OPT >> arrange_px_test_user.sh
 echo 'echo "</literal>"' >> arrange_px_test_user.sh
-echo 'echo "<verbatim>"' >> arrange_px_test_user.sh
+echo 'echo "<PRE>"' >> arrange_px_test_user.sh
 echo echo ================== >> arrange_px_test_user.sh
 echo echo "  TESTS END HERE" >> arrange_px_test_user.sh
 echo echo ================== >> arrange_px_test_user.sh
@@ -133,7 +133,7 @@ chmod +x arrange_px_test_user.sh
 
 #su -l \$GLITE_USER
 su -l \$GLITE_USER --command=/tmp/arrange_px_test_user.sh
-echo "</verbatim>"
+echo "</PRE>"
 
 EndArrangeScript
 }
