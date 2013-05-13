@@ -141,37 +141,39 @@ gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > report.twiki
 
 echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
 if [ $? -eq 0 ]; then
-        printf "\n---++++ Production Repo Contents
+        printf "\n<H4>Production Repo Contents</H4>
 
 <verbatim>\n" >> report.twiki
         cat ./prod_packages.txt >> report.twiki
         printf "</verbatim>\n" >> report.twiki
 fi
 
-printf "\n---++++ Test Repo Contents
+printf "\n<H4>Test Repo Contents</H4>
 
 <verbatim>\n" >> report.twiki
 cat ./repo_packages.txt >> report.twiki
 printf "</verbatim>
 
----++++ Process
+---<H4>Process</H4>
 
 <verbatim>\n" >> report.twiki
 
 cat GridSiteInstall.sh >> report.twiki
 printf "</verbatim>
 
----++++ Full Output of the Installation
+---<H4>Full Output of the Installation</H4>
 
 <verbatim>\n" >> report.twiki
 cat Install_log.txt >> report.twiki
 
 printf "</verbatim>
 
----+++ Tests
+---<H3>Tests</H3>
 
-| !TestPlan | https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan |
-| Tests | https://github.com/CESNET/glite-testsuites/tree/master/gridsite/tests/ |
+<table>
+<tr><td> TestPlan </td><td> <A HREF="https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan">https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan</A> </td></tr>
+<tr><td> Tests </td><td> <A HREF="https://github.com/CESNET/glite-testsuites/tree/master/gridsite/tests/">https://github.com/CESNET/glite-testsuites/tree/master/gridsite/tests/</A> </td></tr>
+</table>
 
 <verbatim>\n" >> report.twiki
 cat test_log.txt >> report.twiki

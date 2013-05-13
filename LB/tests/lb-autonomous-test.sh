@@ -126,41 +126,43 @@ gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > report.twiki
 
 echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
 if [ $? -eq 0 ]; then
-        printf "\n---++++ Production Repo Contents
+        printf "\n<H4>Production Repo Contents</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
         cat ./prod_packages.txt >> report.twiki
-        printf "</verbatim>\n" >> report.twiki
+        printf "</PRE>\n" >> report.twiki
 fi
 
-printf "\n---++++ Test Repo Contents
+printf "\n<H4>Test Repo Contents</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 cat ./repo_packages.txt >> report.twiki
-printf "</verbatim>
+printf "</PRE>
 
----++++ Process
+<H4>Process</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 
 
 cat LBinstall.sh >> report.twiki
-printf "</verbatim>
+printf "</PRE>
 
----++++ Full Output of the Installation
+<H4>Full Output of the Installation</H4>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 cat Install_log.txt >> report.twiki
 
-printf "</verbatim>
+printf "</PRE>
 
----+++ Tests
+<H3>Tests</H3>
 
-| <literal>TestPlan</literal> | https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan |
-| <literal>TestPlan</literal> Tests | https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/ |
-| <literal>TestPlan</literal> Test Documentation | http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf |
+<table>
+<tr><td> <literal>TestPlan</literal> <td></td> <A HREF="https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan">https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan</A> </td></tr>
+<tr><td> <literal>TestPlan</literal> Tests <td></td> <A HREF="https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/">https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/</A> </td></tr>
+<tr><td> <literal>TestPlan</literal> Test Documentation <td></td> <A HREF="http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf">http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf</A> </td></tr>
+</table>
 
-<verbatim>\n" >> report.twiki
+<PRE>\n" >> report.twiki
 cat test_log.txt >> report.twiki
 
 PRODUCT="emi.lb"

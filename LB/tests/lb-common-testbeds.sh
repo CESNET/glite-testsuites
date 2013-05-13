@@ -138,7 +138,7 @@ else
 echo echo ======================== >> arrange_lb_test_user.sh
 echo echo "  REAL TESTS START HERE" >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh
-echo 'echo "</verbatim>"' >> arrange_lb_test_user.sh
+echo 'echo "</PRE>"' >> arrange_lb_test_user.sh
 echo 'echo "<literal>"' >> arrange_lb_test_user.sh
 echo 'log_fprefix=/var/spool/glite/lb-locallogger' >> arrange_lb_test_user.sh
 echo 'if [ ! -d \$log_fprefix ]; then log_fprefix=/var/glite/log; fi' >> arrange_lb_test_user.sh
@@ -170,7 +170,7 @@ echo ./lb-test-packaging.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-dump-load.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo perl ./lb-test-purge.pl --i-want-to-purge $remotehost:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo 'echo "</literal>"' >> arrange_lb_test_user.sh
-echo 'echo "<verbatim>"' >> arrange_lb_test_user.sh
+echo 'echo "<PRE>"' >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
 echo echo "  TESTS END HERE" >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
@@ -182,7 +182,7 @@ chmod +x arrange_lb_test_user.sh
 
 #su -l \$GLITE_USER
 su -l \$GLITE_USER --command=/tmp/arrange_lb_test_user.sh
-echo "</verbatim>"
+echo "</PRE>"
 
 EndArrangeScript
 }
@@ -203,18 +203,20 @@ VERSION=`cat /etc/issue | head -n 1 | grep -E -o "[0-9]+(\.[0-9]+)?"`
 MAJOR=`echo $VERSION | sed 's/\..*$//'`
 
 printf "
----++ $SCENARIO, $DISTRO $MAJOR ($PLATFORM)
+<H2>$SCENARIO, $DISTRO $MAJOR ($PLATFORM)</H2>
 
----+++ Environment
+<H3>Environment</H3>
 #CleanInstallation
 
 Clean installation according to EMI guidelines (CA certificates, proxy certificate...).
 
-| OS Issue | $ISSUE |
-| Platform | $PLATFORM |
-| Host | =$TESTBED= |
-| Duration | `expr $DURATION / 60` min |
-| Testbed uptime | =`uptime | sed 's/^\s*//'`= |
+<table>
+<tr><td> OS Issue </td><td> $ISSUE </td></tr>
+<tr><td> Platform </td><td> $PLATFORM </td></tr>
+<tr><td> Host </td><td> =$TESTBED= </td></tr>
+<tr><td> Duration </td><td> `expr $DURATION / 60` min </td></tr>
+<tr><td> Testbed uptime </td><td> =`uptime | sed 's/^\s*//'`= </td></tr>
+</table>
 
 "
 }
