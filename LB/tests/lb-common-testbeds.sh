@@ -206,16 +206,16 @@ printf "
 <H2>$SCENARIO, $DISTRO $MAJOR ($PLATFORM)</H2>
 
 <H3>Environment</H3>
-#CleanInstallation
+<A NAME="CleanInstallation">
 
 Clean installation according to EMI guidelines (CA certificates, proxy certificate...).
 
 <table>
 <tr><td> OS Issue </td><td> $ISSUE </td></tr>
 <tr><td> Platform </td><td> $PLATFORM </td></tr>
-<tr><td> Host </td><td> =$TESTBED= </td></tr>
+<tr><td> Host </td><td> <PRE>$TESTBED</PRE> </td></tr>
 <tr><td> Duration </td><td> `expr $DURATION / 60` min </td></tr>
-<tr><td> Testbed uptime </td><td> =`uptime | sed 's/^\s*//'`= </td></tr>
+<tr><td> Testbed uptime </td><td> <PRE>`uptime | sed 's/^\s*//'`</PRE> </td></tr>
 </table>
 
 "

@@ -154,21 +154,21 @@ printf "\n<H4>Test Repo Contents</H4>
 cat ./repo_packages.txt >> report.twiki
 printf "</PRE>
 
----<H4>Process</H4>
+<H4>Process</H4>
 
 <PRE>\n" >> report.twiki
 
 cat GridSiteInstall.sh >> report.twiki
 printf "</PRE>
 
----<H4>Full Output of the Installation</H4>
+<H4>Full Output of the Installation</H4>
 
 <PRE>\n" >> report.twiki
 cat Install_log.txt >> report.twiki
 
 printf "</PRE>
 
----<H3>Tests</H3>
+<H3>Tests</H3>
 
 <table>
 <tr><td> TestPlan </td><td> <A HREF="https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan">https://twiki.cern.ch/twiki/bin/view/EGEE/GridSiteTestPlan</A> </td></tr>
