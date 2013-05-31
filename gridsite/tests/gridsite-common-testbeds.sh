@@ -91,7 +91,7 @@ sed \\
 	-e 's!/var/www/html!/var/www/htdocs!' \\
 	-e  "s/FULL.SERVER.NAME/\$(hostname -f)/" \\
 	-e "s/\(GridSiteGSIProxyLimit\)/# \1/" \\
-	-e "s!^\(ServerRoot\).*!\1 $HTTPD_SERVER_ROOT!" \\
+	-e "s,^\(ServerRoot\).*,\1 $HTTPD_SERVER_ROOT," \\
 	-e "s/^User .*/User \$HTTPD_USER/" \\
 	-e "s/^Group .*/Group \$HTTPD_USER/" \\
   \$HTTPD_CONF_SRC > \$HTTPD_CONF
@@ -101,6 +101,17 @@ echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >>
 if [ ! -f $HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
 	sed -i 's/^\(LoadModule\\s\\+log_config_module.*\)/# \1/' \$HTTPD_CONF
 fi
+# Fedora 18+
+for mod in mpm_prefork unixd; do
+	if [ -f $HTTPD_SERVER_ROOT/modules/mod_\${mod}.so ]; then
+		echo "LoadModule \${mod}_module	modules/mod_\${mod}.so" >> \$HTTPD_CONF
+	fi
+done
+# Fedora 18+ - dunno what should replace the shm://
+if grep Fedora /etc/issue >/dev/null; then
+	sed -i 's,^\(SSLSessionCache.*\),#\1,' \$HTTPD_CONF
+fi
+
 mkdir -p /var/www/htdocs
 killall httpd apache2 >/dev/null 2>&1
 sleep 2
