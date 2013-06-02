@@ -47,7 +47,8 @@ export LBTSTCOLS CVSROOT
 
 ${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget ca-certificates sudo bc gcc make $INSTALLPKGS
 
-/etc/init.d/postgresql initdb >/dev/null 2>&1
+/etc/init.d/postgresql initdb >/dev/null 2>&1 || :
+postgresql-setup initdb >/dev/null 2>&1 || :
 /etc/init.d/postgresql start
 sleep 10
 for conf in /etc/postgresql/8.4/main/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf; do
