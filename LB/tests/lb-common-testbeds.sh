@@ -47,9 +47,14 @@ export LBTSTCOLS CVSROOT
 
 ${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget ca-certificates sudo bc gcc make $INSTALLPKGS
 
-/etc/init.d/postgresql initdb >/dev/null 2>&1 || :
+if [ -x /sbin/service ]; then
+	PSQL_CMD="/sbin/service postgresql"
+else
+	PSQL_CMD="/etc/init.d/postgresql"
+fi
+\$PSQL_CMD initdb >/dev/null 2>&1 || :
 postgresql-setup initdb >/dev/null 2>&1 || :
-/etc/init.d/postgresql start
+\$PSQL_CMD start
 sleep 10
 for conf in /etc/postgresql/8.4/main/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf; do
 	if [ -f \$conf ]; then
@@ -62,7 +67,7 @@ local all all trust
 host all all 127.0.0.1/32 ident
 host all all ::1/128 ident
 EOF
-/etc/init.d/postgresql reload
+\$PSQL_CMD reload
 createuser -U postgres -S -R -D rtm
 
 #if [ -f ~/.activemqrc ]; then
