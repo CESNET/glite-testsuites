@@ -489,7 +489,8 @@ function check_build() {
 	for log in $logs; do
 		printf "Checking $log"
 		egrep 'warning: assignment makes pointer from integer without a cast' "$dir/$log" >/dev/null || \
-		egrep 'warning: implicit declaration of function' "$dir/$log" >/dev/null
+		egrep 'warning: implicit declaration of function' "$dir/$log" >/dev/null || \
+		egrep 'warning: .* makes integer from pointer without a cast' "$dir/$log" >/dev/null
 		fatal=$?
 		if [ $fatal -eq 2 ]; then
 			test_skipped
