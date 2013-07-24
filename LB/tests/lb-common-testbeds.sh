@@ -25,10 +25,10 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
 	INSTALLCMD="aptitude install -y --allow-untrusted"
-	INSTALLPKGS="lintian"
+	INSTALLPKGS="lintian ldap-utils"
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint postgresql-server"
+	INSTALLPKGS="rpmlint postgresql-server openldap-clients"
 fi
 
 cat << EndArrangeScript > arrange_lb_test_root.sh 
@@ -56,7 +56,7 @@ fi
 postgresql-setup initdb >/dev/null 2>&1 || :
 \$PSQL_CMD start
 sleep 10
-for conf in /etc/postgresql/8.4/main/pg_hba.conf /var/lib/pgsql/data/pg_hba.conf; do
+for conf in \`ls /etc/postgresql/*/main/pg_hba.conf 2>/dev/null\` /var/lib/pgsql/data/pg_hba.conf; do
 	if [ -f \$conf ]; then
 		break;
 	fi
