@@ -132,8 +132,8 @@ fi
 chown \$GLITE_USER:\$GLITE_USER arrange_px_test_user.sh
 chmod +x arrange_px_test_user.sh
 
-#su -l \$GLITE_USER
-su -l \$GLITE_USER --command=/tmp/arrange_px_test_user.sh
+#su -l \$GLITE_USER -s /bin/sh
+su -l \$GLITE_USER -s /bin/sh --command=/tmp/arrange_px_test_user.sh
 echo "</PRE>"
 
 EndArrangeScript
