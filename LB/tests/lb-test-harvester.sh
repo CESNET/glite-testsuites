@@ -121,6 +121,18 @@ else
 	exit 2
 fi
 
+# skip the whole test if PostreSQL support has not been compiled in
+# (for heimdal flavour on Debian)
+printf "Checking if PostgreSQL supported"
+if ls /usr/lib*/libglite_lbu_db.so.*.* >/dev/null; then
+	if ! ldd /usr/lib*/libglite_lbu_db.so.*.* | grep -q libpq; then
+		test_done
+		print_info "PosgreSQL not supported by glite-lbjp-common-db"
+		exit 2
+	fi
+fi
+test_done
+
 printf "Testing credentials"
 check_credentials_and_generate_proxy
 if [ $? != 0 ]; then
