@@ -388,6 +388,8 @@ fi
 						echo $isbsubjobid0 >> ${joblist}
 						echo $isbsubjobid1 >> ${joblist}
 
+						sleep 2
+
 						# Check relations
 
 						printf "Check ISB transfer JobID for computing job... "
