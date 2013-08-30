@@ -102,7 +102,7 @@ if [ ! -f $HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
 	sed -i 's/^\(LoadModule\\s\\+log_config_module.*\)/# \1/' \$HTTPD_CONF
 fi
 # Fedora 18+
-for mod in mpm_prefork unixd authz_core_module; do
+for mod in mpm_prefork unixd authz_core; do
 	if [ -f $HTTPD_SERVER_ROOT/modules/mod_\${mod}.so ]; then
 		echo "LoadModule \${mod}_module	modules/mod_\${mod}.so" >> \$HTTPD_CONF
 	fi
