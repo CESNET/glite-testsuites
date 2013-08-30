@@ -102,14 +102,17 @@ if [ ! -f $HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
 	sed -i 's/^\(LoadModule\\s\\+log_config_module.*\)/# \1/' \$HTTPD_CONF
 fi
 # Fedora 18+
-for mod in mpm_prefork unixd; do
+for mod in mpm_prefork unixd authz_core_module; do
 	if [ -f $HTTPD_SERVER_ROOT/modules/mod_\${mod}.so ]; then
 		echo "LoadModule \${mod}_module	modules/mod_\${mod}.so" >> \$HTTPD_CONF
 	fi
 done
-# Fedora 18+ - dunno what should replace the shm://
+# Fedora 18+:
+# - dunno what should replace the shm://
+# - need to explicitly enable CGI
 if grep Fedora /etc/issue >/dev/null; then
 	sed -i 's,^\(SSLSessionCache.*\),#\1,' \$HTTPD_CONF
+	echo "Options ExecCGI" >> \$HTTPD_CONF
 fi
 
 mkdir -p /var/www/htdocs
