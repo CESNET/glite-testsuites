@@ -134,7 +134,12 @@ function check_socket()
 		set_error "No host:port to check"
 		return $TEST_ERROR
 	fi
-	$SYS_NC -z $1 $2 > $testerrfile
+	# use dirty hack with netstat if BSD netcat is not available
+	if ! nc -z localhost 22 2>/dev/null; then
+		netstat -utan | tail -n +3 | awk '{print $4;}' | sed -e "s/0\.0\.0\.0/`hostname -f`/" -e "s/^:::/`hostname -f`:/" | grep "^$1:$2" >$testerrfile
+	else
+		$SYS_NC -z $1 $2 > $testerrfile
+	fi
 	if [ $? -eq 0 ];  then 
 		return $TEST_OK
 	else
