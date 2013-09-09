@@ -95,6 +95,7 @@ SITE_NAME=delwin
 SITE_EMAIL="[Edited]"
 GLITE_LB_TYPE=both
 GLITE_LB_SUPER_USERS="/C=UG/L=Tropic/O=Utopia/OU=Relaxation/CN=glite"
+GLITE_LB_MSG_NETWORK="TEST-NWOB"
 EOF
 
 sed -i 's/155/255/g' /opt/glite/yaim/examples/edgusers.conf
