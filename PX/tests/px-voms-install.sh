@@ -51,7 +51,7 @@ else
 	INSTALLPKGS="xml-commons-apis"
 fi
 
-${INSTALLCMD} emi-voms-mysql wget ca-certificates ${INSTALLPKGS}
+${INSTALLCMD} emi-voms-mysql wget ca-certificates voms-clients voms-clients3 ${INSTALLPKGS}
 
 #get CAS
 if [ ! -f lb-generate-fake-proxy.sh ]; then
@@ -63,7 +63,7 @@ if [ ! -f lb-generate-fake-proxy.sh ]; then
 	fi
 fi
 
-FAKE_CAS=`sh ./lb-generate-fake-proxy.sh --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`
+FAKE_CAS=`sh ./lb-generate-fake-proxy.sh -a --lsc | grep -E "^X509_CERT_DIR" | sed 's/X509_CERT_DIR=//'`
 if [ "$FAKE_CAS" = "" ]; then
         echo "Failed generating proxy" >&2
         exit 2
