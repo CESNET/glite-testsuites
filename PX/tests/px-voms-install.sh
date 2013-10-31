@@ -51,7 +51,7 @@ else
 	INSTALLPKGS="xml-commons-apis"
 fi
 
-${INSTALLCMD} emi-voms-mysql wget ca-certificates voms-clients voms-clients3 ${INSTALLPKGS}
+${INSTALLCMD} emi-voms-mysql wget ca-certificates voms-clients voms-clients3 voms-admin-client ${INSTALLPKGS}
 
 #get CAS
 if [ ! -f lb-generate-fake-proxy.sh ]; then
