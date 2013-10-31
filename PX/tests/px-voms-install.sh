@@ -46,7 +46,7 @@ egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
 	INSTALLCMD="aptitude install -y --allow-untrusted"
 	INSTALLPKGS=""
-	ls /etc/yum.repos.d/ | grep emi3 > /dev/null
+	ls /etc/apt/sources.list.d/ | grep 'emi-3' > /dev/null
 	if [ $? = 0 ]; then
 		CLIENTSSUFFIX="3"
 	else
@@ -55,7 +55,7 @@ if [ $? = 0 ]; then
 else
 	INSTALLCMD="yum install -q -y --nogpgcheck"
 	INSTALLPKGS="xml-commons-apis"
-	ls /etc/apt/sources.list.d/ | grep 'emi-3' > /dev/null
+	ls /etc/yum.repos.d/ | grep emi3 > /dev/null
 	if [ $? = 0 ]; then
 		CLIENTSSUFFIX="3"
 	else
