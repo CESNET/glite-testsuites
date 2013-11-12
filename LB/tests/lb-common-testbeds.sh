@@ -219,7 +219,7 @@ i.86) PLAT=32 ;;
 esac
 
 if [ -n "$DIST" -a -n "$MAJOR" -a -n "$PLAT" ]; then
-	ID="$DIST$MAJOR-$PLAT-$ID"
+	ID="$ID-$DIST$MAJOR-$PLAT"
 fi
 }
 
@@ -241,11 +241,9 @@ MAJOR=`echo $VERSION | sed 's/\..*$//'`
 get_id
 
 printf "
-<A NAME=\"${ID}\"></A>
-<H2>$SCENARIO, $DISTRO $MAJOR ($PLATFORM)</H2>
+<A NAME=\"${ID}\"></A><H2>$SCENARIO, $DISTRO $MAJOR ($PLATFORM)</H2>
 
-<A NAME=\"${ID}-Environment\"></A>
-<H3>Environment</H3>
+<A NAME=\"${ID}-Environment\"></A><H3>Environment</H3>
 
 Clean installation according to EMI guidelines (CA certificates, proxy certificate...).
 
