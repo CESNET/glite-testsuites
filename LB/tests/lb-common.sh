@@ -529,7 +529,7 @@ function check_build() {
 			continue
 		fi
 		# all relevant warning
-		out="`grep 'warning: ' \"$dir/$log\" | egrep -v 'libtool|#ident|dpkg-[^:]+:'`"
+		out="`grep 'warning: ' \"$dir/$log\" | egrep -v 'libtool|#ident|dpkg-[^:]+:' | grep -v 'Could not canonicalize hostname'`"
 		# filter-out warning considered OK but displayed
 #echo "####$out####"
 #echo "####`echo \"\$out\" | grep -v '^Makefile:'`####"
