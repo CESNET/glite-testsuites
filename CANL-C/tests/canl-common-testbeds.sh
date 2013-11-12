@@ -84,6 +84,7 @@ echo "<literal>"
 ./canl-test-cs-openssl.sh \$OUTPUT_OPT
 ./canl-test-sec-connection.sh \$OUTPUT_OPT
 ./canl-test-sha2.sh \$OUTPUT_OPT
+./canl-test-packaging.sh \$OUTPUT_OPT
 ./canl-test-build.sh \$OUTPUT_OPT
 echo "</literal>"
 echo "<PRE>"

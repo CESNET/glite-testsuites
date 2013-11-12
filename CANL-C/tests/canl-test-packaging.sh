@@ -24,7 +24,7 @@ showHelp()
 }
 
 # read common definitions and functions
-for COMMON in gridsite-common.sh ../../LB/tests/lb-common.sh
+for COMMON in canl-common.sh ../../LB/tests/lb-common.sh
 do
 	if [ ! -r ${COMMON} ]; then
 		printf "Common definitions '${COMMON}' missing!"
@@ -53,10 +53,10 @@ test_start
 
 
 if egrep -i "Debian|Ubuntu" /etc/issue >/dev/null; then
-	check_lintian gridsite\* libgridsite\*
+	check_lintian libcanl-c-\* libcanl-c\[0-9\]\*
 	ret=$?
 else
-	check_rpmlint gridsite-\*
+	check_rpmlint canl-c-\*
 	ret=$?
 fi
 

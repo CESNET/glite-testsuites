@@ -363,6 +363,36 @@ function notif_wait() {
 	$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
 }
 
+function check_packaging_help() {
+	local progname=$1
+
+	cat << EndHelpHeader
+Script producing errors and warnings due to packaging.
+
+Prerequisities:
+   - installed all tested packages
+   - Scientific Linux: installed rpmlint
+   - Debian: installed lintian
+
+Tests called:
+
+   called rpmlint or lintian on the packages
+
+Returned values:
+    Exit TEST_OK: Test Passed
+    Exit TEST_ERROR: Test Failed
+    Exit 2: Wrong Input
+
+EndHelpHeader
+
+	echo "Usage: $progname [OPTIONS]"
+	echo "Options:"
+	echo " -h | --help            Show this help message."
+	echo " -t | --text            Format output as plain ASCII text."
+	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
+	echo " -x | --html            Format output as html."
+}
+
 function check_rpmlint() {
 	local pkg=''
 	local out=''
