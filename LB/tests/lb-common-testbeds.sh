@@ -195,6 +195,34 @@ echo "</PRE>"
 EndArrangeScript
 }
 
+function get_id()
+{
+PLATFORM=`uname -m`
+DISTRO=`cat /etc/issue | head -n 1 | sed 's/\s.*$//'`
+VERSION=`cat /etc/issue | head -n 1 | grep -E -o "[0-9]+(\.[0-9]+)?"`
+MAJOR=`echo $VERSION | sed 's/\..*$//'`
+
+ID="`dd if=/dev/urandom bs=3 count=1 2>/dev/null | base64`"
+#ID="`dd if=/dev/urandom bs=3 count=1 2>/dev/null | b64encode - | tail -n 2 | head -n 1`"
+
+case "$DISTRO" in
+CentOS) DIST=EL-CENTOS ;;
+Debian) DIST=DEBIAN ;;
+Fedora) DIST=FEDORA ;;
+Red.Hat|Redhat) DIST=RHEL ;;
+Scientific) DIST=SL ;;
+esac
+
+case "$PLATFORM" in
+x86_64) PLAT=64 ;;
+i.86) PLAT=32 ;;
+esac
+
+if [ -n "$DIST" -a -n "$MAJOR" -a -n "$PLAT" ]; then
+	ID="$DIST$MAJOR-$PLAT-$ID"
+fi
+}
+
 function gen_deployment_header()
 {
 DURATION=`expr $1 - $2`
@@ -210,11 +238,14 @@ DISTRO=`cat /etc/issue | head -n 1 | sed 's/\s.*$//'`
 VERSION=`cat /etc/issue | head -n 1 | grep -E -o "[0-9]+(\.[0-9]+)?"`
 MAJOR=`echo $VERSION | sed 's/\..*$//'`
 
+get_id
+
 printf "
+<A NAME=\"${ID}\"></A>
 <H2>$SCENARIO, $DISTRO $MAJOR ($PLATFORM)</H2>
 
+<A NAME=\"${ID}-Environment\"></A>
 <H3>Environment</H3>
-<A NAME="CleanInstallation">
 
 Clean installation according to EMI guidelines (CA certificates, proxy certificate...).
 

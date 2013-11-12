@@ -71,6 +71,7 @@ source lb-common.sh
 source lb-common-testbeds.sh
 
 STARTTIME=`date +%s`
+REPORT=report.html
 
 printf "Getting the 'install' script... "
 # Example script, for real tests it should be downloaded or otherwise obtained
@@ -121,48 +122,50 @@ test_done
 ENDTIME=`date +%s`
 
 #Generating report section
-gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > report.twiki
+gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > $REPORT
 
 echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
 if [ $? -eq 0 ]; then
-        printf "\n<H4>Production Repo Contents</H4>
+        printf "
+<A NAME=\"$ID-ProdRepo\"></A><H4>Production Repo Contents</H4>
 
-<PRE>\n" >> report.twiki
-        cat ./prod_packages.txt >> report.twiki
-        printf "</PRE>\n" >> report.twiki
+<PRE>\n" >> $REPORT
+        cat ./prod_packages.txt >> $REPORT
+        printf "</PRE>\n" >> $REPORT
 fi
 
-printf "\n<H4>Test Repo Contents</H4>
+printf "
+<A NAME=\"$ID-TestRepo\"></A><H4>Test Repo Contents</H4>
 
-<PRE>\n" >> report.twiki
-cat ./repo_packages.txt >> report.twiki
+<PRE>\n" >> $REPORT
+cat ./repo_packages.txt >> $REPORT
 printf "</PRE>
 
-<H4>Process</H4>
+<A NAME=\"$ID-Process\"></A><H4>Process</H4>
 
-<PRE>\n" >> report.twiki
+<PRE>\n" >> $REPORT
 
 
-cat LBinstall.sh >> report.twiki
+cat LBinstall.sh >> $REPORT
 printf "</PRE>
 
-<H4>Full Output of the Installation</H4>
+<A NAME=\"$ID-Output\"></A><H4>Full Output of the Installation</H4>
 
-<PRE>\n" >> report.twiki
-cat Install_log.txt >> report.twiki
+<PRE>\n" >> $REPORT
+cat Install_log.txt >> $REPORT
 
 printf "</PRE>
 
-<H3>Tests</H3>
+<A NAME=\"$ID-Tests\"></A><H3>Tests</H3>
 
 <table>
-<tr><td> <literal>TestPlan</literal> <td></td> <A HREF="https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan">https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan</A> </td></tr>
-<tr><td> <literal>TestPlan</literal> Tests <td></td> <A HREF="https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/">https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/</A> </td></tr>
-<tr><td> <literal>TestPlan</literal> Test Documentation <td></td> <A HREF="http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf">http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf</A> </td></tr>
+<tr><td> <literal>TestPlan</literal> </td> <td> <A HREF=\"https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan\">https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan</A> </td></tr>
+<tr><td> <literal>TestPlan</literal> Tests </td> <td> <A HREF=\"https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/\">https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/</A> </td></tr>
+<tr><td> <literal>TestPlan</literal> Test Documentation </td> <td> <A HREF=\"http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf\">http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf</A> </td></tr>
 </table>
 
-<PRE>\n" >> report.twiki
-cat test_log.txt >> report.twiki
+<PRE>\n" >> $REPORT
+cat test_log.txt >> $REPORT
 
 PRODUCT="emi.lb"
 UNITESTEXEC="YES"

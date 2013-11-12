@@ -38,6 +38,7 @@ EndHelpHeader
 }
 
 STARTTIME=`date +%s`
+REPORT=report.html
 
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
@@ -148,45 +149,47 @@ test_done
 ENDTIME=`date +%s`
 
 #Generating report section
-gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > report.twiki
+gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > $REPORT
 
 echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
 if [ $? -eq 0 ]; then
-	printf "\n<H4>Production Repo Contents</H4>
+	printf "
+<A NAME=\"${ID}-ProdRepo\"></A><H4>Production Repo Contents</H4>
 
-<PRE>\n" >> report.twiki
-	cat ./prod_packages.txt >> report.twiki
-	printf "</PRE>\n" >> report.twiki
+<PRE>\n" >> $REPORT
+	cat ./prod_packages.txt >> $REPORT
+	printf "</PRE>\n" >> $REPORT
 fi
 
-printf "\n<H4>Test Repo Contents</H4>
+printf "
+<A NAME=\"${ID}-TestRepo\"></A><H4>Test Repo Contents</H4>
 
-<PRE>\n" >> report.twiki
-cat ./repo_packages.txt >> report.twiki
+<PRE>\n" >> $REPORT
+cat ./repo_packages.txt >> $REPORT
 printf "</PRE>
 
-<H4>Process</H4>
+<A NAME=\"${ID}-Process\"></A><H4>Process</H4>
 
-<PRE>\n" >> report.twiki
-cat PXinstall.sh >> report.twiki
+<PRE>\n" >> $REPORT
+cat PXinstall.sh >> $REPORT
 printf "</PRE>
 
-<H4>Full Output of the Installation</H4>
+<A NAME=\"${ID}-Output\"></A><H4>Full Output of the Installation</H4>
 
-<PRE>\n" >> report.twiki
-cat Install_log.txt >> report.twiki
+<PRE>\n" >> $REPORT
+cat Install_log.txt >> $REPORT
 
 printf "</PRE>
 
-<H3>Tests</H3>
+<A NAME=\"${ID}-Tests\"></A><H3>Tests</H3>
 
 <table>
-<tr><td> TestPlan </td><td> <A HREF="https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan">https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan</A> </td></tr>
-<tr><td> Tests </td><td> <A HREF="https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan">https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan</A> </td></tr>
+<tr><td> TestPlan </td><td> <A HREF=\"https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan\">https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan</A> </td></tr>
+<tr><td> Tests </td><td> <A HREF=\"https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan\">https://twiki.cern.ch/twiki/bin/view/EGEE/PXSoftwareVerificationandValidationPlan</A> </td></tr>
 </table>
 
-<PRE>\n" >> report.twiki
-cat test_log.txt >> report.twiki
+<PRE>\n" >> $REPORT
+cat test_log.txt >> $REPORT
 
 #Generating test report
 
