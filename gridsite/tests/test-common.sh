@@ -171,7 +171,7 @@ set_test
 function setOutputHTML()
 {
 local ENDFONT="</font>"
-lf="<br />\n"
+lf="<br>\n"
 spacefill="&nbsp;&nbsp;&nbsp;"
 is_html=1
 
