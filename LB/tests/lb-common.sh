@@ -404,7 +404,9 @@ function check_rpmlint() {
 			printf "$pkg${lf}"
 			out="`rpmlint $pkg`"
 			if test -n "$is_html"; then
-				echo "<pre>$out</pre>"
+				printf "<pre>"
+				printf '%s' "$out" | htmlcat
+				printf "</pre>"
 			else
 				echo "$out"
 			fi
@@ -463,7 +465,9 @@ $src"
 		printf "$pkg:${lf}"
 		out="`lintian $dir/${pkg}_*.dsc`"
 		if test -n "$is_html"; then
-			echo "<pre>$out</pre>"
+			printf "<pre>"
+			printf '%s' "$out" | htmlcat
+			printf "</pre>"
 		else
 			echo "$out"
 		fi
@@ -547,13 +551,11 @@ function check_build() {
 		if [ -n "$out" ]; then
 			if test -n "$is_html"; then
 				printf "<pre>"
-			else
-				printf "${lf}"
-			fi
-			printf '%s' "$out"
-			if test -n "$is_html"; then
+				echo "$out" | htmlcat
 				printf "</pre>\n"
 			else
+				printf "${lf}"
+				printf '%s' "$out"
 				printf "${lf}${lf}"
 			fi
 		fi
