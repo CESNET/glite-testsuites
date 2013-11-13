@@ -130,7 +130,7 @@ if [ $? -eq 0 ]; then
 <A NAME=\"$ID-ProdRepo\"></A><H4>Production Repo Contents</H4>
 
 <PRE>\n" >> $REPORT
-        cat ./prod_packages.txt >> $REPORT
+        htmlcat ./prod_packages.txt >> $REPORT
         printf "</PRE>\n" >> $REPORT
 fi
 
@@ -138,7 +138,7 @@ printf "
 <A NAME=\"$ID-TestRepo\"></A><H4>Test Repo Contents</H4>
 
 <PRE>\n" >> $REPORT
-cat ./repo_packages.txt >> $REPORT
+htmlcat ./repo_packages.txt >> $REPORT
 printf "</PRE>
 
 <A NAME=\"$ID-Process\"></A><H4>Process</H4>
@@ -146,13 +146,13 @@ printf "</PRE>
 <PRE>\n" >> $REPORT
 
 
-cat LBinstall.sh >> $REPORT
+htmlcat LBinstall.sh >> $REPORT
 printf "</PRE>
 
 <A NAME=\"$ID-Output\"></A><H4>Full Output of the Installation</H4>
 
 <PRE>\n" >> $REPORT
-cat Install_log.txt >> $REPORT
+htmlcat Install_log.txt >> $REPORT
 
 printf "</PRE>
 
