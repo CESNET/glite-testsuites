@@ -159,9 +159,9 @@ printf "</PRE>
 <A NAME=\"$ID-Tests\"></A><H3>Tests</H3>
 
 <table>
-<tr><td> <literal>TestPlan</literal> </td> <td> <A HREF=\"https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan\">https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan</A> </td></tr>
-<tr><td> <literal>TestPlan</literal> Tests </td> <td> <A HREF=\"https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/\">https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/</A> </td></tr>
-<tr><td> <literal>TestPlan</literal> Test Documentation </td> <td> <A HREF=\"http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf\">http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf</A> </td></tr>
+<tr><td> TestPlan </td> <td> <A HREF=\"https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan\">https://twiki.cern.ch/twiki/bin/view/EGEE/LBTestPlan</A> </td></tr>
+<tr><td> TestPlan Tests </td> <td> <A HREF=\"https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/\">https://github.com/CESNET/glite-testsuites/tree/master/LB/tests/</A> </td></tr>
+<tr><td> TestPlan Test Documentation </td> <td> <A HREF=\"http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf\">http://egee.cesnet.cz/cvsweb/LB/LBTP.pdf</A> </td></tr>
 </table>
 
 <PRE>\n" >> $REPORT

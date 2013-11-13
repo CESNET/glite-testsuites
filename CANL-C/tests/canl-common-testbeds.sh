@@ -79,14 +79,12 @@ echo ========================
 echo "  REAL TESTS START HERE"
 echo ========================
 echo "</PRE>"
-echo "<literal>"
 ./canl-test-cert-handle.sh --origin \$X509_USER_CERT --key \$X509_USER_KEY \$OUTPUT_OPT
 ./canl-test-cs-openssl.sh \$OUTPUT_OPT
 ./canl-test-sec-connection.sh \$OUTPUT_OPT
 ./canl-test-sha2.sh \$OUTPUT_OPT
 ./canl-test-packaging.sh \$OUTPUT_OPT
 ./canl-test-build.sh \$OUTPUT_OPT
-echo "</literal>"
 echo "<PRE>"
 echo ==================
 echo "  TESTS END HERE"

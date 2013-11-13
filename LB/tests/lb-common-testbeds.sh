@@ -146,7 +146,6 @@ echo echo ======================== >> arrange_lb_test_user.sh
 echo echo "  REAL TESTS START HERE" >> arrange_lb_test_user.sh
 echo echo ======================== >> arrange_lb_test_user.sh
 echo 'echo "</PRE>"' >> arrange_lb_test_user.sh
-echo 'echo "<literal>"' >> arrange_lb_test_user.sh
 echo 'log_fprefix=/var/spool/glite/lb-locallogger' >> arrange_lb_test_user.sh
 echo 'if [ ! -d \$log_fprefix ]; then log_fprefix=/var/glite/log; fi' >> arrange_lb_test_user.sh
 echo 'log_fprefix=\$log_fprefix/dglogd.log' >> arrange_lb_test_user.sh
@@ -177,7 +176,6 @@ echo ./lb-test-dump-load.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo perl ./lb-test-purge.pl --i-want-to-purge $remotehost:9000 \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-packaging.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
 echo ./lb-test-build.sh \$OUTPUT_OPT >> arrange_lb_test_user.sh
-echo 'echo "</literal>"' >> arrange_lb_test_user.sh
 echo 'echo "<PRE>"' >> arrange_lb_test_user.sh
 echo echo ================== >> arrange_lb_test_user.sh
 echo echo "  TESTS END HERE" >> arrange_lb_test_user.sh

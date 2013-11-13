@@ -182,13 +182,11 @@ echo ========================
 echo "  REAL TESTS START HERE"
 echo ========================
 echo "</PRE>"
-echo "<literal>"
 ./ping-remote.sh $remotehost \$OUTPUT_OPT
 ./ping-local.sh \$OUTPUT_OPT -f \$HTTPD_CONF
 ./gridsite-test-all.sh \$OUTPUT_OPT
 ./gridsite-test-packaging.sh \$OUTPUT_OPT
 ./gridsite-test-build.sh \$OUTPUT_OPT
-echo "</literal>"
 echo "<PRE>"
 echo ==================
 echo "  TESTS END HERE"
