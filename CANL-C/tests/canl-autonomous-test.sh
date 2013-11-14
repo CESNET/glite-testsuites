@@ -52,7 +52,7 @@ fi
 $INSTALLCMD wget ca-certificates
 
 # read common definitions and functions
-for COMMON in canl-common.sh test-common.sh canl-common-testbeds.sh
+for COMMON in canl-common.sh canl-common-testbeds.sh
 do
 	if [ ! -r ${COMMON} ]; then
 		printf "Downloading common definitions '${COMMON}'"
@@ -60,31 +60,31 @@ do
 		if [ ! -r ${COMMON} ]; then
 			exit 2
 		else
-			test_done
+			echo " done"
 		fi
 	fi
 done
-source canl-common.sh
-source canl-common-testbeds.sh
 #also read L&B common definitions for common functions.
-for COMMON in lb-common-testbeds.sh
+for COMMON in test-common.sh lb-common-testbeds.sh
 do
 	if [ ! -r ${COMMON} ]; then
 		if [ -r `dirname $0`/../../LB/tests/${COMMON} ]; then
 			printf "Creating symbolic link for '${COMMON}'"
 			ln -s ../../LB/tests/${COMMON} .
-			test_done
+			echo " done"
 		else
 			printf "Downloading common definitions '${COMMON}'"
 			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
 			if [ ! -r ${COMMON} ]; then
 				exit 2
 			else
-				test_done
+				echo " done"
 			fi
 		fi
 	fi
 done
+source canl-common.sh
+source canl-common-testbeds.sh
 source lb-common-testbeds.sh
 
 

@@ -251,6 +251,15 @@ function dprintf()
 	fi
 }
 
+function htmlcat()
+{
+	sed \
+		-e 's/&/\&amp;/g' \
+		-e 's/</\&lt;/g' \
+		-e 's/>/\&gt;/g' \
+		$1
+}
+
 # by default set output to color if possible
 if test -t 1 -a "$TERM" != "raw" -a "$TERM" != "dumb" && stty size <&1 > /dev/null 2>&1 ; then
 	setOutputColor

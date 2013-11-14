@@ -55,14 +55,14 @@ do
 		if [ -r `dirname $0`/../../LB/tests/${COMMON} ]; then
 			printf "Creating symbolic link for '${COMMON}'"
 			ln -s ../../LB/tests/${COMMON} .
-			test_done
+			echo " done"
 		else
 			printf "Downloading common definitions '${COMMON}'"
 			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
 			if [ ! -r ${COMMON} ]; then
 				exit 2
 			else
-				test_done
+				echo " done"
 			fi
 		fi
 	fi

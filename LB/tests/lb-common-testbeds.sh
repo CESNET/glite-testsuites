@@ -419,12 +419,3 @@ $TESTPLANURL
 $FUNCTIONALITYTESTURL
 EOF
 }
-
-function htmlcat()
-{
-	sed \
-		-e 's/&/\&amp;/g' \
-		-e 's/</\&lt;/g' \
-		-e 's/>/\&gt;/g' \
-		$1
-}
