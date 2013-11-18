@@ -35,7 +35,18 @@ EndHelpHeader
 	echo "Usage: $progname [OPTIONS] hostname"
 	echo "Options:"
 	echo " -h | --help            Show this help message."
+	echo " -r | --repo            Add repository contents to main report"
 }
+
+add_repos=0
+while test -n "$1"
+do
+        case "$1" in
+                "-h" | "--help") showHelp && exit 2 ;;
+                "-r" | "--repos") add_repos=1 ;;
+        esac
+        shift
+done
 
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then
@@ -124,27 +135,29 @@ ENDTIME=`date +%s`
 #Generating report section
 gen_deployment_header $ENDTIME $STARTTIME "$SCENARIO" > $REPORT
 
-echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
-if [ $? -eq 0 ]; then
-        printf "
+if [ $add_repos -eq 1 ]; then
+	echo "$SCENARIO" | grep -E -i "upgrade|update" > /dev/null
+	if [ $? -eq 0 ]; then
+		printf "
 <A NAME=\"$ID-ProdRepo\"></A><H4>Production Repo Contents</H4>
 
 <PRE>\n" >> $REPORT
-        htmlcat ./prod_packages.txt >> $REPORT
-        printf "</PRE>\n" >> $REPORT
-fi
+	        htmlcat ./prod_packages.txt >> $REPORT
+		printf "</PRE>\n" >> $REPORT
+	fi
 
-printf "
+	printf "
 <A NAME=\"$ID-TestRepo\"></A><H4>Test Repo Contents</H4>
 
 <PRE>\n" >> $REPORT
-htmlcat ./repo_packages.txt >> $REPORT
-printf "</PRE>
+	htmlcat ./repo_packages.txt >> $REPORT
+	printf "</PRE>\n" >> $REPORT
+fi
 
+printf "
 <A NAME=\"$ID-Process\"></A><H4>Process</H4>
 
 <PRE>\n" >> $REPORT
-
 
 htmlcat LBinstall.sh >> $REPORT
 printf "</PRE>
