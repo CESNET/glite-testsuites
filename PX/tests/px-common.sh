@@ -25,7 +25,7 @@
 # ------------------------------------------------------------------------------
 
 # read common definitions and functions
-TEST_COMMON=test-common.sh
+TEST_COMMON=../../LB/tests/test-common.sh
 if [ ! -r ${TEST_COMMON} ]; then
 	printf "Common definitions '${TEST_COMMON}' not found!\n"
 	exit 2	
