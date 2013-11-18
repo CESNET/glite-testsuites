@@ -365,7 +365,7 @@ while true; do
 				test_done
 			else
 				if [ $i -eq 16 ]; then #Skip grey
-					printf "${jobid[${y}$i]}\t${desc[$i]}\t<Support off>"
+					printf "${jobid[${y}$i]}\t${desc[$i]}\t(Support off)"
 					test_skipped
 					SKIP_GREY=1
 				else
