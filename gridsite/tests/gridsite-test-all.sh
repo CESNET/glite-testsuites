@@ -443,7 +443,6 @@ EOF
 			fi
 		done
 
-exit 0
 		GRST_CRED_2=`curl --cert ${UCERT} --key ${UKEY} --capath /etc/grid-security/certificates --cacert ${UPROXY} --silent https://$(hostname -f)/test.cgi|grep GRST_CRED_2`
 
 		if [ "$GRST_CRED_2" = "" ]; then
