@@ -418,28 +418,41 @@ EOF
 
 		printf "Setting up .lsc file and trying again\n"
 
+		dir=/etc/grid-security/vomsdir
 		for vomsfile in /etc/vomses/*
 		do
 			if [ -f $vomsfile ]; then
 				VOMSHOSTONLY=`cat $vomsfile | awk '{ print $2 }' | sed 's/"//g'`
 				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
-#				if [ ! -f /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc ]; then
+#				if [ ! -f $dir/$VONAME/$VOMSHOSTONLY.lsc ]; then
 					VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
 					openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
+					#
+					# new openssl output format since RHEL6/SL6
+					#
+					# 1) separators
+					# 2) whitespaces around '='
+					# 3) missing '/' on the start
+					#
+					sed -i -r \
+						-e 's#, #/#g' \
+						-e 's#\s*=\s*#=#g' \
+						-e 's#([0-9]+\s+)([^ /])#\1/\2#' \
+						$VOMSHOSTONLY.$$.DNs.txt
 					VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 					VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 
-					mkdir -p /etc/grid-security/vomsdir/$VONAME
-					printf "$VOMSCERT\n$VOMSCA\n" > /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc
+					mkdir -p $dir/$VONAME
+					printf "$VOMSCERT\n$VOMSCA\n" > $dir/$VONAME/$VOMSHOSTONLY.lsc
 
-					printf "Generated /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc\n$NL"
+					printf "Generated $dir/$VONAME/$VOMSHOSTONLY.lsc\n$NL"
 
 					rm $VOMSHOSTONLY.$$.DNs.txt
 #				else
-#					printf "/etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc already exists\n$NL"
+#					printf "$dir/$VONAME/$VOMSHOSTONLY.lsc already exists\n$NL"
 #				fi
 
-#				cat /etc/grid-security/vomsdir/$VONAME/$VOMSHOSTONLY.lsc | sed "s/\$/$NL/"
+#				cat $dir/$VONAME/$VOMSHOSTONLY.lsc | sed "s/\$/$NL/"
 			fi
 		done
 
