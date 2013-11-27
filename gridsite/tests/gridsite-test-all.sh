@@ -426,7 +426,7 @@ EOF
 				VONAME=`cat $vomsfile | awk '{ print $1 }' | sed 's/"//g'`
 #				if [ ! -f $dir/$VONAME/$VOMSHOSTONLY.lsc ]; then
 					VOMSHOST=`cat $vomsfile | awk '{ print $2 ":" $3; }' | sed 's/"//g'`
-					openssl s_client -connect $VOMSHOST 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
+					openssl s_client -connect $VOMSHOST -CApath /etc/grid-security/certificates 2>&1 | grep "^depth" | sed 's/^depth=//' | sort -r -n > $VOMSHOSTONLY.$$.DNs.txt
 					#
 					# new openssl output format since RHEL6/SL6
 					#
