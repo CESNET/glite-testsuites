@@ -437,7 +437,7 @@ EOF
 					sed -i -r \
 						-e 's#, #/#g' \
 						-e 's#\s*=\s*#=#g' \
-						-e 's#([0-9]+\s+)([^ /])#\1/\2#' \
+						-e 's#^([0-9]+\s+)([^ /])#\1/\2#' \
 						$VOMSHOSTONLY.$$.DNs.txt
 					VOMSCERT=`tail -n 1 $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
 					VOMSCA=`grep -E "^1[ \t]" $VOMSHOSTONLY.$$.DNs.txt | sed -r 's/^[0-9]+\s+//'`
