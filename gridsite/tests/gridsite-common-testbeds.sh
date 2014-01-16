@@ -182,6 +182,7 @@ echo "</PRE>"
 ./ping-remote.sh $remotehost \$OUTPUT_OPT
 ./ping-local.sh \$OUTPUT_OPT -f \$HTTPD_CONF
 ./gridsite-test-all.sh \$OUTPUT_OPT
+./gridsite-test-session-reuse.sh \$OUTPUT_OPT
 ./gridsite-test-packaging.sh \$OUTPUT_OPT
 ./gridsite-test-build.sh \$OUTPUT_OPT
 echo "<PRE>"
