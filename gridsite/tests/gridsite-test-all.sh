@@ -539,9 +539,8 @@ EOF
 		done
 	done
 	for flavour in '' '_nossl' '_globus'; do
-		printf "  flavour '$flavour' "
 		if test -f $path/libgridsite$flavour.so.*.*.*; then
-			printf "$path/libgridsite$flavour.so "
+			printf "  flavour '$flavour' $path/libgridsite$flavour.so "
 			readelf -a $path/libgridsite$flavour.so.*.*.* | grep -i soname | grep libgridsite$flavour\.so\. >/dev/null
 			if test $? = 0; then
 				test_done
@@ -549,14 +548,17 @@ EOF
 				print_error "bad soname"
 				test_failed
 			fi
-		else
-			print_error "not present"
-			test_failed
 		fi
 	done
 
 	printf "Check interpretable DEFVERSION... "
-	DEFVERSION=`cat /usr/share/doc/*gridsite*/VERSION | grep "^DEFVERSION" | head -n 1 | sed 's/DEFVERSION[ \t]*=[ \t]*//'`
+	file=`find /usr/share/doc/*gridsite* -name VERSION 2>/dev/null | head -n 1`
+	file2=/usr/include/gridsite.h
+	if test -n "$file"; then
+		DEFVERSION=`cat $file | grep "^DEFVERSION" | head -n 1 | sed 's/DEFVERSION[ \t]*=[ \t]*//'`
+	elif test -f "$file2"; then
+		DEFVERSION=`cat $file2 | grep "^#define[ \t]*GRST_VERSION" | sed 's/.*GRST_VERSION[ \t]*//'`
+	fi
 	printf "Oct %o, Hex %x" $DEFVERSION $DEFVERSION
 	if [ $? -eq 0 ]; then
 		test_done

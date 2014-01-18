@@ -86,6 +86,13 @@ if [ -z "\$HTTPD_CONF_SRC" ]; then
 	exit 2
 fi
 
+CGI=/usr/sbin/gridsite-delegation.cgi
+for f in /usr/libexec/gridsite/cgi-bin/gridsite-delegation.cgi; do
+	if [ -x \$f ]; then
+		CGI=\$f
+	fi
+done
+
 sed \\
 	-e '1,\$s!/usr/lib/httpd/modules/!modules/!' \\
 	-e 's!/var/www/html!/var/www/htdocs!' \\
@@ -96,7 +103,7 @@ sed \\
 	-e "s/^Group .*/Group \$HTTPD_USER/" \\
   \$HTTPD_CONF_SRC > \$HTTPD_CONF
 echo "AddHandler cgi-script .cgi" >> \$HTTPD_CONF
-echo "ScriptAlias /gridsite-delegation.cgi /usr/sbin/gridsite-delegation.cgi" >> \$HTTPD_CONF
+echo "ScriptAlias /gridsite-delegation.cgi \$CGI" >> \$HTTPD_CONF
 # internal module?
 if [ ! -f $HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
 	sed -i 's/^\(LoadModule\\s\\+log_config_module.*\)/# \1/' \$HTTPD_CONF
