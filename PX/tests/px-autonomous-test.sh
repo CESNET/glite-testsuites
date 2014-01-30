@@ -94,9 +94,9 @@ do
 		fi
 	fi
 done
-source px-common.sh
-source px-common-testbeds.sh
-source lb-common-testbeds.sh
+source ./px-common.sh
+source ./px-common-testbeds.sh
+source ./lb-common-testbeds.sh
 
 
 printf "Getting the 'install' script... "
