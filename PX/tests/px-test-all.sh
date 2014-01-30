@@ -227,6 +227,15 @@ if [ $? -eq 0 ]; then
 			test_failed
 				print_error "Proxy was not replaced"
 			fi
+
+			printf "Checking key length for the new proxy... "
+			NEWLENGTH=`voms-proxy-info -file $NEW_REGISTERED | grep strength | grep -E -o "[0-9]+"`
+			printf "New proxy key: $NEWLENGTH bits "
+			if [ "$NEWLENGTH" -lt "1024" ]; then
+			        test_failed
+			else
+			        test_done
+			fi
 		else
 			test_failed
 			print_error "Not created as the same registration!${NL}Old proxy: $REGISTERED_PROXY${NL}New proxy: $NEW_REGISTERED"
