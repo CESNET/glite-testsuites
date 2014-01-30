@@ -128,6 +128,24 @@ test_done
 
 printf "\tProxy:\t$ORIG_PROXY$NL\tRenew:\t$REGISTERED_PROXY$NL"; 
 
+
+printf "Checking key lengths...$NL"
+ORIGLENGTH=`voms-proxy-info -file $ORIG_PROXY | grep strength | grep -E -o "[0-9]+"`
+REGISTEREDLENGTH=`voms-proxy-info -file $REGISTERED_PROXY | grep strength | grep -E -o "[0-9]+"`
+
+printf "Original proxy key: $ORIGLENGTH bits "
+if [ "$ORIGLENGTH" -lt "1024" ]; then
+	test_failed
+else
+	test_done
+fi
+printf "Registered proxy key: $REGISTEREDLENGTH bits "
+if [ "$REGISTEREDLENGTH" -lt "1024" ]; then
+	test_failed
+else
+	test_done
+fi
+
 printf "Checking time left on registered proxy... "
 REGISTEREDTIMELEFT=`voms-proxy-info -file $REGISTERED_PROXY | grep timeleft | grep -E -o "[0-9]+:[0-9]+:[0-9]+"`
 #Use this for conversion: date --utc --date "1970-1-1 0:0:0" +%s
