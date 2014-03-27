@@ -180,7 +180,7 @@ fi
 cd ~/
 mkdir GridSite_testing
 cd GridSite_testing
-git clone --depth 0 \$GITROOT
+git clone --depth 1 \$GITROOT
 cd glite-testsuites/gridsite/tests
 echo ========================
 echo "  REAL TESTS START HERE"

@@ -99,7 +99,7 @@ echo export PXTSTCOLS=\$PXTSTCOLS >> arrange_px_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_px_test_user.sh
 echo mkdir PX_testing >> arrange_px_test_user.sh
 echo cd PX_testing >> arrange_px_test_user.sh
-echo git clone --depth 0 \$GITROOT >> arrange_px_test_user.sh
+echo git clone --depth 1 \$GITROOT >> arrange_px_test_user.sh
 echo ls >> arrange_px_test_user.sh
 echo cd glite-testsuites/PX/tests >> arrange_px_test_user.sh
 echo ulimit -c unlimited >> arrange_px_test_user.sh

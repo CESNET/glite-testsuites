@@ -120,7 +120,7 @@ echo export LBTSTCOLS=\$LBTSTCOLS >> arrange_lb_test_user.sh
 echo 'export GLITE_MYSQL_ROOT_PASSWORD="[Edited]"' >> arrange_lb_test_user.sh
 echo mkdir -p LB_testing >> arrange_lb_test_user.sh
 echo cd LB_testing >> arrange_lb_test_user.sh
-echo git clone --depth 0 \$GITROOT >> arrange_lb_test_user.sh
+echo git clone --depth 1 \$GITROOT >> arrange_lb_test_user.sh
 echo ls >> arrange_lb_test_user.sh
 echo cd glite-testsuites/LB/tests >> arrange_lb_test_user.sh
 echo make >> arrange_lb_test_user.sh

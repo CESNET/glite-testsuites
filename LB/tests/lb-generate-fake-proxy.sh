@@ -78,7 +78,7 @@ if [ ! -d "$CERTS_ROOT" -o ! -e "${CERTS_ROOT}/trusted-certs/trusted_clientsha51
 	mkdir -p $CERTS_ROOT
 	cd $CERTS_ROOT
 	if [ ! -d glite-security-test-utils ]; then
-		git clone --depth 0 http://scientific.zcu.cz/git/glite-security-test-utils.git || exit 1
+		git clone --depth 1 http://scientific.zcu.cz/git/glite-security-test-utils.git || exit 1
 		# keep using system default hash (even when different across openssl versions)
 		sed -i.orig 's/openssl x509 -subject_hash_old/openssl x509 -hash/' glite-security-test-utils/bin/generate-test-certificates.sh	
 	fi

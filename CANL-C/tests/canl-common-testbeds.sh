@@ -73,7 +73,7 @@ fi
 cd ~/
 mkdir caNl_testing
 cd caNl_testing
-git clone --depth 0 \$GITROOT
+git clone --depth 1 \$GITROOT
 cd glite-testsuites/CANL-C/tests
 echo ========================
 echo "  REAL TESTS START HERE"
