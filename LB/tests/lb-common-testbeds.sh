@@ -207,13 +207,13 @@ case "$DISTRO" in
 CentOS) DIST=EL-CENTOS ;;
 Debian) DIST=DEBIAN ;;
 Fedora) DIST=FEDORA ;;
-Red.Hat|Redhat) DIST=RHEL ;;
+Red*Hat|Redhat) DIST=RHEL ;;
 Scientific) DIST=SL ;;
 esac
 
 case "$PLATFORM" in
 x86_64) PLAT=64 ;;
-i.86) PLAT=32 ;;
+i*86) PLAT=32 ;;
 esac
 
 if [ -n "$DIST" -a -n "$MAJOR" -a -n "$PLAT" ]; then
