@@ -61,13 +61,14 @@ test_state () {
         #printf "Testing job ($1) is in state: $wmsstate (should be $2) and $creamstate (should be $3)"
         printf "Testing job is in state: $wmsstate $creamstate (should be $2 $3)"
 
-        if [ "${wmsstate}" = "$2" -a "${creamstate}" = "$3" ]; then
+	shopt -s nocasematch
+        if [[ "${wmsstate}" == "$2" ]] && [[ "${creamstate}" == "$3" ]]; then
                 test_done
         else
                 test_failed
                 print_error "Job is not in appropriate state"
         fi
-
+	shopt -u nocasematch
 }
 
 check_return_and_test_state ()
