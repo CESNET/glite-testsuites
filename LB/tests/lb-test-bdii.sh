@@ -116,6 +116,22 @@ else
 
 fi
 
+# glite-info-provider-services required,
+# just skip the tests if missing
+printf "Testing availability of glite-info-provider-services..."
+INFO_SERVICE_CONFIG='/etc/glite/info/service'
+if test -f ${INFO_SERVICE_CONFIG}/glite-info-service-lbserver.conf.template -a -f ${INFO_SERVICE_CONFIG}/glite-info-glue2-lbserver.conf.template; then
+	HAVE_GIS=1
+	test_done
+	:
+else
+	HAVE_GIS=0
+	test_skipped
+fi
+
+
+if [ $HAVE_GIS -eq 1 ]; then
+
 # Register job:
 
 server=`${SYS_ECHO} ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} 's/:.*$//'`
@@ -205,6 +221,8 @@ else
 		test_skipped
 	fi
 fi
+
+fi # $HAVE_GIS -eq 1
 
 rm ldap.$$.out
 
