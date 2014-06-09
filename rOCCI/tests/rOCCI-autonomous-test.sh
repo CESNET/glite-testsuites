@@ -86,7 +86,7 @@ do
 			echo " done"
 		else
 			printf "Downloading common definitions '${COMMON}'"
-			wget -q https://raw.github.com/CESNET/glite-testsuites/master/LB/tests/$COMMON
+			wget -q https://raw.github.com/sustr4/glite-testsuites/master/LB/tests/$COMMON
 			if [ ! -r ${COMMON} ]; then
 				exit 2
 			else
