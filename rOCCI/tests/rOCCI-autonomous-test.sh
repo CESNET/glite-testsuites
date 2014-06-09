@@ -95,9 +95,9 @@ do
 		fi
 	fi
 done
-source rOCCI-common.sh
-source rOCCI-common-testbeds.sh
-source lb-common-testbeds.sh
+source ./rOCCI-common.sh
+source ./rOCCI-common-testbeds.sh
+source ./lb-common-testbeds.sh
 
 
 printf "Getting the 'install' script... "
