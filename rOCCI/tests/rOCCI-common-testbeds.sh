@@ -36,7 +36,7 @@ CERTFILE=\$1
 GLITE_USER=\$2
 GSTSTCOLS=\$3
 OUTPUT_OPT=\$4
-GITROOT=git://github.com/sustr4/glite-testsuites.git
+GITROOT=git://github.com/CESNET/glite-testsuites.git
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
