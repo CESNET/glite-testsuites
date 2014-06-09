@@ -36,7 +36,7 @@ CERTFILE=\$1
 GLITE_USER=\$2
 GSTSTCOLS=\$3
 OUTPUT_OPT=\$4
-GITROOT=git://github.com/CESNET/glite-testsuites.git
+GITROOT=git://github.com/sustr4/glite-testsuites.git
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
@@ -73,7 +73,7 @@ fi
 
 cd ~/
 git clone --depth 1 \$GITROOT rOCCI_testing
-cd rOCCI_testing/glite-testsuites/rOCCI/tests
+cd rOCCI_testing/rOCCI/tests
 echo ========================
 echo "  REAL TESTS START HERE"
 echo ========================
