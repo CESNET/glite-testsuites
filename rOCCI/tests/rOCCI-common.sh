@@ -51,9 +51,7 @@ ulimit -c unlimited
 GRIDPROXYINFO=grid-proxy-info
 #voms binaries
 VOMSPROXYFAKE=voms-proxy-fake
-#canl sample binaries
 OCCI_CLIENT=occi
-emi-canl-client
 
 SYS_LSOF=lsof
 SYS_GREP=grep
