@@ -30,8 +30,12 @@
 # read common definitions and functions
 TEST_COMMON=./test-common.sh
 if [ ! -r ${TEST_COMMON} ]; then
-	printf "Common definitions '${TEST_COMMON}' not found!\n"
-	exit 2	
+	if [ -r ../../LB/tests/${TEST_COMMON} ]; then
+		ln -s ../../LB/tests/${TEST_COMMON}
+	else
+		printf "Common definitions '${TEST_COMMON}' not found!\n"
+		exit 2	
+	fi
 fi
 source ${TEST_COMMON}
 
