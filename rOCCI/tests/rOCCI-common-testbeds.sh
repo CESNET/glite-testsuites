@@ -72,10 +72,8 @@ else
 fi
 
 cd ~/
-mkdir caNl_testing
-cd caNl_testing
-git clone --depth 1 \$GITROOT
-cd glite-testsuites/CANL-C/tests
+git clone --depth 1 \$GITROOT rOCCI_testing
+cd rOCCI_testing/glite-testsuites/rOCCI/tests
 echo ========================
 echo "  REAL TESTS START HERE"
 echo ========================
