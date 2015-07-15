@@ -79,12 +79,12 @@ echo "  REAL TESTS START HERE"
 echo ========================
 echo "</PRE>"
 # dummy
-./rOCCI-test-helper-switch-backend.sh dummy
+./rOCCI-test-helper-switch-backend.sh dummy \$OUTPUT_OPT
 ./rOCCI-test-deployment.sh
 # opennebula
-./rOCCI-test-helper-switch-backend.sh opennebula-4.12 1200 && ./rOCCI-test-deployment.sh
-./rOCCI-test-helper-switch-backend.sh opennebula-4.10 120 && ./rOCCI-test-deployment.sh
-./rOCCI-test-helper-switch-backend.sh opennebula-4.8 120 && ./rOCCI-test-deployment.sh
+./rOCCI-test-helper-switch-backend.sh opennebula-4.12 1200 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
+./rOCCI-test-helper-switch-backend.sh opennebula-4.10 120 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
+./rOCCI-test-helper-switch-backend.sh opennebula-4.8 120 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
 echo "<PRE>"
 echo ==================
 echo "  TESTS END HERE"
