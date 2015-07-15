@@ -291,12 +291,17 @@ function zoosync_get_info()
 		printf "... credentials of ${backend_full} not found in Zookeeper"
 		return 1
 	fi
-	eval one_rocci_pwd=\${${tagname_rocci}}
 	eval one_admin_pwd=\${${tagname_oneadmin}}
+	eval one_rocci_pwd=\${${tagname_rocci}}
 	if [ -z "${one_rocci_pwd}" -o -z "${one_admin_pwd}" ]; then
 		printf "... credentials of ${backend_full} not found in Zookeeper"
 		return 1
 	fi
+
+	one_admin_user=`echo ${one_admin_pwd} | cut -d: -f1`
+	one_admin_pwd=`echo ${one_admin_pwd} | cut -d: -f2-`
+	one_rocci_user=`echo ${one_rocci_pwd} | cut -d: -f1`
+	one_rocci_pwd=`echo ${one_rocci_pwd} | cut -d: -f2-`
 
 	return 0
 }
@@ -334,8 +339,8 @@ function rocci_switch_backend()
 		#echo "one: ${one_host}, rocci pwd: ${one_rocci_pwd}"
 
 		sed -i ${conf} \
-			-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_USER\s\+\).*/\1rocci/" \
-			-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_PASSWD\s\+\).*/\1${one_rocci_pwd}/" \
+			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_USER\s\+\).*,\1${one_rocci_user}," \
+			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_PASSWD\s\+\).*,\1${one_rocci_pwd}," \
 			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_XMLRPC\s\+\).*,\1http://${one_host}:2633/RPC2,"
 	;;
 	dummy)

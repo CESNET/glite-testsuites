@@ -134,7 +134,7 @@ rocci_password='dummypassword'
 EOF
 	else
 		cat >> ${file} <<EOF
-rocci_user='oneadmin'
+rocci_user='${one_admin_user}'
 rocci_password='${one_admin_pwd}'
 EOF
 	fi
