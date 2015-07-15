@@ -108,9 +108,11 @@ DEBUG=2
 {
 test_start
 
+
 printf "Switching rOCCI server backend to ${backend}"
 rocci_switch_backend ${backend} ${waiting}
-if [ $? -gt 0 ]; then
+zoo_ret=$?
+if [ ${zoo_ret} -gt 0 ]; then
 	test_failed
 	TEST_RESULT=${TEST_ERROR}
 else
@@ -118,25 +120,26 @@ else
 fi
 
 file='/tmp/rocci-info.sh'
-
-rm -f ${file}
-touch ${file}
-cat >> ${file} <<EOF
+if [ ${zoo_ret} -eq 0 ]; then
+	rm -f ${file}
+	touch ${file}
+	cat >> ${file} <<EOF
 one_host='${one_host}'
 EOF
 
-if [ -z "${one_admin_pwd}" ]; then
-cat >> ${file} <<EOF
+	if [ -z "${one_admin_pwd}" ]; then
+		cat >> ${file} <<EOF
 rocci_user='dummyuser'
 rocci_password='dummypassword'
 EOF
-else
-cat >> ${file} <<EOF
+	else
+		cat >> ${file} <<EOF
 rocci_user='oneadmin'
 rocci_password='${one_admin_pwd}'
 EOF
+	fi
+	chmod 0600 ${file}
 fi
-chmod 0600 ${file}
 
 test_end
 }
