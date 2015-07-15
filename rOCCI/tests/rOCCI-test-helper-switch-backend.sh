@@ -60,6 +60,7 @@ if [ ! -r ${COMMON} ]; then
 fi
 source ${COMMON}
 
+TEST_RESULT=${TEST_OK}
 logfile=$$.tmp
 flag=0
 default_backend='dummy'
@@ -111,6 +112,7 @@ printf "Switching rOCCI server backend to ${backend}"
 rocci_switch_backend ${backend} ${waiting}
 if [ $? -gt 0 ]; then
 	test_failed
+	TEST_RESULT=${TEST_ERROR}
 else
 	test_done
 fi
@@ -119,7 +121,6 @@ file='/tmp/rocci-info.sh'
 
 rm -f ${file}
 touch ${file}
-chmod 0600 ${file}
 cat >> ${file} <<EOF
 one_host='${one_host}'
 EOF
@@ -135,8 +136,8 @@ rocci_user='oneadmin'
 rocci_password='${one_admin_pwd}'
 EOF
 fi
+chmod 0600 ${file}
 
 test_end
 }
-exit $TEST_OK
-
+exit ${TEST_RESULT}
