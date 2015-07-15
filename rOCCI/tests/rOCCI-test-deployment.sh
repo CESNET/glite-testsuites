@@ -97,7 +97,7 @@ else
 fi
 
 # curl args
-curl_args='--silent'
+curl_args="--silent -i"
 capath=''
 for dir in '/etc/ssl/certs' '/etc/grid-security/certificates' '/tmp/test-certs.root/grid-security/certificates' '/tmp/test-certs.glite/grid-security/certificates'; do
 	if [ -d ${dir} ]; then
@@ -112,6 +112,7 @@ if [ -n "${capath}" ]; then
 	curl_args="${curl_args} ${capath}"
 fi
 
+
 printf "Checking credentials"
 if [ -f /tmp/rocci-info.sh ]; then
 	source /tmp/rocci-info.sh
@@ -122,27 +123,41 @@ else
 	test_failed
 fi
 
+
 printf "Listing categories"
-cat_file='/tmp/categories.txt'
-${SYS_CURL} ${curl_args} -u ${rocci_user}:${rocci_password} -H 'Accept: text/plain' https://`hostname -f`:11443/-/ > ${cat_file}
-if [ $? -eq 0 ]; then
+file_out='/tmp/categories-output.txt'
+file_cat='/tmp/categories.txt'
+${SYS_CURL} ${curl_args} -u ${rocci_user}:${rocci_password} -H 'Accept: text/plain' https://`hostname -f`:11443/-/ > ${file_out}
+ret=$?
+
+sed -i ${file_out} -e 's/\r//g'
+awk '{if (ok) {print $0}} /^$/ {ok=1}' ${file_out} > ${file_cat}
+http_code=`grep '^HTTP' ${file_out} | head -n 1 | sed -e 's,^HTTP/[^ ]\+\s\+\([0-9]\+\).*,\1,'`
+
+if [ ${ret} -eq 0 -a x"${http_code}" = x"200" ]; then
 	test_done
 else
+	if [ ${ret} -eq 0 ]; then
+		printf "... HTTP code not 200"
+	fi
 	test_failed
 	echo "${SYS_CURL} ${curl_args} -u ${rocci_user}:XXXXXX -H 'Accept: text/plain' https://`hostname -f`:11443/-/"
-	cat ${cat_file}
+	cat ${file_out}
+	printf "${lf}"
 fi
 
+
 printf "Checking body contains any categories"
-grep -q '^Category:.*;scheme=".*"' ${cat_file}
+grep -q '^Category:.*;scheme=".*"' ${file_cat}
 if [ $? -eq 0 ]; then
 	test_done
 else
 	test_failed
 fi
 
+
 printf "Checking body contains only categories"
-grep -vq '^Category:.*;scheme=".*"' ${cat_file}
+grep -vq '^Category:.*;scheme=".*"' ${file_cat}
 if [ $? -ne 0 ]; then
 	test_done
 else
@@ -151,4 +166,5 @@ fi
 
 test_end
 }
+
 exit $TEST_OK
