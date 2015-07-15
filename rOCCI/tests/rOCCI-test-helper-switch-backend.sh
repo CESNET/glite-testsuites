@@ -22,15 +22,19 @@ progname=`basename $0`
 showHelp()
 {
 cat << EndHelpHeader
-Script for basic testing of rOCCI deployment by listing categories.
+Helper script for switching rOCCI backend. Not real test, but it may fail. In case of failure all tests after should be probably ignored.
+
+The file /tmp/rocci-info.sh is created.
 
 Prerequisities:
-   - rOCCI CLI installed
-   - file /tmp/rocci-info.sh (rOCCI-test-helper-switch-backend.sh called)
+   - rOCCI server installed
+   - Zookeeper Service Discovery Available (zookeeper server)
+   - Zoosync client deployed
 
 Tests called:
 
-    deployment presence
+    for opennebula: look up in the Zookeeper Service Discovery
+    switch the backend
 
 Returned values:
     Exit TEST_OK: Test Passed
@@ -58,6 +62,8 @@ source ${COMMON}
 
 logfile=$$.tmp
 flag=0
+default_backend='dummy'
+default_wait='1200'
 while test -n "$1"
 do
 	case "$1" in
@@ -66,9 +72,24 @@ do
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
 		"-x" | "--html")  setOutputHTML ;;
+		*)
+			if [ -z "${backend}" ]; then
+				backend="${1}"
+			elif [ -z "${waiting}" ]; then
+				waiting="${1}"
+			fi
+			;;
 	esac
 	shift
 done
+
+if [ -z ${backend} ]; then
+	backend=${default_backend}
+fi
+
+if [ -z ${waiting} ]; then
+	waiting=${default_wait}
+fi
 
 # redirecting all output to $logfile
 touch $logfile
@@ -86,69 +107,36 @@ DEBUG=2
 {
 test_start
 
-
-# check_binaries
-printf "Testing if all binaries are available"
-check_binaries $OCCI_CLIENT $SYS_CURL
+printf "Switching rOCCI server backend to ${backend}"
+rocci_switch_backend ${backend} ${waiting}
 if [ $? -gt 0 ]; then
 	test_failed
 else
 	test_done
 fi
 
-# curl args
-curl_args='--silent'
-capath=''
-for dir in '/etc/ssl/certs' '/etc/grid-security/certificates' '/tmp/test-certs.root/grid-security/certificates' '/tmp/test-certs.glite/grid-security/certificates'; do
-	if [ -d ${dir} ]; then
-		if [ -z "${capath}" ]; then
-			capath="${dir}"
-		else
-			capath="${capath}:${dir}"
-		fi
-	fi
-done
-if [ -n "${capath}" ]; then
-	curl_args="${curl_args} ${capath}"
-fi
+file='/tmp/rocci-info.sh'
 
-printf "Checking credentials"
-if [ -f /tmp/rocci-info.sh ]; then
-	source /tmp/rocci-info.sh
-fi
-if [ -n "${rocci_password}" ]; then
-	test_done
-else
-	test_failed
-fi
+rm -f ${file}
+touch ${file}
+chmod 0600 ${file}
+cat >> ${file} <<EOF
+one_host='${one_host}'
+EOF
 
-printf "Listing categories"
-cat_file='/tmp/categories.txt'
-${SYS_CURL} ${curl_args} -u ${rocci_user}:${rocci_password} -H 'Accept: text/plain' https://`hostname -f`:11443/-/ > ${cat_file}
-if [ $? -eq 0 ]; then
-	test_done
+if [ -z "${one_admin_pwd}" ]; then
+cat >> ${file} <<EOF
+rocci_user='dummyuser'
+rocci_password='dummypassword'
+EOF
 else
-	test_failed
-	echo "${SYS_CURL} ${curl_args} -u ${rocci_user}:XXXXXX -H 'Accept: text/plain' https://`hostname -f`:11443/-/"
-	cat ${cat_file}
-fi
-
-printf "Checking body contains any categories"
-grep -q '^Category:.*;scheme=".*"' ${cat_file}
-if [ $? -eq 0 ]; then
-	test_done
-else
-	test_failed
-fi
-
-printf "Checking body contains only categories"
-grep -vq '^Category:.*;scheme=".*"' ${cat_file}
-if [ $? -ne 0 ]; then
-	test_done
-else
-	test_failed
+cat >> ${file} <<EOF
+rocci_user='oneadmin'
+rocci_password='${one_admin_pwd}'
+EOF
 fi
 
 test_end
 }
 exit $TEST_OK
+

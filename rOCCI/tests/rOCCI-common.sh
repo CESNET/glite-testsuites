@@ -257,3 +257,101 @@ function check_credentials()
 	return 0
 }
 
+
+#
+# wait for opennebula in service discovery if needed
+#
+# $1 ... backend
+# $2 ... waiting time
+#
+function zoosync_get_info()
+{
+	local backend_full=$1
+	local waiting=${2:-'1800'}
+
+	local version=${backend_full#'opennebula-'}
+	local name="SERVICE_OPENNEBULA_${version//\./_}"
+	local tagname_rocci="${name}_TAG__ROCCI"
+	local tagname_oneadmin="${name}_TAG__ONEADMIN"
+
+	if [ ! -f /etc/zoosyncrc ]; then
+		printf "... Zoosync not configured"
+		return 1
+	fi
+
+	eval `zoosync --service "${backend_full}" --wait ${waiting} wait`
+	if [ $? -ne 0 -o -z "${SERVICES}" ]; then
+		printf "... service ${backend_full} not found in Zookeeper"
+		return 1
+	fi
+	eval one_host=\${${name}}
+
+	eval `zoosync --service "${backend_full}" --hostname "${one_host}" read-tag _rocci _oneadmin`
+	if [ $? -ne 0 ]; then
+		printf "... credentials of ${backend_full} not found in Zookeeper"
+		return 1
+	fi
+	eval one_rocci_pwd=\${${tagname_rocci}}
+	eval one_admin_pwd=\${${tagname_oneadmin}}
+	if [ -z "${one_rocci_pwd}" -o -z "${one_admin_pwd}" ]; then
+		printf "... credentials of ${backend_full} not found in Zookeeper"
+		return 1
+	fi
+
+	return 0
+}
+
+
+#
+# 1) wait for opennebula in service discovery if needed
+# 2) switch rOCCI server backend
+#
+# $1 ... backend
+# $2 ... waiting time
+#
+function rocci_switch_backend()
+{
+	local backend_full=$1
+	local waiting=${2:-'1800'}
+
+	local conf='/etc/apache2/sites-available/occi-ssl'
+	local service='apache2'
+
+	if [ ! -f ${conf} ]; then
+		conf='/etc/httpd/conf.d/occi-ssl.conf'
+		service='httpd'
+	fi
+	if [ ! -f ${conf} ]; then
+		printf "... Apache rOCCI config file not found"
+		exit 1
+	fi
+
+	case ${backend_full} in
+	opennebula*)
+		backend='opennebula'
+
+		zoosync_get_info ${backend_full} ${waiting} || return $?
+		#echo "one: ${one_host}, rocci pwd: ${one_rocci_pwd}"
+
+		sed -i ${conf} \
+			-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_USER\s\+\).*/\1rocci/" \
+			-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_PASSWD\s\+\).*/\1${one_rocci_pwd}/"
+	;;
+	dummy)
+		backend='dummy'
+	;;
+	*)
+		printf "... unknown rOCCI backend '${backend}'"
+		return 1
+	;;
+	esac
+
+	sed -i ${conf} \
+		-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_BACKEND\s\+\).*/\1${backend}/"
+
+	service ${service} restart >/dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		printf "... restarting of '${service}' failed"
+		exit 1
+	fi
+}
