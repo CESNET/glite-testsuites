@@ -335,7 +335,8 @@ function rocci_switch_backend()
 
 		sed -i ${conf} \
 			-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_USER\s\+\).*/\1rocci/" \
-			-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_PASSWD\s\+\).*/\1${one_rocci_pwd}/"
+			-e "s/^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_PASSWD\s\+\).*/\1${one_rocci_pwd}/" \
+			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_XMLRPC\s\+\).*,\1http://${one_host}:2633/RPC2,"
 	;;
 	dummy)
 		backend='dummy'
