@@ -80,7 +80,7 @@ echo ========================
 echo "</PRE>"
 # dummy
 ./rOCCI-test-helper-switch-backend.sh dummy \$OUTPUT_OPT
-./rOCCI-test-deployment.sh
+./rOCCI-test-deployment.sh \$OUTPUT_OPT
 # opennebula
 ./rOCCI-test-helper-switch-backend.sh opennebula-4.12 1200 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
 ./rOCCI-test-helper-switch-backend.sh opennebula-4.10 120 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
