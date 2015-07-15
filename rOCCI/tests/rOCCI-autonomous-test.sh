@@ -61,7 +61,7 @@ else
         INSTALLPKGS="rpmlint"
 fi
 
-$INSTALLCMD wget ca-certificates $SYS_CURL
+$INSTALLCMD wget ca-certificates
 
 # read common definitions and functions
 for COMMON in rOCCI-common.sh rOCCI-common-testbeds.sh
