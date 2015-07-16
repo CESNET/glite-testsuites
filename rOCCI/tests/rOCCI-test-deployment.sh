@@ -99,7 +99,7 @@ fi
 # curl args
 curl_args="--silent -i"
 capath=''
-for dir in '/etc/ssl/certs' '/etc/grid-security/certificates' '/tmp/test-certs.root/grid-security/certificates' '/tmp/test-certs.glite/grid-security/certificates'; do
+for dir in '/etc/ssl/certs' '/etc/grid-security/certificates'; do
 	if [ -d ${dir} ]; then
 		if [ -z "${capath}" ]; then
 			capath="${dir}"
@@ -109,7 +109,7 @@ for dir in '/etc/ssl/certs' '/etc/grid-security/certificates' '/tmp/test-certs.r
 	fi
 done
 if [ -n "${capath}" ]; then
-	curl_args="${curl_args} ${capath}"
+	curl_args="${curl_args} --capath ${capath}"
 fi
 
 
