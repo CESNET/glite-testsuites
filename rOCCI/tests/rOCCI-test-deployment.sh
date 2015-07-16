@@ -138,7 +138,9 @@ if [ ${ret} -eq 0 -a x"${http_code}" = x"200" ]; then
 	test_done
 else
 	if [ ${ret} -eq 0 ]; then
-		printf "... HTTP code not 200"
+		printf "... HTTP code ${http_code}"
+	else
+		printf "... curl exit code ${ret}"
 	fi
 	test_failed
 	echo "${SYS_CURL} ${curl_args} -u ${rocci_user}:XXXXXX -H 'Accept: text/plain' https://`hostname -f`:11443/-/"
