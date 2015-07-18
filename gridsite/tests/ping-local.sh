@@ -91,7 +91,7 @@ fi
 
 # GridSite module loaded:
 printf "Testing if GridSite is loaded"
-${SYS_APACHECTL} ${apache_config_arg} -t -D DUMP_MODULES 2>&1| grep gridsite_module >/dev/null 2>&1
+(${SYS_APACHECTL} ${apache_config_arg} -t -D DUMP_MODULES 2>&1 || httpd -M 2>&1) | grep gridsite_module >/dev/null 2>&1
 if [ $? -eq 0 ]; then
 	test_done
 else

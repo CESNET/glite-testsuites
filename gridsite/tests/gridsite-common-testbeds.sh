@@ -24,11 +24,11 @@ COPYPROXY=$2
 egrep -i "Debian|Ubuntu" /etc/issue
 if [ $? = 0 ]; then 
         INSTALLCMD="apt-get install -q --yes --force-yes"
-	INSTALLPKGS="lintian apache2 netcat-traditional psmisc"
+	INSTALLPKGS="lintian apache2 netcat-traditional psmisc net-tools"
 	HTTPD_SERVER_ROOT=/etc/apache2
 else
         INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint httpd nc mod_ssl"
+	INSTALLPKGS="rpmlint httpd nc mod_ssl net-tools"
 	HTTPD_SERVER_ROOT=/etc/httpd
 fi
 
@@ -38,6 +38,15 @@ GLITE_USER=\$2
 GSTSTCOLS=\$3
 OUTPUT_OPT=\$4
 GITROOT=git://github.com/CESNET/glite-testsuites.git
+if [ -f /etc/fedora-release ]; then
+	OS='Fedora'
+	OS_VER=\`cat /etc/fedora-release | sed 's/.*release\\s\\+\\([0-9]\\+\\).*/\\1/'\`
+elif [ test -f /etc/redhat-release ]; then
+	OS='RedHat'
+	OS_VER=\`cat /etc/redhat-release | sed 's/.*release\\s\\+\\([0-9]\\+\\).*/\\1/'\`
+else
+	OS='Debian'
+fi
 
 echo "Certificate file: \$CERTFILE "
 echo "gLite user:       \$GLITE_USER "
@@ -117,7 +126,7 @@ done
 # Fedora 18+:
 # - dunno what should replace the shm://
 # - need to explicitly enable CGI
-if grep Fedora /etc/issue >/dev/null; then
+if [ "${OS}" = "Fedora" -o "${OS}" = "RedHat" -a ${OS_VER} -ge 7 ]; then
 	sed -i 's,^\(SSLSessionCache.*\),#\1,' \$HTTPD_CONF
 	echo "Options ExecCGI" >> \$HTTPD_CONF
 fi
