@@ -139,7 +139,7 @@ if selinuxenabled >/dev/null 2>&1; then
 	# SL6 doesn't like much starting apache inside rc scripts
 	# change identity 'system_u:system_r:initrc_t:s0'
 	echo "SELinux enabled, don't panic!"
-	runcon -r system_r \$SYS_APACHE -f \$HTTPD_CONF
+	runcon -r system_r \$SYS_APACHE -f \$HTTPD_CONF || \$SYS_APACHE -f \$HTTPD_CONF
 else
 	echo Starting \$SYS_APACHE -f \$HTTPD_CONF
 	\$SYS_APACHE -f \$HTTPD_CONF
