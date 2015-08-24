@@ -111,8 +111,13 @@ sed \\
 	-e "s/^User .*/User \$HTTPD_USER/" \\
 	-e "s/^Group .*/Group \$HTTPD_USER/" \\
   \$HTTPD_CONF_SRC > \$HTTPD_CONF
-echo "AddHandler cgi-script .cgi" >> \$HTTPD_CONF
-echo "ScriptAlias /gridsite-delegation.cgi \$CGI" >> \$HTTPD_CONF
+cat >> \$HTTPD_CONF <<EOF
+AddHandler cgi-script .cgi
+ScriptAlias /gridsite-delegation.cgi \$CGI
+SSLCipherSuite kEECDH:HIGH:MEDIUM:!aNULL:!MD5:!RC4:!eNULL
+SSLProtocol all -SSLv2 -SSLv3
+SSLHonorCipherOrder On
+EOF
 # internal module?
 if [ ! -f $HTTPD_SERVER_ROOT/modules/mod_log_config.so ]; then
 	sed -i 's/^\(LoadModule\\s\\+log_config_module.*\)/# \1/' \$HTTPD_CONF
