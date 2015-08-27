@@ -259,7 +259,17 @@ function check_credentials()
 
 
 #
-# wait for opennebula in service discovery if needed
+# wait for cloud service in service discovery if needed
+#
+# requires tags, for example:
+#
+#zoosync -H `id -un` -s amazon create
+#zoosync -H `id -un` -s amazon tag _aws_id=...
+#zoosync -H `id -un` -s amazon tag _aws_key=...
+#
+#zoosync -s opennebula-4.12 create
+#zoosync -s opennebula-4.12 tag _rocci=rocci:...
+#zoosync -s opennebula-4.12 tag _oneadmin=oneadmin:...
 #
 # $1 ... backend
 # $2 ... waiting time
@@ -269,10 +279,22 @@ function zoosync_get_info()
 	local backend_full=$1
 	local waiting=${2:-'1800'}
 
-	local version=${backend_full#'opennebula-'}
-	local name="SERVICE_OPENNEBULA_${version//\./_}"
-	local tagname_rocci="${name}_TAG__ROCCI"
-	local tagname_oneadmin="${name}_TAG__ONEADMIN"
+	case "${backend_full}" in
+	opennebula*)
+		local backend='opennebula'
+		local tags='_rocci _oneadmin'
+
+		local version=${backend_full#'opennebula-'}
+		local name="SERVICE_OPENNEBULA_${version//\./_}"
+		local tagname_rocci="${name}_TAG__ROCCI"
+		local tagname_oneadmin="${name}_TAG__ONEADMIN"
+	;;
+	amazon)
+		local backend='amazon'
+		local tags='_aws_id _aws_key'
+		local name='SERVICE_AMAZON'
+	;;
+	esac
 
 	if [ ! -f /etc/zoosyncrc ]; then
 		printf "... Zoosync not configured"
@@ -284,24 +306,34 @@ function zoosync_get_info()
 		printf "... service ${backend_full} not found in Zookeeper"
 		return 1
 	fi
-	eval one_host=\${${name}}
+	eval provider_host=\${${name}}
 
-	eval `zoosync --service "${backend_full}" --hostname "${one_host}" read-tag _rocci _oneadmin`
+	eval `zoosync --service "${backend_full}" --hostname "${provider_host}" read-tag ${tags}`
 	if [ $? -ne 0 ]; then
 		printf "... credentials of ${backend_full} not found in Zookeeper"
 		return 1
 	fi
-	eval one_admin_pwd=\${${tagname_oneadmin}}
-	eval one_rocci_pwd=\${${tagname_rocci}}
-	if [ -z "${one_rocci_pwd}" -o -z "${one_admin_pwd}" ]; then
-		printf "... credentials of ${backend_full} not found in Zookeeper"
-		return 1
-	fi
 
-	one_admin_user=`echo ${one_admin_pwd} | cut -d: -f1`
-	one_admin_pwd=`echo ${one_admin_pwd} | cut -d: -f2-`
-	one_rocci_user=`echo ${one_rocci_pwd} | cut -d: -f1`
-	one_rocci_pwd=`echo ${one_rocci_pwd} | cut -d: -f2-`
+	if test x"${backend}" == x"opennebula"; then
+		eval one_admin_pwd=\${${tagname_oneadmin}}
+		eval one_rocci_pwd=\${${tagname_rocci}}
+		if [ -z "${one_rocci_pwd}" -o -z "${one_admin_pwd}" ]; then
+			printf "... credentials of ${backend_full} not found in Zookeeper"
+			return 1
+		fi
+
+		one_admin_user=`echo ${one_admin_pwd} | cut -d: -f1`
+		one_admin_pwd=`echo ${one_admin_pwd} | cut -d: -f2-`
+		one_rocci_user=`echo ${one_rocci_pwd} | cut -d: -f1`
+		one_rocci_pwd=`echo ${one_rocci_pwd} | cut -d: -f2-`
+	elif test x"${backend}" == x"amazon"; then
+		if [ -z "${SERVICE_AMAZON_TAG__AWS_ID}" -o -z "${SERVICE_AMAZON_TAG__AWS_KEY}" ]; then
+			printf "... credentials of ${backend_full} not found in Zookeeper"
+			return 1
+		fi
+		aws_id="${SERVICE_AMAZON_TAG__AWS_ID}"
+		aws_key="${SERVICE_AMAZON_TAG__AWS_KEY}"
+	fi
 
 	return 0
 }
@@ -336,15 +368,25 @@ function rocci_switch_backend()
 		backend='opennebula'
 
 		zoosync_get_info ${backend_full} ${waiting} || return $?
-		#echo "one: ${one_host}, rocci pwd: ${one_rocci_pwd}"
+		#echo "one: ${provider_host}, rocci pwd: ${one_rocci_pwd}"
 
 		sed -i ${conf} \
 			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_USER\s\+\).*,\1${one_rocci_user}," \
 			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_PASSWD\s\+\).*,\1${one_rocci_pwd}," \
-			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_XMLRPC\s\+\).*,\1http://${one_host}:2633/RPC2,"
+			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_ONE_XMLRPC\s\+\).*,\1http://${provider_host}:2633/RPC2,"
 	;;
 	dummy)
 		backend='dummy'
+	;;
+	amazon)
+		backend='ec2'
+
+		zoosync_get_info ${backend_full} ${waiting} || return $?
+		#echo "user: ${provider_host}, aws id: ${aws_id}, aws key: ${aws_key}"
+
+		sed -i ${conf} \
+			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_EC2_AWS_ACCESS_KEY_ID\s\+\).*,\1${aws_id}," \
+			-e "s,^\(\s*SetEnv\s\+ROCCI_SERVER_EC2_AWS_SECRET_ACCESS_KEY\s\+\).*,\1${aws_key},"
 	;;
 	*)
 		printf "... unknown rOCCI backend '${backend}'"

@@ -85,6 +85,8 @@ echo "</PRE>"
 ./rOCCI-test-helper-switch-backend.sh opennebula-4.12 1200 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
 ./rOCCI-test-helper-switch-backend.sh opennebula-4.10 120 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
 ./rOCCI-test-helper-switch-backend.sh opennebula-4.8 120 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
+# amazon
+./rOCCI-test-helper-switch-backend.sh amazon 120 \$OUTPUT_OPT && ./rOCCI-test-deployment.sh \$OUTPUT_OPT
 echo "<PRE>"
 echo ==================
 echo "  TESTS END HERE"
