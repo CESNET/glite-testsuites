@@ -127,15 +127,20 @@ if [ ${zoo_ret} -eq 0 ]; then
 one_host='${one_host}'
 EOF
 
-	if [ -z "${one_admin_pwd}" ]; then
-		cat >> ${file} <<EOF
-rocci_user='dummyuser'
-rocci_password='dummypassword'
-EOF
-	else
+	if [ -n "${one_admin_user}" ]; then
 		cat >> ${file} <<EOF
 rocci_user='${one_admin_user}'
 rocci_password='${one_admin_pwd}'
+EOF
+	elif  [ -n "${aws_id}" ]; then
+		cat >> ${file} <<EOF
+rocci_user='${aws_id}'
+rocci_password='${aws_key}'
+EOF
+	else
+		cat >> ${file} <<EOF
+rocci_user='dummyuser'
+rocci_password='dummypassword'
 EOF
 	fi
 	chmod 0600 ${file}
