@@ -46,6 +46,7 @@ elif [ -f /etc/redhat-release ]; then
 	OS_VER=\`cat /etc/redhat-release | sed 's/.*release\\s\\+\\([0-9]\\+\\).*/\\1/'\`
 else
 	OS='Debian'
+	OS_VER=\`cat /etc/issue | grep Debian | sed 's/[^0-9]*\\([0-9]*\\).*/\\1/'\`
 fi
 
 echo "Certificate file: \$CERTFILE "
@@ -128,10 +129,10 @@ for mod in mpm_prefork unixd authz_core; do
 		echo "LoadModule \${mod}_module	modules/mod_\${mod}.so" >> \$HTTPD_CONF
 	fi
 done
-# Fedora 18+:
+# Fedora 18+, SL 7+, Debian 8+:
 # - dunno what should replace the shm://
 # - need to explicitly enable CGI
-if [ "\${OS}" = "Fedora" -o "\${OS}" = "RedHat" -a \${OS_VER} -ge 7 ]; then
+if [ "\${OS}" = "Fedora" -o "\${OS}" = "RedHat" -a \${OS_VER} -ge 7 -o "\${OS}" = "Debian" -a \${OS_VER} -ge 8 ]; then
 	sed -i 's,^\(SSLSessionCache.*\),#\1,' \$HTTPD_CONF
 	echo "Options ExecCGI" >> \$HTTPD_CONF
 fi
