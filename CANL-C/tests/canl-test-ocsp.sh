@@ -149,6 +149,7 @@ else
         exit 2
 fi
 
+sleep 0.2
 
 printf "CANL client: connect to CANL sample server (OCSP on)\n"
 ${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}" -o

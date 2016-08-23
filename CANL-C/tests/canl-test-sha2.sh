@@ -107,6 +107,8 @@ else
 	test_done
 fi
 
+sleep 0.2
+
 printf "Testing credentials"
 check_credentials_and_generate_proxy
 if [ $? -gt 0 ]; then

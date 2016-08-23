@@ -229,6 +229,8 @@ else
 	exit 2
 fi
 
+sleep 0.2
+
 pipe=/tmp/canl_ossl_cli_pipe.$$
 
 if [[ ! -p $pipe ]]; then
