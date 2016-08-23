@@ -107,8 +107,6 @@ else
 	test_done
 fi
 
-sleep 0.2
-
 printf "Testing credentials"
 check_credentials_and_generate_proxy
 if [ $? -gt 0 ]; then
@@ -171,6 +169,8 @@ else
 	test_end
 	exit 2
 fi
+
+sleep 0.2
 
 server_host=`hostname -f 2> /dev/null || hostname -A 2> /dev/null`
 ${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}" -k "${sha2_key}"\
