@@ -144,6 +144,8 @@ else
 	test_failed
 fi
 
+sleep 0.1
+
 #test client with server not running
 printf "Testing client: connect to server not running"
 nu_port=11112
@@ -187,6 +189,8 @@ else
         test_end
         exit 2
 fi
+
+sleep 0.2
 
 printf "CANL client: connect to CANL sample server \n"
 ${EMI_CANL_CLIENT} -s "${server_host}" -p "${nu_port}"
