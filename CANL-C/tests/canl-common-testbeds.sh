@@ -21,13 +21,18 @@ function gen_arrange_script_canl()
 remotehost=$1
 COPYPROXY=$2
 
-egrep -i "Debian|Ubuntu" /etc/issue
-if [ $? = 0 ]; then 
+INSTALLPKGS="ca-certificates git globus-proxy-utils lsof wget"
+if egrep -iq "Debian|Ubuntu" /etc/issue; then
 	INSTALLCMD="apt-get install -q --yes --force-yes"
-	INSTALLPKGS="lintian"
+	INSTALLPKGS="${INSTALLPKGS} lintian voms-clients"
 else
+	if egrep -iq '^Fedora' /etc/redhat-release; then
+		VOMSPKG='voms-clients-cpp'
+	else
+		VOMSPKG='voms-clients'
+	fi
 	INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint"
+	INSTALLPKGS="${INSTALLPKGS} rpmlint ${VOMSPKG}"
 fi
 
 cat << EndArrangeScript > arrange_canl_test_root.sh 
@@ -44,7 +49,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS CVSROOT
 
-${INSTALLCMD} wget ca-certificates lsof git voms-clients globus-proxy-utils $INSTALLPKGS
+${INSTALLCMD} ${INSTALLPKGS}
 
 cd /tmp
 

@@ -21,14 +21,19 @@ function gen_arrange_script_gridsite()
 remotehost=$1
 COPYPROXY=$2
 
-egrep -i "Debian|Ubuntu" /etc/issue
-if [ $? = 0 ]; then 
+INSTALLPKGS='ca-certificates curl lsof sudo wget'
+if egrep -iq "Debian|Ubuntu" /etc/issue; then
 	INSTALLCMD="apt-get install -q --yes --force-yes"
-	INSTALLPKGS="lintian apache2 netcat-traditional psmisc net-tools"
+	INSTALLPKGS="${INSTALLPKGS} apache2 lintian net-tools netcat-traditional psmisc voms-clients"
 	HTTPD_SERVER_ROOT=/etc/apache2
 else
+	if egrep -iq '^Fedora' /etc/redhat-release; then
+		VOMSPKG='voms-clients-cpp'
+	else
+		VOMSPKG='voms-clients'
+	fi
 	INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint httpd nc mod_ssl net-tools"
+	INSTALLPKGS="${INSTALLPKGS} httpd mod_ssl nc net-tools rpmlint ${VOMSPKG}"
 	HTTPD_SERVER_ROOT=/etc/httpd
 fi
 
@@ -56,7 +61,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export GSTSTCOLS CVSROOT
 
-${INSTALLCMD} voms-clients curl wget ca-certificates lsof sudo $INSTALLPKGS
+${INSTALLCMD} ${INSTALLPKGS}
 
 if test -f /usr/sbin/apache2; then
 	SYS_APACHE=apache2

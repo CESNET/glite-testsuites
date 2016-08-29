@@ -22,13 +22,18 @@ function gen_arrange_script()
 remotehost=$1
 COPYPROXY=$2
 
-egrep -i "Debian|Ubuntu" /etc/issue
-if [ $? = 0 ]; then
+INSTALLPKGS="bc ca-certificates curl gcc globus-proxy-utils make postgresql sudo wget"
+if egrep -iq "Debian|Ubuntu" /etc/issue; then
 	INSTALLCMD="aptitude install -y --allow-untrusted"
-	INSTALLPKGS="lintian ldap-utils"
+	INSTALLPKGS="${INSTALLPKGS} lintian ldap-utils voms-clients"
 else
+	if egrep -iq '^Fedora' /etc/redhat-release; then
+		VOMSPKG='voms-clients-cpp'
+	else
+		VOMSPKG='voms-clients'
+	fi
 	INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint postgresql-server openldap-clients"
+	INSTALLPKGS="${INSTALLPKGS} rpmlint postgresql-server openldap-clients ${VOMSPKG}"
 fi
 
 cat << EndArrangeScript > arrange_lb_test_root.sh 
@@ -45,7 +50,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export LBTSTCOLS CVSROOT
 
-${INSTALLCMD} globus-proxy-utils postgresql voms-clients curl wget ca-certificates sudo bc gcc make $INSTALLPKGS
+${INSTALLCMD} ${INSTALLPKGS}
 
 if [ -x /sbin/service ]; then
 	PSQL_CMD="/sbin/service postgresql"

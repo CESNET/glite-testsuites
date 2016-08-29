@@ -21,14 +21,19 @@ function gen_arrange_script_px()
 remotehost=$1
 COPYPROXY=$2
 
-egrep -i "Debian|Ubuntu" /etc/issue
-if [ $? = 0 ]; then
+INSTALLPKGS='ca-certificates curl globus-proxy-utils wget'
+if egrep -iq "Debian|Ubuntu" /etc/issue; then
 	INSTALLCMD="aptitude install -y --allow-untrusted"
 	# install myproxy too for client utils
-	INSTALLPKGS="lintian myproxy"
+	INSTALLPKGS="${INSTALLPKGS} lintian myproxy voms-clients"
 else
+	if egrep -iq '^Fedora' /etc/redhat-release; then
+		VOMSPKG='voms-clients-cpp'
+	else
+		VOMSPKG='voms-clients'
+	fi
 	INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="rpmlint"
+	INSTALLPKGS="${INSTALLPKGS} rpmlint ${VOMSPKG}"
 fi
 
 cat << EndArrangeScript > arrange_px_test_root.sh 
@@ -45,7 +50,7 @@ echo "Output format:    \$OUTPUT_OPT "
 
 export PXTSTCOLS CVSROOT
 
-${INSTALLCMD} globus-proxy-utils voms-clients curl wget ca-certificates $INSTALLPKGS
+${INSTALLCMD} ${INSTALLPKGS}
 
 cd /tmp
 
