@@ -49,9 +49,12 @@ if [ -f /etc/fedora-release ]; then
 elif [ -f /etc/redhat-release ]; then
 	OS='RedHat'
 	OS_VER=\`cat /etc/redhat-release | sed 's/.*release\\s\\+\\([0-9]\\+\\).*/\\1/'\`
+elif grep -iq Ubuntu /etc/issue; then
+	OS='Ubuntu'
+	OS_VER=\`cat /etc/issue | grep -i Ubuntu | sed 's/[^0-9]*\\([0-9]*\\).*/\\1/'\`
 else
 	OS='Debian'
-	OS_VER=\`cat /etc/issue | grep Debian | sed 's/[^0-9]*\\([0-9]*\\).*/\\1/'\`
+	OS_VER=\`cat /etc/issue | grep -i Debian | sed 's/[^0-9]*\\([0-9]*\\).*/\\1/'\`
 fi
 
 echo "Certificate file: \$CERTFILE "
@@ -137,7 +140,7 @@ done
 # Fedora 18+, SL 7+, Debian 8+:
 # - dunno what should replace the shm://
 # - need to explicitly enable CGI
-if [ "\${OS}" = "Fedora" -o "\${OS}" = "RedHat" -a \${OS_VER} -ge 7 -o "\${OS}" = "Debian" -a \${OS_VER} -ge 8 ]; then
+if [ "\${OS}" = "Fedora" -o "\${OS}" = "RedHat" -a \${OS_VER} -ge 7 -o "\${OS}" = "Debian" -a \${OS_VER} -ge 8 -o "\${OS}" = "Ubuntu" ]; then
 	sed -i 's,^\(SSLSessionCache.*\),#\1,' \$HTTPD_CONF
 	echo "Options ExecCGI" >> \$HTTPD_CONF
 fi
