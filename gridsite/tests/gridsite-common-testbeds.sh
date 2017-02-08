@@ -21,10 +21,10 @@ function gen_arrange_script_gridsite()
 remotehost=$1
 COPYPROXY=$2
 
-INSTALLPKGS='ca-certificates curl lsof sudo wget'
+INSTALLPKGS='ca-certificates file curl lsof sudo wget'
 if egrep -iq "Debian|Ubuntu" /etc/issue; then
 	INSTALLCMD="apt-get install -q --yes --force-yes"
-	INSTALLPKGS="${INSTALLPKGS} apache2 lintian net-tools netcat-traditional psmisc voms-clients"
+	INSTALLPKGS="${INSTALLPKGS} apache2 iputils-ping lintian net-tools netcat-traditional psmisc voms-clients"
 	HTTPD_SERVER_ROOT=/etc/apache2
 else
 	if egrep -iq '^Fedora' /etc/redhat-release; then
@@ -33,7 +33,7 @@ else
 		VOMSPKG='voms-clients'
 	fi
 	INSTALLCMD="yum install -q -y --nogpgcheck"
-	INSTALLPKGS="${INSTALLPKGS} httpd mod_ssl nc net-tools rpmlint ${VOMSPKG}"
+	INSTALLPKGS="${INSTALLPKGS} httpd iputils mod_ssl nc net-tools rpmlint ${VOMSPKG}"
 	HTTPD_SERVER_ROOT=/etc/httpd
 fi
 
