@@ -106,6 +106,9 @@ printf "User Cert $x509_USER_CERT$NL"
 printf "User Key $x509_USER_KEY$NL"
 chmod 600 $x509_USER_CERT $x509_USER_KEY
 
+# MyProxy server identity
+export MYPROXY_SERVER_DN=`openssl x509 -noout -subject -in /etc/grid-security/hostcert.pem | sed -e 's/^subject= //'`
+
 JOBID=https://fake.job.id/xxx
 
 ORIG_PROXY=`voms-proxy-info | grep -E "^path" | sed 's/^path\s*:\s*//'`
