@@ -123,7 +123,7 @@ EOF
 test_done
 
 printf "Testing test.cgi..."
-(cat $DATA; sleep 0.5) | openssl s_client -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY >$OUTPUT 2>$ERROR
+(cat $DATA; sleep 0.5) | openssl s_client -crlf -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY >$OUTPUT 2>$ERROR
 ret=$?
 grep -q '^GRST_' $OUTPUT
 if [ $ret -eq 0 -a $? -eq 0 ]; then
@@ -138,7 +138,7 @@ for args in '' '-no_ticket '; do
 	rm -f $SESSION
 
 	printf "Launching first SSL session..."
-	echo -n | openssl s_client -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY -sess_out $SESSION -quiet -no_ign_eof $args 2>$ERROR
+	echo -n | openssl s_client -crlf -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY -sess_out $SESSION -quiet -no_ign_eof $args 2>$ERROR
 	if [ $? -eq 0 ]; then
 		test_done
 	else
@@ -148,7 +148,7 @@ for args in '' '-no_ticket '; do
 	fi
 
 	printf "Test for GRST_CRED_AURI_2 $args..."
-	(cat $DATA; sleep 0.5) | openssl s_client -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY -sess_in $SESSION $args >$OUTPUT 2>$ERROR
+	(cat $DATA; sleep 0.5) | openssl s_client -crlf -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY -sess_in $SESSION $args >$OUTPUT 2>$ERROR
 	if [ $? -ne 0 ]; then
 		test_failed
 		print_error "SSL connection failed!"
