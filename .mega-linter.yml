@@ -1,0 +1,10 @@
+---
+DISABLE:
+  - COPYPASTE
+  - SPELL
+
+REPOSITORY_DEVSKIM_ARGUMENTS: >-
+  --ignore-globs **/CANL-C/**,**/gridsite/**,**/LB/**,**/PX/**,**/rOCCI/**
+  --skip-git-ignored-files
+
+FILTER_REGEX_EXCLUDE: ^((CANL-C|gridsite|LB|PX|rOCCI)/.*|.*\.swp)$
