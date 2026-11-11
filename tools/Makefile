@@ -8,16 +8,22 @@
 #
 #   CERTS   target directory for the generated tree   (default /tmp/certs)
 #   VOS     VOs to fake attributes for, space separated (default vo.org)
+#   HOURS   lifetime of the published proxies, in hours (default 168). Tests
+#           that watch a proxy being renewed want a short one, e.g. HOURS=2
+#   EXTRA   number of additional client certificates trusted_client01.., for
+#           tests that act as somebody else than the tester     (default 1)
 #   PROXY   where the VOMS proxy of the first VO is copied; the default is the
 #           location GSI tools fall back to when X509_USER_PROXY is unset
 #   DESTDIR installation root for 'install'            (default empty)
 #   GENFLAGS extra flags for the generator, e.g. GENFLAGS=--fresh-ca
 
-CERTS    ?= /tmp/certs
-VOS      ?= vo.org
-DESTDIR  ?=
-PROXY    ?= /tmp/x509up_u$(shell id -u)
-GENFLAGS ?=
+CERTS      ?= /tmp/certs
+VOS        ?= vo.org
+HOURS      ?= 168
+EXTRA      ?= 1
+DESTDIR    ?=
+PROXY      ?= /tmp/x509up_u$(shell id -u)
+GENFLAGS   ?=
 
 GEN      := ./generate-test-certs.sh
 GS       := $(CERTS)/grid-security
@@ -25,6 +31,7 @@ GS       := $(CERTS)/grid-security
 VOMSFLAGS = $(foreach vo,$(VOS),--voms $(vo))
 # The proxy that gets published is the one faked for the first VO.
 VO0       = $(firstword $(VOS))
+EXTRAFLAG   = --extra $(EXTRA)
 
 .DEFAULT_GOAL := all
 .PHONY: all certs proxy install clean help
@@ -36,14 +43,25 @@ all: proxy
 # leaf certificate either way, so no certificate signed by a replaced CA can
 # survive a re-run.
 certs:
-	$(GEN) $(strip $(VOMSFLAGS) $(GENFLAGS)) $(CERTS)
+	$(GEN) $(strip $(VOMSFLAGS) --hours $(HOURS) $(EXTRAFLAG) $(GENFLAGS)) $(CERTS)
 
+# Only the tester's own proxy is published, because that one has a conventional
+# location that GSI tools fall back to. The additional identities stay in the
+# tree: a test that acts as one of them names its file explicitly. Changing
+# HOURS means re-running the generator, which 'proxy' does through its
+# prerequisite.
 proxy: certs
 	@test -r $(CERTS)/home/voms-$(VO0).pem \
 		|| { echo "no $(CERTS)/home/voms-$(VO0).pem - is VOS set correctly?"; exit 1; }
 	cp -f $(CERTS)/home/voms-$(VO0).pem $(PROXY)
 	chmod 600 $(PROXY)
 	@echo "proxy: $(PROXY)"
+ifneq ($(strip $(EXTRA)),)
+ifneq ($(strip $(EXTRA)),0)
+	@echo "additional identities are in $(CERTS)/home/ as voms-<VO>-clientNN.pem; they"
+	@echo "are used through X509_USER_PROXY, so they need no conventional location"
+endif
+endif
 	@echo "GSI tools pick this up with no X509_USER_PROXY: source $(CERTS)/env.sh && voms-proxy-info --all"
 
 # Installs the CA trust anchors, the CRLs, the signing policy and namespace

@@ -7,10 +7,15 @@
 #
 #   trusted-certs/trusted_client00.{cert,priv}      SHA-256, CN=$LOGNAME
 #   trusted-certs/trusted_clientsha512.{cert,priv}  SHA-512, fixed CN
+#   trusted-certs/trusted_clientNN.{cert,priv}      with --extra N, N additional
+#                                                   client identities numbered
+#                                                   01..NN, for tests that need
+#                                                   somebody else than the tester
 #   grid-security/hostcert.pem|hostkey.pem          CN=<fully qualified hostname>
 #   grid-security/certificates/<hash>.{0,r0,signing_policy,namespaces}
 #   home/usercert.pem|userkey.pem
 #   home/voms-<VO>.pem, grid-security/vomsdir/<VO>/<host>.lsc      with --voms <VO>
+#   home/voms-<VO>-clientNN.pem                     with --extra N and --voms
 #   env.sh
 #
 # Where this differs from the old generator, and why:
@@ -28,6 +33,9 @@
 #     subsubca/slash CA variants. VOMS attributes are faked with
 #     voms-proxy-fake only when --voms is given, as it needs a host certificate
 #     to sign the attribute certificate with.
+#   * The old generator always issued one second identity, trusted_client01, which
+#     the authorisation tests use to act as somebody else than the tester. Here
+#     any number of them can be asked for with --extra N.
 #   * Keys are written unencrypted, as the old grid-security/ and home/ copies
 #     were, and chmod 400 because Globus refuses to use world-readable keys.
 #
@@ -53,18 +61,28 @@ HOST_CN=''
 # Only used as the host part of the AC URI and the vomsdir file name, so it has
 # to be the exact name consumers will look the VOMS server up under.
 VOMS_PORT=15000
-# AC and proxy lifetime of the fake VOMS proxies, in hours.
-VOMS_HOURS=168
+# AC and proxy lifetime of the fake VOMS proxies, in hours. Short-lived proxies
+# are what the proxy renewal tests assert on, hence --hours.
+PROXY_HOURS=168
+# Number of additional client identities to issue besides the tester's own:
+# trusted_client01 .. trusted_clientNN. Tests that check authorisation need a
+# certificate belonging to somebody else; a couple of them need several.
+EXTRA=0
 
 usage() {
-	echo "usage: $0 [--fresh-ca] [--days N] [--bits N] [--host-cn NAME]"
-	echo "          [--voms VO]... target_dir"
+	echo "usage: $0 [--fresh-ca] [--days N] [--bits N] [--hours N] [--extra N]"
+	echo "          [--host-cn NAME] [--voms VO]... target_dir"
 	echo
 	echo "  --fresh-ca      replace an existing CA in target_dir instead of reusing it"
 	echo "  --days N        validity of the CA and of every certificate (default $DAYS)"
 	echo "  --bits N        RSA key size (default $BITS)"
+	echo "  --hours N       lifetime of the faked VOMS proxies and their attributes,"
+	echo "                  in hours (default $PROXY_HOURS)"
 	echo "  --host-cn NAME  CN of the host certificate (default: the fully qualified"
 	echo "                  hostname), also used as the fake VOMS server name"
+	echo "  --extra N       additionally issue N client certificates"
+	echo "                  trusted_client01..trusted_clientNN, CN \"trusted clientNN\";"
+	echo "                  with --voms also home/voms-<VO>-clientNN.pem"
 	echo "  --voms VO       fake a VOMS attribute for VO, repeatable; needs"
 	echo "                  voms-proxy-fake"
 	echo
@@ -109,6 +127,22 @@ while [ $# -gt 0 ]; do
 		BITS=$2
 		shift 2
 		;;
+	--hours)
+		[ $# -ge 2 ] || {
+			echo "--hours needs a value" >&2
+			exit 1
+		}
+		PROXY_HOURS=$2
+		shift 2
+		;;
+	--extra)
+		[ $# -ge 2 ] || {
+			echo "--extra needs a number of certificates" >&2
+			exit 1
+		}
+		EXTRA=$2
+		shift 2
+		;;
 	-h | --help)
 		usage
 		exit 0
@@ -131,6 +165,26 @@ done
 
 [ -n "$TARGETDIR" ] || {
 	usage >&2
+	exit 1
+}
+
+case $PROXY_HOURS in
+'' | *[!0-9]*)
+	echo "--hours must be a number of hours, not '$PROXY_HOURS'" >&2
+	exit 1
+	;;
+esac
+
+case $EXTRA in
+'' | *[!0-9]*)
+	echo "--extra must be a number of certificates, not '$EXTRA'" >&2
+	exit 1
+	;;
+esac
+# Two digits is what the file names use, so that is as far as the numbering
+# scales; wanting more than this is a mistake about what the option means.
+[ "$EXTRA" -le 99 ] || {
+	echo "--extra at most 99, not $EXTRA" >&2
 	exit 1
 }
 
@@ -167,6 +221,9 @@ echo "target directory: $TARGETDIR"
 echo "openssl:          $(openssl version)"
 echo "user certificate CN: $USER_CN"
 echo "host certificate CN: $HOST_CN"
+if [ "$EXTRA" -gt 0 ]; then
+	echo "additional clients:  trusted_client01..$(printf 'trusted_client%02d' "$EXTRA")"
+fi
 
 # ---------------------------------------------------------------- openssl config
 # Written into the CA directory, with paths relative to this directory, so that
@@ -282,6 +339,36 @@ issue_cert "$CERT_DIR/trusted_client00" "$USER_CN" ca_client sha256
 issue_cert "$CERT_DIR/trusted_clientsha512" "trusted client with sha512 hash" ca_client sha512
 issue_cert "$CERT_DIR/trusted_host" "$HOST_CN" ca_server sha256
 
+# An earlier run may have been given a larger --extra. Those files are not part of
+# this run's list any more, and leaving them behind would keep a client that
+# nothing re-issues - after --fresh-ca, one signed by the replaced CA.
+prune_extra() {
+	local file num
+	for file in "$CERT_DIR"/trusted_client[0-9][0-9].cert "home"/voms-*-client[0-9][0-9].pem; do
+		[ -e "$file" ] || continue
+		num=${file##*/}
+		num=${num##*client}
+		num=${num%.cert}
+		num=${num%.pem}
+		# trusted_client00 is the tester's own certificate, never an extra one;
+		# its number is 00, which never exceeds --extra.
+		if [ "$((10#$num))" -gt "$EXTRA" ]; then
+			rm -f "$file" "${file%.cert}.priv"
+			echo "pruned $file (not within --extra $EXTRA)"
+		fi
+	done
+}
+prune_extra
+
+# Additional identities, numbered from 01 so that the file names sort and so that
+# they stay the same however many are asked for.
+n=1
+while [ "$n" -le "$EXTRA" ]; do
+	nn=$(printf '%02d' "$n")
+	issue_cert "$CERT_DIR/trusted_client$nn" "trusted client$nn" ca_client sha256
+	n=$((n + 1))
+done
+
 cp -f "$CERT_DIR/trusted_client00.cert" home/usercert.pem
 cp -f "$CERT_DIR/trusted_client00.priv" home/userkey.pem
 chmod 400 home/userkey.pem
@@ -350,7 +437,7 @@ fake_ac() {
 		voms-proxy-fake -cert "$srccert" -key "$srckey" \
 		-hostcert "$CERT_DIR/trusted_host.cert" -hostkey "$CERT_DIR/trusted_host.priv" \
 		-uri "$HOST_CN:$VOMS_PORT" -voms "$vo" -fqan "$fqan" \
-		-hours "$VOMS_HOURS" -vomslife "$VOMS_HOURS" -out "$out" -quiet
+		-hours "$PROXY_HOURS" -vomslife "$PROXY_HOURS" -out "$out" -quiet
 	# Reading the proxy back is the check that matters: voms-proxy-info resolves
 	# the hostname from the AC and verifies the signature against the .lsc file.
 	if ! info=$(X509_CERT_DIR="$TARGETDIR/grid-security/certificates" \
@@ -380,6 +467,17 @@ create_voms_acs() {
 	fake_ac "$vo" "$CERT_DIR/trusted_clientsha512.cert" \
 		"$CERT_DIR/trusted_clientsha512.priv" \
 		"home/voms-$vo-sha512.pem" "/$vo/Role=NULL/Capability=NULL"
+	n=1
+	while [ "$n" -le "$EXTRA" ]; do
+		nn=$(printf '%02d' "$n")
+		# A proxy of somebody else than the tester, which is what the
+		# authorisation tests need. Which environment variable it ends up in is
+		# not this script's decision.
+		fake_ac "$vo" "$CERT_DIR/trusted_client$nn.cert" \
+			"$CERT_DIR/trusted_client$nn.priv" \
+			"home/voms-$vo-client$nn.pem" "/$vo/Role=NULL/Capability=NULL"
+		n=$((n + 1))
+	done
 }
 
 if [ -n "$VO_LIST" ]; then
@@ -394,8 +492,14 @@ fi
 
 # ------------------------------------------------------------------ verification
 
-for cert in home/usercert.pem grid-security/hostcert.pem \
-	"$CERT_DIR/trusted_clientsha512.cert"; do
+verify_certs="home/usercert.pem grid-security/hostcert.pem $CERT_DIR/trusted_clientsha512.cert"
+n=1
+while [ "$n" -le "$EXTRA" ]; do
+	verify_certs="$verify_certs $CERT_DIR/trusted_client$(printf '%02d' "$n").cert"
+	n=$((n + 1))
+done
+
+for cert in $verify_certs; do
 	openssl verify -x509_strict -crl_check \
 		-CAfile "$CA_DIR/trusted.cert" -CRLfile "$CA_DIR/trusted.crl" "$cert"
 	# Also prove the hashed grid-security/certificates directory is usable.
@@ -404,20 +508,43 @@ done
 
 # ------------------------------------------------------------- env for the user
 
+# The proxy location is only defaulted, not forced: whoever published the proxy
+# may have put it somewhere else, and a real proxy must keep priority over this
+# test one.
 cat >env.sh <<EOF
 #!/bin/bash
+export TEST_CERTS=$TARGETDIR
 export X509_CERT_DIR=$TARGETDIR/grid-security/certificates
 export X509_USER_CERT=$TARGETDIR/home/usercert.pem
 export X509_USER_KEY=$TARGETDIR/home/userkey.pem
+export TRUSTED_CERTS=$TARGETDIR/trusted-certs
+export HOST_CERT_DIR=$TARGETDIR/grid-security
 EOF
-
-echo
-echo "test certificates can be used with the following environment variables:"
-echo "export X509_CERT_DIR=$TARGETDIR/grid-security/certificates"
-echo "export X509_USER_CERT=$TARGETDIR/home/usercert.pem"
-echo "export X509_USER_KEY=$TARGETDIR/home/userkey.pem"
 
 if [ -n "$VO_LIST" ]; then
 	echo "export X509_VOMS_DIR=$TARGETDIR/grid-security/vomsdir" >>env.sh
+fi
+
+# Where the proxies got published is the caller's business; this is only the
+# location GSI tools fall back to on their own. Who stands for which identity is
+# up to the consumers too - see credentials_env in tools/lib/.
+# shellcheck disable=SC2016  # the ${...} must survive into env.sh
+{
+	printf ': "${X509_USER_PROXY:=%s}"\nexport X509_USER_PROXY\n' "/tmp/x509up_u$(id -u)"
+} >>env.sh
+
+echo
+echo "test certificates can be used with the following environment variables:"
+echo "export TEST_CERTS=$TARGETDIR"
+echo "export X509_CERT_DIR=$TARGETDIR/grid-security/certificates"
+echo "export X509_USER_CERT=$TARGETDIR/home/usercert.pem"
+echo "export X509_USER_KEY=$TARGETDIR/home/userkey.pem"
+echo "export TRUSTED_CERTS=$TARGETDIR/trusted-certs"
+
+if [ -n "$VO_LIST" ]; then
 	echo "export X509_VOMS_DIR=$TARGETDIR/grid-security/vomsdir"
+fi
+if [ "$EXTRA" -gt 0 ]; then
+	echo "the additional identities are in $TARGETDIR/trusted-certs/ and, with"
+	echo "a VO, as $TARGETDIR/home/voms-<VO>-clientNN.pem"
 fi
