@@ -53,9 +53,9 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=lb-common.sh
+COMMON=`dirname $0`/lb-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -100,7 +100,7 @@ else
 fi
 
 printf "Testing credentials"
-check_credentials_and_generate_proxy
+need_credentials
 if [ $? != 0 ]; then
 	test_end
 	exit 2

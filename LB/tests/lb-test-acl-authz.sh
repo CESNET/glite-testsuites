@@ -54,31 +54,10 @@ EndHelpHeader
 }
 
 
-check_credentials()
-{
-	my_GRIDPROXYINFO=${GRIDPROXYINFO}
-	if [ "$1" != "" ]; then
-		my_GRIDPROXYINFO="${GRIDPROXYINFO} -f $1"
-	fi
-
-	timeleft=`${my_GRIDPROXYINFO} | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-
-	if [ "$timeleft" = "" ]; then
-        	print_error "No credentials"
-		return 1
-	fi
-        if [ "$timeleft" = "0:00:00" ]; then
-          	print_error "Credentials expired"
-		return 1
-	fi
-	return 0
-}
-
-
 # read common definitions and functions
-COMMON=lb-common.sh
+COMMON=`dirname $0`/lb-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -129,7 +108,7 @@ while [ "$CONT" = "yes" ]; do
 	test_done
 
 	printf "Testing credentials"	
-	check_credentials_and_generate_proxy
+	need_credentials
 	if [ $? != 0 ]; then
 		test_end
 		exit 2
@@ -138,7 +117,7 @@ while [ "$CONT" = "yes" ]; do
 	printf "Testing snd proxy certificate"
 	if [ "$X509_USER_PROXY_BOB" = "" ]; then
 		test_failed
-		print_error "\$X509_USER_PROXY_BOB must be set"
+		print_error "\$X509_USER_PROXY_BOB not set - run this through run.sh, or generate it with 'make -C tools EXTRA=1' (docs/requirements.md)"
 		break
 	fi
 	check_credentials $X509_USER_PROXY_BOB

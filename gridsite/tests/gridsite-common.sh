@@ -2,13 +2,13 @@
 #
 # Copyright (c) Members of the EGEE Collaboration. 2004-2010.
 # See http://www.eu-egee.org/partners for details on the copyright holders.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,170 +16,151 @@
 # limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# Definitions of functions and variables common to LB test scripts
+# Definitions of functions and variables common to the GridSite test scripts
 #
-#   ping_host() - basic network ping
-#   check_binaries() - check for binary executables, calls check_exec()
-#   check_socket() - TCPecho to host:port
+# What is here is only what GridSite needs: where the Apache serving these tests
+# keeps its document root and its proxy cache, which identity it runs as, and the
+# two helpers that let an unprivileged run do the handful of things on this
+# machine that belong to root.
+#
+# Everything generic - the output modes and the test_* verbs, the SYS_* binary
+# names, check_binaries(), check_socket(), check_listener(), ping_host(), the
+# packaging and build checkers and the credential helpers - lives in tools/lib/
+# and arrives through testenv.sh, sourced below. It used to be duplicated in this
+# file, including a check_socket() whose fallback probed localhost:22 and never
+# looked at the host it was given.
 #
 # ------------------------------------------------------------------------------
 
-# read common definitions and functions
-TEST_COMMON=../../LB/tests/test-common.sh
-if [ ! -r ${TEST_COMMON} ]; then
-	printf "Common definitions '${TEST_COMMON}' not found!\n"
-	exit 2	
+# read common definitions and functions - walking up from this file, so that
+# neither the current directory nor the way the test was invoked matters
+TEST_COMMON_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+LIBROOT=$TEST_COMMON_DIR
+while [ ! -r "$LIBROOT/tools/lib/testenv.sh" ] && [ "$LIBROOT" != "/" ]; do
+	LIBROOT=$(dirname -- "$LIBROOT")
+done
+if [ ! -r "$LIBROOT/tools/lib/testenv.sh" ]; then
+	printf "Common definitions 'tools/lib/testenv.sh' not found above '${TEST_COMMON_DIR}'!\n"
+	exit 2
 fi
-source ${TEST_COMMON}
+source "$LIBROOT/tools/lib/testenv.sh"
 
+ulimit -c unlimited
 
-# define variables
-#GLITE_LOCATION=${GLITE_LOCATION:-'/usr'}
-#SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
-#PATH=$GLITE_LOCATION/bin:$GLITE_LOCATION/examples:$PATH
-#export PATH
+# What setup.sh learned about this deployment. The drivers source it too; it is
+# sourced here as well so that a test run by hand from this directory sees the
+# same paths, which is what the old hardcoded /var/www/htdocs and
+# /etc/grid-security/certificates were a stand-in for. Everything below only
+# fills in what is unset.
+GS_ENV_FILE=${GS_ENV:-$(state_file gridsite.env)}
+if [ -r "$GS_ENV_FILE" ]; then
+	# shellcheck source=/dev/null
+	source "$GS_ENV_FILE"
+fi
+credentials_env
 
-GRIDPROXYINFO=grid-proxy-info
+# The Apache these tests talk to and the machine it serves. GS_SERVER is what the
+# tests put in the URL and in SNI; it has to be the name the host certificate is
+# valid for, which setup.sh determined and recorded.
+GS_SERVER=${GS_SERVER:-$(hostname -f 2> /dev/null || hostname)}
+GS_PORT=${GS_PORT:-443}
+GS_URL=${GS_URL:-https://$GS_SERVER:$GS_PORT}
 
-# binaries
-SYS_LSOF=lsof
-SYS_GREP=grep
-SYS_SED=sed
-SYS_PS=ps
-SYS_PIDOF=pidof
-if test -f /usr/sbin/apache2; then
+# Where the server keeps what the tests write into it. The document root has to be
+# writable by the tester (the tests drop .gacl files and a test.cgi into it) and by
+# the server (the write and upload checks make it create files there); setup.sh
+# does that with ACLs for both, because the directory belongs to neither.
+GS_HTDOCS=${GS_HTDOCS:-/var/www/htdocs}
+GS_PROXYCACHE=${GS_PROXYCACHE:-/var/www/proxycache}
+
+# The identity Apache runs as, which the tests need whenever they have to make a
+# path writable by it. Debian and Red Hat name the same role differently.
+if [ -z "${GS_HTTPD_USER:-}" ]; then
+	if getent passwd www-data > /dev/null 2>&1; then
+		GS_HTTPD_USER=www-data
+	else
+		GS_HTTPD_USER=apache
+	fi
+fi
+
+# Trust anchors for curl's --capath. The generated CA is installed into
+# /etc/grid-security/certificates by 'make -C tools install', but a tester working
+# against $TEST_CERTS alone should not have to have installed it system-wide.
+GS_CAPATH=${GS_CAPATH:-${X509_CERT_DIR:-/etc/grid-security/certificates}}
+
+# Apache. The two names are what the packaging calls it on the two families.
+if [ -f /usr/sbin/apache2 ]; then
 	SYS_APACHE=apache2
 else
 	SYS_APACHE=httpd
 fi
-if test -f /usr/sbin/apache2ctl; then
+if [ -f /usr/sbin/apache2ctl ]; then
 	SYS_APACHECTL=apache2ctl
 else
 	SYS_APACHECTL=apachectl
 fi
-SYS_PING=ping
-SYS_AWK=awk
-SYS_ECHO=echo
-SYS_DOMAINNAME=domainname
-SYS_CURL=curl
-SYS_RM="rm -f"
-SYS_CHMOD=chmod
-SYS_CAT=cat
-SYS_NL=nl
-SYS_TAIL=tail
-SYS_DATE=date
-SYS_EXPR=expr
-SYS_BC=bc
-SYS_SCP=scp
-SYS_NC=nc
-SYS_CURL=curl
-VOMSPROXYINFO=voms-proxy-info
+GS_HTTPD_CONF=${GS_HTTPD_CONF:-}
 
-# not used at the moment
-DEBUG=2
-
-# ping host
-function ping_host()
-{
-	if [ -z $1 ]; then
-		set_error "No host to ping"
-		return $TEST_ERROR
-	fi
-	PING_HOST=$1
-	# XXX: there might be a better way to test the network reachability
-	result=`${SYS_PING} -c 3 $PING_HOST 2>/dev/null | ${SYS_GREP} " 0% packet loss"| wc -l`
-	if [ $result -gt 0 ]; then
-		return $TEST_OK
-	else 
-		return $TEST_ERROR
-	fi
-}
-
-
-# check the binaries
-function check_exec()
-{
-	if [ -z $1 ]; then
-		set_error "No binary to check"
-		return $TEST_ERROR
-	fi
-	# XXX: maybe use bash's command type?
-	local ret=`which $1 2> /dev/null`
-	if [ -n "$ret" -a -x "$ret" ]; then
-		return $TEST_OK
-	else
-		return $TEST_ERROR
-	fi
-}
-
-function check_binaries()
-{
-# TODO: test only the binaries that are needed - it can differ in each test
-	local ret=$TEST_OK
-	for file in $@
-	do	
-		check_exec $file 
-		if [ $? -gt 0 ]; then
-			update_error "file $file not found"
-			ret=$TEST_ERROR
+# The delegation CGI, which the Apache configuration points ScriptAlias at. The
+# two families install the same program in different places, and setup.sh records
+# which one it used.
+if [ -z "${GS_CGI:-}" ]; then
+	for gs_cgi in /usr/sbin/gridsite-delegation.cgi \
+		/usr/libexec/gridsite/cgi-bin/gridsite-delegation.cgi \
+		/usr/lib/gridsite/cgi-bin/gridsite-delegation.cgi; do
+		if [ -x "$gs_cgi" ]; then
+			GS_CGI=$gs_cgi
+			break
 		fi
 	done
-	return $ret
+fi
+GS_CGI=${GS_CGI:-/usr/sbin/gridsite-delegation.cgi}
+
+VOMSPROXYINFO=voms-proxy-info
+
+# gs_chown OWNER PATH - make a path belong to the server, or say why not.
+#
+# As root this is chown, as it always was. Unprivileged it is 'sudo -n chown',
+# which works only with the rule setup.sh installs. When neither works it is
+# nothing at all, and that is not a failure of the check that called it: setup.sh
+# already made the document root and the proxy cache writable by the server with
+# ACLs, so ownership is not what any of these tests measures - it is only the way
+# the tests used to obtain that state while they ran as root.
+gs_chown()
+{
+	local owner=$1 path=$2
+
+	if [ "$(id -u)" -eq 0 ]; then
+		chown "$owner" "$path" 2>> "$testerrfile" && return 0
+	elif check_exec sudo && sudo -n chown "$owner" "$path" 2>> "$testerrfile"; then
+		return 0
+	fi
+	update_error "cannot chown $path to $owner"
+	return $TEST_ERROR
 }
 
-# check socket
-function check_socket()
+# gs_vomsdir hide|restore - take the system VOMS trust directory out of the way and
+# put it back, which is how gridsite-test-all.sh proves that mod_gridsite really
+# reads the .lsc files.
+#
+# It goes through a small program setup.sh installed and named in
+# /etc/sudoers.d, rather than 'sudo mv /etc/grid-security/vomsdir/* ...' from here:
+# a sudoers rule for mv with a wildcard would let this run move anything on the
+# machine, and a test interrupted between hiding and restoring would leave the
+# testbed with no CA files at all. The installed program keeps its own copy and
+# restores on exit.
+gs_vomsdir()
 {
-	if [ $# -lt 2 ]; then
-		set_error "No host:port to check"
+	local what=$1
+	local prog=${GS_VOMS_TOGGLE:-/usr/libexec/glite-testsuites/gridsite-vomsdir}
+
+	if [ ! -x "$prog" ]; then
+		update_error "$prog is not installed"
 		return $TEST_ERROR
 	fi
-	# use dirty hack with netstat if BSD netcat is not available
-	if ! nc -z localhost 22 2>/dev/null; then
-		netstat -utan | tail -n +3 | awk '{print $4;}' | sed -e "s/0\.0\.0\.0/`hostname -f`/" -e "s/^:::/`hostname -f`:/" | grep "^$1:$2" >$testerrfile
-	else
-		$SYS_NC -z $1 $2 > $testerrfile
-	fi
-	if [ $? -eq 0 ];  then 
-		return $TEST_OK
-	else
+	if ! sudo -n "$prog" "$what" 2>> "$testerrfile"; then
+		update_error "sudo -n $prog $what failed"
 		return $TEST_ERROR
 	fi
-}
-
-# Check listener
-# Arguments:
-#  $1: program expected to listen on the given port
-#  $2: TCP port to check
-function check_listener()
-{
-	req_program=$1
-	req_port=$2
-        if [ -z $1 ]; then
-                set_error "No program name entered"
-                return $TEST_ERROR
-        fi
-
-	pid=`lsof -F p -i TCP:$req_port | sed "s/^p//" | head -n 1`
-	if [ -z "$pid" ]; then
-		return $TEST_ERROR
-	fi
-	program=`ps -p ${pid} -o args= | grep -E "[\/]*$req_program[ \t]*"`
-	if [ -z "$program" ];  then 
-		return $TEST_ERROR
-	else
-		return $TEST_OK
-	fi
-}
-
-# make HTTP request using curl
-# Arguments: Options to be passed to curl, at least the URL
-# return http_code containing resulting code
-
-function call_curl()
-{
-	http_code=`curl --cert ${X509_USER_PROXY} --key ${X509_USER_PROXY} \
-		--capath ${X509_CERT_DIR} \
-		--output /dev/null --silent --write-out '%{http_code}\n' \
-		"$@"`
+	return $TEST_OK
 }

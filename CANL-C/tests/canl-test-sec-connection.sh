@@ -47,9 +47,9 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=canl-common.sh
+COMMON=`dirname $0`/canl-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -96,11 +96,11 @@ else
         test_done
 fi
 
-# check_binaries
+# voms-proxy-fake is no longer asked for - it belonged to the deleted fake-proxy
+# generator, and 'make -C tools' fakes the attributes on the tester's own box.
 printf "Testing if all binaries are available"
 check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT \
-	$VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP \
-	$SYS_SED $SYS_AWK $SYS_LSOF $OPENSSL
+	$GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $SYS_LSOF $OPENSSL
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -108,13 +108,12 @@ else
 fi
 
 printf "Testing credentials"
-check_credentials_and_generate_proxy
-if [ $? -gt 0 ]; then
-	test_failed
+if ! need_credentials; then
+	# The credentials come from 'make -C tools'; nothing here generates them
+	# any more, because inventing them mid-run turned an unconfigured testbed
+	# into a passing test.
 	test_end
 	exit 2
-else
-	test_done
 fi
 
 #test server with bad cert input
@@ -178,8 +177,8 @@ else
 fi
 
 printf "Starting canl sample server \n"
-${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
-        -c /etc/grid-security/hostcert.pem -p "${nu_port}" &
+${EMI_CANL_SERVER} -k "$CANL_HOST_KEY" \
+        -c "$CANL_HOST_CERT" -p "${nu_port}" &
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then

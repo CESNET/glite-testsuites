@@ -49,9 +49,9 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=canl-common.sh
+COMMON=`dirname $0`/canl-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -110,11 +110,11 @@ else
 	test_done
 fi
 
-# check_binaries
+# voms-proxy-fake is no longer asked for - it belonged to the deleted fake-proxy
+# generator, and 'make -C tools' fakes the attributes on the tester's own box.
 printf "Testing if all binaries are available"
 check_binaries $EMI_CANL_PROXY_INIT \
-	$VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP \
-	$SYS_SED $SYS_AWK $OPENSSL
+	$GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $OPENSSL
 if [ $? -gt 0 ]; then
 	test_failed
 	test_end

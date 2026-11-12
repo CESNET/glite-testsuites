@@ -127,9 +127,9 @@ MAXnoJOBS=20
 PerSec=5
 JOBS=0
 
-COMMON=lb-common.sh
+COMMON=`dirname $0`/lb-common.sh
 if [ ! -r ${COMMON} ]; then
-        printf "Common definitions '${COMMON}' missing! Some checks will be skipped."
+        printf "Common definitions '${COMMON}' missing! Some checks will be skipped.\n"
 	unset COMMON
 fi
 source ${COMMON}
@@ -155,7 +155,7 @@ done
 
 		# check credentials
 		printf "Testing credentials"
-		check_credentials_and_generate_proxy
+		need_credentials
 		if [ $? != 0 ]; then
 			echo "No proxy available"
 			exit 1

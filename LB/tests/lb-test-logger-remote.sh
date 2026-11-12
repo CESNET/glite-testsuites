@@ -58,9 +58,9 @@ if [ -z "$1" ]; then
 fi
 
 # read common definitions and functions
-COMMON=lb-common.sh
+COMMON=`dirname $0`/lb-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}

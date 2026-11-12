@@ -46,14 +46,12 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-for COMMON in gridsite-common.sh ../../LB/tests/lb-common.sh
-do
-        if [ ! -r ${COMMON} ]; then
-                printf "Common definitions '${COMMON}' missing!"
-                exit 2
-        fi
-        source $COMMON
-done
+COMMON=`dirname $0`/gridsite-common.sh
+if [ ! -r ${COMMON} ]; then
+        printf "Common definitions '${COMMON}' missing!\n"
+        exit 2
+fi
+source $COMMON
 
 while test -n "$1"
 do
@@ -75,17 +73,12 @@ SESSION=/tmp/$progname.session.$$.dat
 DATA=/tmp/$progname.data.$$.txt
 OUTPUT=/tmp/$progname.output.$$.txt
 ERROR=/tmp/$progname.error.$$.txt
-UCERT=/tmp/test-certs.root/trusted-certs/trusted_client00.cert
-UKEY=/tmp/test-certs.root/trusted-certs/trusted_client00.priv-clear
-#UCERT=/etc/grid-security/hostcert.pem
-#UKEY=/etc/grid-security/hostkey.pem
-
 
 test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries rm openssl sed
+check_binaries rm cat sleep openssl sed grep
 if [ $? -gt 0 ]; then
 	test_failed
 	test_end
@@ -94,19 +87,29 @@ else
 	test_done
 fi
 
+# The client certificate every connection below is made with: the tester's own,
+# which 'make -C tools' generated. It used to be a hardcoded path into the tree the
+# deleted fake-proxy generator filled in, under a key file name (.priv-clear) the
+# new generator does not use.
+printf "Testing credentials"
+if ! need_credentials || [ ! -r "$X509_USER_CERT" ] || [ ! -r "$X509_USER_KEY" ]; then
+	test_end
+	exit 2
+fi
+
 printf "Setting test.cgi..."
-cat >/var/www/htdocs/.gacl <<EOF
+cat >$GS_HTDOCS/.gacl <<EOF
 <gacl>
   <entry>
     <person>
-      <dn>`openssl x509 -noout -subject -in ${UCERT} | sed -e 's/^subject= //'`</dn>
+      <dn>`credentials_dn`</dn>
     </person>
     <allow><read/></allow>
   </entry>
 </gacl>
 EOF
 
-cat >/var/www/htdocs/test.cgi <<EOF
+cat >$GS_HTDOCS/test.cgi <<EOF
 #!/bin/sh
 echo 'Content-type: text/plain'
 echo
@@ -116,14 +119,28 @@ EOF
 cat > $DATA <<EOF
 GET /test.cgi HTTP/1.1
 User-Agent: glite-testsuites/0.0 (linux) openssl/`openssl version | cut -f2 -d' '`
-Host: `hostname -f`
+Host: $GS_SERVER
 Accept: */*
 
 EOF
-test_done
+
+	# Whether any of that arrived. The test_done here used to be unconditional, so a
+	# document root the tester cannot write to still reported the setup as done and
+	# every check below then failed on a CGI that was never there.
+	if [ ! -s "$GS_HTDOCS/test.cgi" ] || [ ! -s "$GS_HTDOCS/.gacl" ] || [ ! -s "$DATA" ]; then
+		test_failed
+		print_error "cannot write into $GS_HTDOCS as $(id -un) - run setup.sh -u $(id -un), or
+    setfacl -R -m u:$(id -un):rwX -d -m u:$(id -un):rwX $GS_HTDOCS"
+		test_end
+		exit 2
+	fi
+	# Left executable by gridsite-test-all.sh, which runs first and chmod's its own
+	# copy; nothing guaranteed that, so do it here as well.
+	chmod +x "$GS_HTDOCS/test.cgi"
+	test_done
 
 printf "Testing test.cgi..."
-(cat $DATA; sleep 0.5) | openssl s_client -crlf -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY >$OUTPUT 2>$ERROR
+(cat $DATA; sleep 0.5) | openssl s_client -crlf -connect $GS_SERVER:$GS_PORT -CApath "$GS_CAPATH" -cert "$X509_USER_CERT" -key "$X509_USER_KEY" >$OUTPUT 2>$ERROR
 ret=$?
 grep -q '^GRST_' $OUTPUT
 if [ $ret -eq 0 -a $? -eq 0 ]; then
@@ -138,7 +155,7 @@ for args in '' '-no_ticket '; do
 	rm -f $SESSION
 
 	printf "Launching first SSL session..."
-	echo -n | openssl s_client -crlf -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY -sess_out $SESSION -quiet -no_ign_eof $args 2>$ERROR
+	echo -n | openssl s_client -crlf -connect $GS_SERVER:$GS_PORT -CApath "$GS_CAPATH" -cert "$X509_USER_CERT" -key "$X509_USER_KEY" -sess_out $SESSION -quiet -no_ign_eof $args 2>$ERROR
 	if [ $? -eq 0 ]; then
 		test_done
 	else
@@ -148,7 +165,7 @@ for args in '' '-no_ticket '; do
 	fi
 
 	printf "Test for GRST_CRED_AURI_2 $args..."
-	(cat $DATA; sleep 0.5) | openssl s_client -crlf -connect `hostname -f`:443 -CApath /etc/grid-security/certificates -cert $UCERT -key $UKEY -sess_in $SESSION $args >$OUTPUT 2>$ERROR
+	(cat $DATA; sleep 0.5) | openssl s_client -crlf -connect $GS_SERVER:$GS_PORT -CApath "$GS_CAPATH" -cert "$X509_USER_CERT" -key "$X509_USER_KEY" -sess_in $SESSION $args >$OUTPUT 2>$ERROR
 	if [ $? -ne 0 ]; then
 		test_failed
 		print_error "SSL connection failed!"

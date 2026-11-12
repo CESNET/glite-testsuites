@@ -17,7 +17,7 @@
 #
 
 # read common definitions and functions
-COMMON=lb-common.sh
+COMMON=`dirname $0`/lb-common.sh
 if [ ! -r ${COMMON} ]; then
 	echo -en "Common definitions '${COMMON}' missing!\n"
 	exit 2

@@ -2,13 +2,13 @@
 #
 # Copyright (c) Members of the EGEE Collaboration. 2004-2010.
 # See http://www.eu-egee.org/partners for details on the copyright holders.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,397 +16,128 @@
 # limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# Definitions of functions and variables common to LB test scripts
+# Definitions of functions and variables common to the CANL-C test scripts
 #
-#   ping_host() - basic network ping
-#   check_binaries() - check for binary executables, calls check_exec()
-#   check_socket() - TCPecho to host:port
+# What is here is only what is specific to CANL-C: the names of the CANL example
+# programs the tests drive and of the certificate they drive them with, and the
+# two resolvers that pick which files those names refer to.
+#
+# Everything generic - the output modes and the test_* verbs, the SYS_* binary
+# names, check_binaries(), check_socket(), check_listener(), the packaging and
+# build checkers and the credential helpers - lives in tools/lib/ and arrives
+# through testenv.sh, sourced below.
 #
 # ------------------------------------------------------------------------------
 
-# read common definitions and functions
-TEST_COMMON=../../LB/tests/test-common.sh
-if [ ! -r ${TEST_COMMON} ]; then
-	printf "Common definitions '${TEST_COMMON}' not found!\n"
-	exit 2	
+# read common definitions and functions - walking up from this file, so that
+# neither the current directory nor the way the test was invoked matters
+TEST_COMMON_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+LIBROOT=$TEST_COMMON_DIR
+while [ ! -r "$LIBROOT/tools/lib/testenv.sh" ] && [ "$LIBROOT" != "/" ]; do
+	LIBROOT=$(dirname -- "$LIBROOT")
+done
+if [ ! -r "$LIBROOT/tools/lib/testenv.sh" ]; then
+	printf "Common definitions 'tools/lib/testenv.sh' not found above '${TEST_COMMON_DIR}'!\n"
+	exit 2
 fi
-source ${TEST_COMMON}
+source "$LIBROOT/tools/lib/testenv.sh"
 
 ulimit -c unlimited
 
-# define variables
-#GLITE_LB_LOCATION=${GLITE_LB_LOCATION:-$GLITE_LOCATION}
-#GLITE_LOCATION=${GLITE_LOCATION:-'/usr'}
-#SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
-#for dir in $GLITE_LOCATION $GLITE_LOCATION/lib64/glite-lb $GLITE_LOCATION/lib/glite-lb; do
-#	if test -d "$dir/examples"; then PATH="$dir/examples:$PATH"; fi
-#done
-#PATH="$GLITE_LOCATION/bin:$PATH"
-#export PATH
-
-#general grid binaries
-GRIDPROXYINFO=grid-proxy-info
-#voms binaries
-VOMSPROXYFAKE=voms-proxy-fake
-#canl sample binaries
-EMI_CANL_CLIENT=emi-canl-client
-EMI_CANL_SERVER=emi-canl-server
-EMI_CANL_PROXY_INIT=emi-canl-proxy-init
-EMI_CANL_DELEGATION=emi-canl-delegation
-
-# default LB ports
-GLITE_LB_SERVER_PORT=${GLITE_LB_SERVER_PORT:-9000}
-GLITE_LB_IL_SOCK=${GLITE_LB_IL_SOCK:-/tmp/interlogger.sock}
-let GLITE_LB_SERVER_QPORT=${GLITE_LB_SERVER_PORT}+1
-if [ -z "${GLITE_LB_SERVER_WPORT}" ]; then 
-	let GLITE_LB_SERVER_WPORT=${GLITE_LB_SERVER_PORT}+3
+# The test material, before any of the paths below is derived from it.
+#
+# $CANL_ENV is the file setup.sh wrote ($STATE_DIR/canl.env), which pins
+# TEST_CERTS and the certificate paths. Everything here only fills in what is
+# unset, so a tester working with a real proxy is not overridden and a test run
+# by hand after 'source $TEST_CERTS/env.sh' behaves the same as through run.sh.
+# The other suites get this from their driver; CANL-C needs it per test because
+# its paths are derived below, at source time.
+CANL_ENV_FILE=${CANL_ENV:-$(state_file canl.env)}
+if [ -r "$CANL_ENV_FILE" ]; then
+	# shellcheck source=/dev/null
+	source "$CANL_ENV_FILE"
 fi
+credentials_env
 
-GLITE_LB_LOGGER_PORT=${GLITE_LB_LOGGER_PORT:-9002}
+# The programs the tests drive. emi-canl-proxy-init and emi-canl-delegation come
+# with the CANL-C package under test; emi-canl-client and emi-canl-server are the
+# two samples, which no package ships and which the Makefile next to this file
+# builds from the examples/ directory of a CANL-C source tree:
+#
+#	make -C CANL-C/tests top_srcdir=/path/to/canl-c
+#
+# All four default to the bare name and are looked up on $PATH, so an installation
+# that puts them anywhere on it needs nothing. run.sh says the same thing when one
+# is missing.
+EMI_CANL_CLIENT=${EMI_CANL_CLIENT:-emi-canl-client}
+EMI_CANL_SERVER=${EMI_CANL_SERVER:-emi-canl-server}
+EMI_CANL_PROXY_INIT=${EMI_CANL_PROXY_INIT:-emi-canl-proxy-init}
+EMI_CANL_DELEGATION=${EMI_CANL_DELEGATION:-emi-canl-delegation}
 
-# default sockets
-GLITE_WMS_LBPROXY_STORE_SOCK=${GLITE_WMS_LBPROXY_STORE_SOCK:-/tmp/lb proxy store.sock}
-
-# other binaries
-TEST_SOCKET=$SAME_SENSOR_HOME/tests/testSocket
-SYS_LSOF=lsof
-SYS_GREP=grep
-SYS_SED=sed
-SYS_PS=ps
-SYS_PIDOF=pidof
-SYS_MYSQLD=mysqld
-SYS_MYSQLADMIN=mysqladmin
-SYS_PING=ping
-SYS_AWK=awk
-SYS_ECHO=echo
-SYS_DOMAINNAME=domainname
-SYS_CURL=curl
-SYS_RM="rm -f"
-SYS_CHMOD=chmod
-SYS_LDAPSEARCH=ldapsearch
-SYS_CAT=cat
-SYS_NL=nl
-SYS_TAIL=tail
-SYS_DATE=date
-SYS_EXPR=expr
-SYS_BC=bc
-SYS_SCP=scp
-SYS_TOUCH=touch
-SYS_HOSTNAME=hostname
-SYS_RPM=rpm
-SYS_WC=wc
-SYS_LS=ls
-SYS_STAT=stat
 OPENSSL=openssl
 
-#generate proxy shell script file
-GEN_PROXY=./canl-generate-fake-proxy.sh
-
-# $1 - proxy init binary
-# $2 - proxy delegation
-function get_canl_proxy_binaries()
-{
-printf "Testing if binary of canl_proxy_init is available"
-if [ -n "$1" -a -n "$2" ]; then
-        check_binaries $1 $2
-        if [ $? -gt 0 ]; then
-                test_failed
-                printf "Downloading canl source files and building examples"
-                get_canl_examples
-                if [ $? -gt 0 ]; then
-                        test_failed
-                        return $TEST_ERROR
-                fi
-                EMI_CANL_PROXY_INIT='./emi-canl-proxy-init'
-                EMI_CANL_PROXY_INIT='./emi-canl-delegation'
-        fi
-        EMI_CANL_PROXY_INIT="$1"
-        EMI_CANL_DELEGATION="$2"
-else
-        #default path
-        check_binaries $EMI_CANL_PROXY_INIT $EMI_CANL_DELEGATIOM
-        if [ $? -gt 0 ]; then
-                test_failed
-                printf "Downloading canl source files and building examples"
-                get_canl_examples
-                if [ $? -gt 0 ]; then
-                        test_failed
-                        return $TEST_ERROR
-                fi
-                EMI_CANL_PROXY_INIT='./emi-canl-proxy-init'
-                EMI_CANL_DELEGATION='./emi-canl-delegation'
-        fi
+# The certificate the tests start their CANL server with.
+#
+# tools/generate-test-certs.sh generates a host certificate for this machine and
+# 'make -C tools install' installs it as /etc/grid-security/host{cert,key}.pem.
+# The copy that stays in the tester's own tree is the very same pair and, unlike
+# /etc/grid-security/hostkey.pem, it can be read without being root - which is
+# what lets run.sh run these tests as an unprivileged user. Set CANL_HOST_CERT
+# and CANL_HOST_KEY (in $CANL_ENV, or in the environment) to drive the tests with
+# the deployed pair instead; nothing in this suite asserts anything about which
+# pair the server it starts uses.
+if [ -z "${CANL_HOST_CERT:-}" ] || [ -z "${CANL_HOST_KEY:-}" ]; then
+	CANL_HOST_DIR=${CANL_HOST_DIR:-${HOST_CERT_DIR:-$TEST_CERTS/grid-security}}
+	# The deployed pair rather than the tester's own copy, if there is no
+	# readable generated one.
+	if [ ! -r "$CANL_HOST_DIR/hostkey.pem" ]; then
+		CANL_HOST_DIR=/etc/grid-security
+	fi
+	CANL_HOST_CERT=${CANL_HOST_CERT:-$CANL_HOST_DIR/hostcert.pem}
+	CANL_HOST_KEY=${CANL_HOST_KEY:-$CANL_HOST_DIR/hostkey.pem}
 fi
-return 0
-}
+export CANL_HOST_CERT CANL_HOST_KEY
 
-# $1 - server binary
-# $2 - client binary
-function get_canl_sc_binaries()
+# The client certificate canl-test-sha2.sh connects with: the generated one
+# whose signature is SHA-512, which is what the test is about. Everything the
+# generator writes is unencrypted ('.priv'), the CANL examples cannot be asked
+# for a passphrase.
+CANL_SHA2_CERT=${CANL_SHA2_CERT:-$TEST_CERTS/trusted-certs/trusted_clientsha512.cert}
+CANL_SHA2_KEY=${CANL_SHA2_KEY:-$TEST_CERTS/trusted-certs/trusted_clientsha512.priv}
+export CANL_SHA2_CERT CANL_SHA2_KEY
+
+# Picks the server and client canl-test-{cs-openssl,sec-connection,ocsp,sha2}.sh
+# drive. $1/$2 are the paths their -s and -k options pass; given both, those are
+# used as they are, otherwise the names above are looked up.
+#
+# It opens the report line and leaves the verdict verb to the caller, which used
+# to print a second "-TEST FAILED-" on top of this function's own. It does not
+# download or build anything: the deleted get_canl_examples() wget'd four source
+# files into the current directory and then asked make to compile them from
+# ./examples/, a directory it never created (and then removed it), so the
+# fallback could only ever fail. Makefile next to this file is the honest
+# version of it and run.sh points at it.
+get_canl_sc_binaries()
 {
-printf "Testing if binaries of canl examples are available"
-if [ -n "$1" -a -n "$2" ]; then
-        check_binaries $1 $2
-        if [ $? -gt 0 ]; then
-                test_failed
-                printf "Downloading canl source files and building examples"
-                get_canl_examples
-                if [ $? -gt 0 ]; then
-                        test_failed
-                        return $TEST_ERROR
-                fi
-                EMI_CANL_SERVER='./emi-canl-server'
-                EMI_CANL_CLIENT='./emi-canl-client'
-        fi
-        EMI_CANL_SERVER="$1"
-        EMI_CANL_CLIENT="$2"
-else
-        #default path
-        check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT
-        if [ $? -gt 0 ]; then
-                test_failed
-                printf "Downloading canl source files and building examples"
-                get_canl_examples
-                if [ $? -gt 0 ]; then
-                        test_failed
-                        return $TEST_ERROR
-                fi
-                EMI_CANL_SERVER='./emi-canl-server'
-                EMI_CANL_CLIENT='./emi-canl-client'
-        fi
-fi
-return 0
+	if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then
+		EMI_CANL_SERVER=$1
+		EMI_CANL_CLIENT=$2
+	fi
+	printf "Testing if binaries of canl examples are available"
+	check_binaries "$EMI_CANL_SERVER" "$EMI_CANL_CLIENT"
 }
 
-function get_canl_examples()
+# The same for the two examples canl-test-cert-handle.sh drives. Checking
+# $EMI_CANL_DELEGATION as well is a fix, not a change of mind: the old version
+# spelled the variable $EMI_CANL_DELEGATIOM, so the name expanded to nothing,
+# was dropped from the argument list, and a missing emi-canl-delegation only
+# surfaced twelve lines later as "command not found" in the test itself.
+get_canl_proxy_binaries()
 {
-	u=https://raw.github.com/CESNET/canl-c/master/examples
-	wget -q $u/canl_sample_client.c $u/canl_sample_server.c $u/delegation.c $u/grid-proxy-init.c
-	make -s || return 1
-	rm -rf examples/
-	return 0
-}
-
-function check_credentials_and_generate_proxy()
-{	
-	check_credentials
-	if [ $? != 0 ]; then
-		if [ "$1" != "" ]; then
-			PROXYLIFE=" --hours $1"
-		else 
-			PROXYLIFE=""
-		fi
-		$GEN_PROXY $PROXYLIFE
-		if [ $? != 0 ]; then
-			print_error "Proxy not created - process failed"
-			return 2
-		fi
-		check_credentials
-		if [ $? != 0 ]; then
-			print_error "Credentials still not passing check"
-			return 2
-		fi
+	if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then
+		EMI_CANL_PROXY_INIT=$1
+		EMI_CANL_DELEGATION=$2
 	fi
-	return 0
-}
-
-# ping host
-function ping_host()
-{
-	if [ -z $1 ]; then
-		set_error "No host to ping"
-		return $TEST_ERROR
-	fi
-	PING_HOST=$1
-	# XXX: there might be a better way to test the network reachability
-	result=`${SYS_PING} -c 3 $PING_HOST 2>/dev/null | ${SYS_GREP} " 0% packet loss"| wc -l`
-	if [ $result -gt 0 ]; then
-		return $TEST_OK
-	else 
-		return $TEST_ERROR
-	fi
-}
-
-
-# check the binaries
-function check_exec()
-{
-	if [ -z $1 ]; then
-		set_error "No binary to check"
-		return $TEST_ERROR
-	fi
-	# XXX: maybe use bash's command type?
-	local ret=`which $1 2> /dev/null`
-	if [ -n "$ret" -a -x "$ret" ]; then
-		return $TEST_OK
-	else
-		return $TEST_ERROR
-	fi
-}
-
-function check_binaries()
-{
-# TODO: test only the binaries that are needed - it can differ in each test
-	local ret=$TEST_OK
-	for file in $@
-	do	
-		check_exec $file 
-		if [ $? -gt 0 ]; then
-			print_error "$file not found"
-			ret=$TEST_ERROR
-		fi
-	done
-	return $ret
-}
-
-# check socket
-function check_socket()
-{
-	if [ $# -lt 2 ]; then
-		set_error "No host:port to check"
-		return $TEST_ERROR
-	fi
-	$TEST_SOCKET $1 $2 2> $testerrfile
-	if [ $? -eq 0 ];  then 
-		return $TEST_OK
-	else
-		return $TEST_ERROR
-	fi
-}
-
-# Check listener
-# Arguments:
-#  $1: program expected to listen on the given port
-#  $2: TCP port to check
-function check_listener()
-{
-	req_program=$1
-	req_port=$2
-        if [ -z $1 ]; then
-                set_error "No program name entered"
-                return $TEST_ERROR
-        fi
-
-	pid=`lsof -F p -i TCP:$req_port | sed "s/^p//"`
-	if [ -z $pid ]; then
-		return $TEST_ERROR
-	fi
-	program=`ps -p ${pid} -o args= | grep -E "[\/]*$req_program[ \t]*"`
-	if [ -z "$program" ];  then 
-		return $TEST_ERROR
-	else
-		return $TEST_OK
-	fi
-}
-
-
-# Check socket listener
-# Arguments:
-#  $1: program expected to listen on the given socket
-#  $2: socket to check
-function check_socket_listener()
-{
-	req_program=$1
-	req_socket=$2
-        if [ -z $1 ]; then
-                set_error "No program name entered"
-                return $TEST_ERROR
-        fi
-
-	pid=`lsof -F p $req_socket | sed "s/^p//" | head -n 1`
-	if [ -z $pid ]; then
-		return $TEST_ERROR
-	fi
-	program=`ps -p ${pid} -o args= | grep -E "[\/]*$req_program[ \t]*"`
-	if [ -z "$program" ];  then 
-		return $TEST_ERROR
-	else
-		return $TEST_OK
-	fi
-}
-
-#df /var/lib/mysql/ | tail -n 1 | awk '{ print $4 }'
-
-function try_purge()
-{
-                        #Purge test job
-                        joblist=$1
-
-                        printf "Purging test job (Trying the best, result will not be tested)\n"
-
-                        ${LBPURGE} -j ${joblist}
-
-                        $SYS_RM ${joblist}
-	
-}
-
-function test_args()
-{
-        echo $@
-}
-
-function check_credentials()
-{
-	my_GRIDPROXYINFO=${GRIDPROXYINFO}
-	if [ "$1" != "" ]; then
-		my_GRIDPROXYINFO="${GRIDPROXYINFO} -f $1"
-	fi
-
-	timeleft=`${my_GRIDPROXYINFO} 2>/dev/null | ${SYS_GREP} -E "^timeleft" | ${SYS_SED} "s/timeleft\s*:\s//"`
-	if [ "$timeleft" = "" ]; then
-		printf "... No credentials... "
-		return 1
-	fi
-	if [ "$timeleft" = "0:00:00" ]; then
-		printf "... Credentials expired... "
-		return 1
-	fi
-	return 0
-}
-
-function check_srv_version()
-{
-        check_binaries $LBWSGETVERSION
-        if [ $? -gt 0 ]; then
-		return 2
-        else
-		servername=`echo ${GLITE_WMS_QUERY_SERVER} | ${SYS_SED} "s/:.*//"`
-                wsglservver=`$LBWSGETVERSION -m ${servername}:${GLITE_LB_SERVER_WPORT} | $SYS_SED 's/^.*Server version:\s*//'`
-                if [ "$wsglservver" == "" ]; then
-               		return 2
-                else
-	
-			SRVVER=`$SYS_ECHO $wsglservver | $SYS_GREP -o -E "^[0-9]+\.[0-9]+"`
-			CHKVER=`$SYS_ECHO $2 | $SYS_GREP -o -E "^[0-9]*\.[0-9*]"`
-
-			printf "Srv. version $SRVVER $1 $CHKVER? "
-		        cresult=`$SYS_EXPR $SRVVER $1 $CHKVER`
-	                if [ "$cresult" -eq "1" ]; then
-				printf "yes "
-				return 0
-                	else
-				printf "no "
-				return 1
-        	        fi
-		fi
-	fi
-	return 0
-}
-
-function notif_wait() {
-	timeout="$1"
-	jobid="$2"
-	f="$3"
-
-	while ! $SYS_GREP ${jobid} "$f" > /dev/null 2>&1; do
-		sleep 1
-		printf "."
-		timeout=$((timeout-1))
-		if [ $timeout -le 0 ]; then
-			printf "timeout"
-			break;
-		fi
-	done
-	echo
-	$SYS_GREP ${jobid} $$_notifications.txt > /dev/null
+	printf "Testing if binary of canl_proxy_init is available"
+	check_binaries "$EMI_CANL_PROXY_INIT" "$EMI_CANL_DELEGATION"
 }

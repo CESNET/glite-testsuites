@@ -54,9 +54,9 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=lb-common.sh
+COMMON=`dirname $0`/lb-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -112,7 +112,7 @@ while [ "$CONT" = "yes" ]; do
 	fi
 	if [ "$X509_USER_PROXY_BOB" = "" ]; then
 		test_failed
-		print_error "\$X509_USER_PROXY_BOB must be set"
+		print_error "\$X509_USER_PROXY_BOB not set - run this through run.sh, or generate it with 'make -C tools EXTRA=1' (docs/requirements.md)"
 		break
 	fi
 	check_credentials $X509_USER_PROXY_BOB

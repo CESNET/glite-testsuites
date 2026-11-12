@@ -47,9 +47,9 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=canl-common.sh
+COMMON=`dirname $0`/canl-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -96,35 +96,40 @@ else
         test_done
 fi
 
-# check_binaries
+# voms-proxy-fake is no longer asked for - it belonged to the deleted fake-proxy
+# generator, and 'make -C tools' fakes the attributes on the tester's own box.
 printf "Testing if all binaries are available"
 check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT \
-	$VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP \
-	$SYS_SED $SYS_AWK $SYS_LSOF $OPENSSL
+	$GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $SYS_LSOF $OPENSSL
 if [ $? -gt 0 ]; then
 	test_failed
 else
 	test_done
 fi
 
-printf "Testing credentials\n"
-
-server_cert_file="/tmp/canl_ocsp_certfile.$$"
-if [[ -r $server_cert_file ]]; then
-    rm -rf $server_file
+printf "Testing credentials"
+if ! need_credentials; then
+	# The sample client is started below without -c/-k, so it connects with
+	# the default proxy and needs it to exist.
+	test_end
+	exit 2
 fi
 
-${OPENSSL} x509 -in /etc/grid-security/hostcert.pem -noout\
-            -text >> "$server_cert_file"
+server_cert_file="/tmp/canl_ocsp_certfile.$$"
+
+${OPENSSL} x509 -in "$CANL_HOST_CERT" -noout\
+            -text > "$server_cert_file"
 
 ocsp_line=`grep OCSP "$server_cert_file"`
 
 printf "Server certificate has OSCP url specified"
-if [[ ! -z $server_cert_file ]]
-then
-   test_done
+# The condition used to be 'test -n $server_cert_file' - the name of the file it
+# had just written, which is never empty, so the check always passed whatever the
+# certificate said. It is the extracted extension line that matters.
+if [ -n "$ocsp_line" ]; then
+	test_done
 else
-   test_failed
+	test_failed
 fi
 
 nu_port=11112
@@ -137,8 +142,8 @@ do
 done
 
 printf "Starting canl sample server \n"
-${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
-        -c /etc/grid-security/hostcert.pem -p "${nu_port}" &
+${EMI_CANL_SERVER} -k "$CANL_HOST_KEY" \
+        -c "$CANL_HOST_CERT" -p "${nu_port}" &
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then
@@ -161,7 +166,7 @@ fi
 
 kill ${last_pid} &> /dev/null
 
-rm -rf $server_file
+rm -f "$server_cert_file"
 test_end
 }
 #} &> $logfile

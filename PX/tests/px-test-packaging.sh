@@ -24,14 +24,12 @@ showHelp()
 }
 
 # read common definitions and functions
-for COMMON in px-common.sh ../../LB/tests/lb-common.sh
-do
-	if [ ! -r ${COMMON} ]; then
-		printf "Common definitions '${COMMON}' missing!"
-		exit 2
-	fi
-	source ${COMMON}
-done
+COMMON=`dirname $0`/px-common.sh
+if [ ! -r ${COMMON} ]; then
+	printf "Common definitions '${COMMON}' missing!\n"
+	exit 2
+fi
+source ${COMMON}
 
 while test -n "$1"
 do

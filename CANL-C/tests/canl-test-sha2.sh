@@ -48,9 +48,9 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-COMMON=canl-common.sh
+COMMON=`dirname $0`/canl-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -96,11 +96,11 @@ else
 	test_done
 fi
 
-# check_binaries
+# voms-proxy-fake is no longer asked for - it belonged to the deleted fake-proxy
+# generator, and 'make -C tools' fakes the attributes on the tester's own box.
 printf "Testing if all binaries are available"
 check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT \
-	$VOMSPROXYFAKE $GRIDPROXYINFO $SYS_GREP \
-	$SYS_SED $SYS_AWK $OPENSSL
+	$GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $OPENSSL
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -108,31 +108,23 @@ else
 fi
 
 printf "Testing credentials"
-check_credentials_and_generate_proxy
-if [ $? -gt 0 ]; then
-	test_failed
+if ! need_credentials; then
+	# The credentials come from 'make -C tools'; nothing here generates them
+	# any more, because inventing them mid-run turned an unconfigured testbed
+	# into a passing test.
 	test_end
 	exit 2
-else
-	test_done
-fi
-# TODO set ca_dir
-user=`id -un`
-sha2_cert="/tmp/test-certs.${user}/trusted-certs/trusted_clientsha512.cert"
-sha2_key="/tmp/test-certs.${user}/trusted-certs/trusted_clientsha512.priv-clear"
-
-if [ ! -r "$sha2_cert" -o ! -r "$sha2_key" ]; then
-	./canl-generate-fake-proxy.sh --all
-	if [ $? != 0 ]; then
-                        print_error "Proxy not created - process failed"
-			test_end
-                        exit 2
-	fi
 fi
 
-
-if [ ! -r "$sha2_cert" -o ! -r "$sha2_key" ]; then
-	print_error "Proxy not created - process failed"
+# The pair this test connects with is the generated one whose signature is
+# SHA-512 - that is the point of the test. It used to name
+# /tmp/test-certs.$(id -un)/...trusted_clientsha512.priv-clear, a directory only
+# the deleted fake-proxy script filled in and a file name (clear-text key) that
+# the generator does not use; see CANL_HOST_* in canl-common.sh.
+sha2_cert=$CANL_SHA2_CERT
+sha2_key=$CANL_SHA2_KEY
+if [ ! -r "$sha2_cert" ] || [ ! -r "$sha2_key" ]; then
+	print_error "No SHA-512 client certificate in $sha2_cert and $sha2_key - generate it with 'make -C tools' (docs/canl-c.md)"
 	test_end
 	exit 2
 fi
@@ -145,6 +137,10 @@ do
 	nu_port=$((nu_port+1))
 	${SYS_LSOF} -i :${nu_port}
 done
+# Nothing listens on the port just picked, so the client must fail to connect.
+# The check had no label of its own and reported a bare "-TEST FAILED-"; the
+# wording is the one canl-test-sec-connection.sh uses for the same check.
+printf "Testing client: connect to server not running"
 if [ ${nu_port} -ne ${max_port} ]; then
 	${EMI_CANL_CLIENT} -s localhost -p ${nu_port} &> /dev/null
 	if [ $? != 0 ]; then
@@ -158,8 +154,8 @@ else
 fi
 
 printf "Starting canl sample server \n"
-${EMI_CANL_SERVER} -k /etc/grid-security/hostkey.pem \
-	-c /etc/grid-security/hostcert.pem -p "${nu_port}" & 
+${EMI_CANL_SERVER} -k "$CANL_HOST_KEY" \
+	-c "$CANL_HOST_CERT" -p "${nu_port}" & 
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then

@@ -1,1 +1,19 @@
 /megalinter-reports
+
+# The two helper programs the LB tests run, built by 'make -C LB/tests' from the .c
+# files that are tracked next to them.
+LB/tests/testSocket
+LB/tests/JSON_checker
+LB/tests/*.o
+
+# Scratch the test scripts write into their own directory while they run: the error
+# accumulation file each one opens as $$.err, the temporaries and dumps they name after
+# their process, and the listings a check compares permissions against. run.sh needs a
+# writable checkout for exactly this reason.
+*.err
+*.tmp
+*.out
+*_notifications*.txt
+*.*.[0-9]*
+LB/tests/644or664glite
+LB/tests/cms-*.json

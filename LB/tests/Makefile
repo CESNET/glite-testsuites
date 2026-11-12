@@ -16,15 +16,13 @@ fetch $(JSON_SOURCES):
 	sed -i 's/^}/    return 0;\n}\n/' main.c
 
 testSocket: testSocket.c
-	$(CC) -o $@ $< $(CFLAGS) 
-	rm -f tests 
-	ln -fs . tests
+	$(CC) -o $@ $< $(CFLAGS)
 
 JSON_checker: $(JSON_OBJS)
 	$(CC) -o $@ $+ $(LDFLAGS)
 
 clean:
-	rm -rvf *.o tests $(EXEC) *.tmp *.err
+	rm -rvf *.o $(EXEC) *.tmp *.err
 
 distclean:
 	rm -fv $(JSON_SOURCES)

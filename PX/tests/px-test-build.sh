@@ -23,10 +23,11 @@ showHelp()
 	check_build_help $progname
 }
 
-# read common definitions and functions
-COMMON=../../LB/tests/lb-common.sh
+# read common definitions and functions - px-common.sh brings check_build with it
+# from tools/lib/checks.sh, so LB's library is no longer sourced behind this one.
+COMMON=`dirname $0`/px-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}

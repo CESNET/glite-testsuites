@@ -13,7 +13,7 @@ Prerequisities:
 
 Tests:
    - ping_host() - network ping to Apache server host
-   - check_socket() - simple tcp echo to port 443 of the host
+   - check_socket() - simple tcp echo to the service port of the host (GS_PORT, 443)
 
 Returned values:
     Exit TEST_OK: Test Passed
@@ -38,9 +38,9 @@ if [ -z "$1" ]; then
 fi
 
 # read common definitions and functions
-COMMON=gridsite-common.sh
+COMMON=`dirname $0`/gridsite-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
@@ -97,11 +97,11 @@ else
 fi
  
 # check_services
-printf "Testing Apache server at ${APACHE_HOST}:443"
-check_socket ${APACHE_HOST} 443
+printf "Testing Apache server at ${APACHE_HOST}:$GS_PORT"
+check_socket ${APACHE_HOST} $GS_PORT
 if [ $? -gt 0 ]; then
 	test_failed
-	print_error "Apache server at ${APACHE_HOST}:443 might be unreachable"
+	print_error "Apache server at ${APACHE_HOST}:$GS_PORT might be unreachable"
 else
 	test_done
 fi

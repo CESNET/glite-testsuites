@@ -1,3 +1,13 @@
+# Builds the two CANL sample programs the tests drive out of the examples/
+# directory of a CANL-C source tree:
+#
+#	make top_srcdir=/path/to/canl-c
+#
+# top_srcdir defaults to '.' so that copying this Makefile into the source tree
+# still works; LIB_PATH is where -L/usr/... goes if libcanl_c is not on the
+# default library path. emi-canl-proxy-init and emi-canl-delegation, which
+# canl-test-cert-handle.sh uses, are part of the package under test and are found
+# on $PATH.
 top_srcdir=.
 VPATH=${top_srcdir}/examples
 CC=gcc

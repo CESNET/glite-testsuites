@@ -12,7 +12,7 @@ Prerequisities:
    - Apache with the GridSite module enabled running on local machine
 
 Tests:
-   - Checks that Apache is running and listening to port 443.
+   - Checks that Apache is running and listening on the service port (GS_PORT, 443).
    - Checks that the GridSite module is loaded in the Apache configuration
 
 Returned values:
@@ -29,19 +29,21 @@ EndHelpHeader
 	echo " -t | --text            Format output as plain ASCII text."
 	echo " -c | --color           Format output as text with ANSI colours (autodetected by default)."
 	echo " -x | --html            Format output as html."
-	echo " -f | --config          Apache config file."
+	echo " -f | --config 'file'   Apache config file the server was started with (the one"
+	echo "                        setup.sh generated; without it the main config is checked)."
 }
 
 # read common definitions and functions
-COMMON=gridsite-common.sh
+COMMON=`dirname $0`/gridsite-common.sh
 if [ ! -r ${COMMON} ]; then
-	printf "Common definitions '${COMMON}' missing!"
+	printf "Common definitions '${COMMON}' missing!\n"
 	exit 2
 fi
 source ${COMMON}
 
 logfile=$$.tmp
 flag=0
+apache_config=
 while test -n "$1"
 do
 	case "$1" in
@@ -50,7 +52,7 @@ do
 		"-t" | "--text")  setOutputASCII ;;
 		"-c" | "--color") setOutputColor ;;
 		"-x" | "--html")  setOutputHTML ;;
-		"-f" | "--config") shift; apache_config_arg="-f $1" ;;
+		"-f" | "--config") shift; apache_config=$1 ;;
 	esac
 	shift
 done
@@ -91,22 +93,29 @@ fi
 
 # GridSite module loaded:
 printf "Testing if GridSite is loaded"
-(${SYS_APACHECTL} ${apache_config_arg} -t -D DUMP_MODULES 2>&1 || httpd -M 2>&1) | grep gridsite_module >/dev/null 2>&1
+# The config has to be the one the server is actually running, which is the file
+# setup.sh generated and not the distribution's main config. It used to be passed on
+# as the single word "-f /path", which only worked as long as the path had no spaces.
+if [ -n "$apache_config" ]; then
+	${SYS_APACHECTL} -f "$apache_config" -t -D DUMP_MODULES 2>&1
+else
+	${SYS_APACHECTL} -t -D DUMP_MODULES 2>&1
+fi | grep gridsite_module >/dev/null 2>&1
 if [ $? -eq 0 ]; then
 	test_done
 else
 	test_failed
-	print_error "GridSite is not loaded in Apache"
+	print_error "GridSite is not loaded in Apache${apache_config:+ in $apache_config}"
 fi
 
 # Server listening:
-printf "Testing if Apache is listening on port 443"
-check_listener ${SYS_APACHE} 443
+printf "Testing if Apache is listening on port $GS_PORT"
+check_listener ${SYS_APACHE} $GS_PORT
 if [ $? -eq 0 ]; then
         test_done
 else
         test_failed
-        print_error "Apache server is not listening on port 443"
+        print_error "Apache server is not listening on port $GS_PORT"
 fi
 
 test_end

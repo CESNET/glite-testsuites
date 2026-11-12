@@ -65,14 +65,12 @@ EndHelpHeader
 }
 
 # read common definitions and functions
-for COMMON in gridsite-common.sh ../../LB/tests/lb-common.sh
-do
-        if [ ! -r ${COMMON} ]; then
-                printf "Common definitions '${COMMON}' missing!"
-                exit 2
-        fi
-        source $COMMON
-done
+COMMON=`dirname $0`/gridsite-common.sh
+if [ ! -r ${COMMON} ]; then
+        printf "Common definitions '${COMMON}' missing!\n"
+        exit 2
+fi
+source $COMMON
 
 while test -n "$1"
 do
@@ -102,30 +100,32 @@ else
         test_done
 fi
 
-UPROXY="/tmp/x509up_u`id -u`"
-NEWUPROXYDIR="/var/www/proxycache"
-
+# The proxy that gets delegated comes from 'make -C tools' now, and the cache the
+# server keeps what it receives in comes from setup.sh; this script used to decide
+# both for itself (/tmp/x509up_u<n> and a mkdir of /var/www/proxycache as root).
 printf "Test proxy delegation\n"
 
-if [ ! -e /var/www/proxycache ]; then
-        mkdir /var/www/proxycache
+if [ ! -d "$GS_PROXYCACHE" ]; then
+        printf "Proxy cache $GS_PROXYCACHE"
+        test_skipped
+        print_error "is not present - setup.sh creates it (docs/gridsite.md)"
+        test_end
+        exit $TEST_OK
 fi
 
-if getent passwd www-data >/dev/null; then
-        HTTPD_USER=www-data
-else
-        HTTPD_USER=apache
-fi
+gs_chown "$GS_HTTPD_USER" "$GS_PROXYCACHE" \
+        || print_warning "could not change ownership; relying on the access rights setup.sh gave it"
 
-chown $HTTPD_USER ${NEWUPROXYDIR}
-
-#if the dir is not empty, empty it
-rm -rf /var/www/proxycache/*
+#if the dir is not empty, empty it. The redirect is for the empty case, where the
+#glob is passed to rm unchanged.
+rm -rf $GS_PROXYCACHE/* 2> /dev/null
 
 #delegate the proxy
-id=`htproxyput --cert ${UPROXY} --key ${UPROXY} --capath /etc/grid-security/certificates https://$(hostname -f)/gridsite-delegation.cgi`
+id=`htproxyput --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" https://$GS_SERVER/gridsite-delegation.cgi`
 printf "id: $id"
-if [ $? -eq 0 -a -n "$id" ]; then
+# Only whether an id came back; the other half of this condition used to be the
+# exit status of the printf above it, which cannot fail.
+if [ -n "$id" ]; then
        test_done
 else
         test_failed
@@ -134,7 +134,7 @@ fi
 #check that the new proxy file was created
 #TODO check that proxycache/% always begins with '%'
 printf "new proxy file: "
-ls /var/www/proxycache/%*/*/userproxy.pem
+ls $GS_PROXYCACHE/%*/*/userproxy.pem
 if [ $? -eq 0 ]; then
        test_done
 else

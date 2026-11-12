@@ -2,13 +2,13 @@
 #
 # Copyright (c) Members of the EGEE Collaboration. 2004-2010.
 # See http://www.eu-egee.org/partners for details on the copyright holders.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,168 +16,100 @@
 # limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# Definitions of functions and variables common to LB test scripts
+# Definitions of functions and variables common to the PX test scripts
 #
-#   ping_host() - basic network ping
-#   check_binaries() - check for binary executables, calls check_exec()
-#   check_socket() - TCPecho to host:port
+# What is here is only what PX needs: which MyProxy server the proxy gets deposited
+# at and renewed from, how long the proxy the renewal is watched on lives, and how
+# long the test waits for the renewal to happen.
 #
+# Everything generic - the output modes and the test_* verbs, the SYS_* binary
+# names, check_binaries(), check_credentials() and the rest - lives in tools/lib/
+# and arrives through testenv.sh, sourced below. It used to be duplicated in this
+# file, and on top of that every PX test sourced ../../LB/tests/lb-common.sh as
+# well, so LB's definitions won over these ones.
 # ------------------------------------------------------------------------------
 
-# read common definitions and functions
-TEST_COMMON=../../LB/tests/test-common.sh
-if [ ! -r ${TEST_COMMON} ]; then
-	TEST_COMMON=./test-common.sh
-	if [ ! -r ${TEST_COMMON} ]; then
-		printf "Common definitions '${TEST_COMMON}' not found!\n"
-		exit 2
-	fi
+# read common definitions and functions - walking up from this file, so that
+# neither the current directory nor the way the test was invoked matters
+TEST_COMMON_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+LIBROOT=$TEST_COMMON_DIR
+while [ ! -r "$LIBROOT/tools/lib/testenv.sh" ] && [ "$LIBROOT" != "/" ]; do
+	LIBROOT=$(dirname -- "$LIBROOT")
+done
+if [ ! -r "$LIBROOT/tools/lib/testenv.sh" ]; then
+	printf "Common definitions 'tools/lib/testenv.sh' not found above '${TEST_COMMON_DIR}'!\n"
+	exit 2
 fi
-source ${TEST_COMMON}
+source "$LIBROOT/tools/lib/testenv.sh"
 
+ulimit -c unlimited
 
-# define variables
-#GLITE_LOCATION=${GLITE_LOCATION:-'/usr'}
-#SAME_SENSOR_HOME=${SAME_SENSOR_HOME:-.}
-#PATH=$GLITE_LOCATION/bin:$GLITE_LOCATION/examples:$PATH
-#export PATH
-
-GRIDPROXYINFO=grid-proxy-info
-
-# binaries
-SYS_LSOF=lsof
-SYS_GREP=grep
-SYS_SED=sed
-SYS_PS=ps
-SYS_PIDOF=pidof
-if test -f /usr/sbin/apache2; then
-	SYS_APACHE=apache2
-else
-	SYS_APACHE=httpd
+# What setup.sh learned about this deployment. The drivers source it too; it is
+# sourced here as well so that a test run by hand from this directory sees the same
+# server and the same DN. Everything below only fills in what is unset.
+PX_ENV_FILE=${PX_ENV:-$(state_file px.env)}
+if [ -r "$PX_ENV_FILE" ]; then
+	# shellcheck source=/dev/null
+	source "$PX_ENV_FILE"
 fi
-if test -f /usr/sbin/apache2ctl; then
-	SYS_APACHECTL=apache2ctl
-else
-	SYS_APACHECTL=apachectl
-fi
-SYS_PING=ping
-SYS_AWK=awk
-SYS_ECHO=echo
-SYS_DOMAINNAME=domainname
-SYS_CURL=curl
-SYS_RM="rm -f"
-SYS_CHMOD=chmod
-SYS_CAT=cat
-SYS_NL=nl
-SYS_TAIL=tail
-SYS_DATE=date
-SYS_EXPR=expr
-SYS_BC=bc
-SYS_SCP=scp
-SYS_NC=nc
-SYS_CURL=curl
-VOMSPROXYINFO=voms-proxy-info
+credentials_env
 
-# not used at the moment
-DEBUG=2
+# The VO the attributes come from and the MyProxy server the proxy is deposited at,
+# which is what 'glite-proxy-renew -s' is given. The tests used to have both spelled
+# out at every call site.
+PX_VO=${PX_VO:-vo.org}
+PX_SERVER=${PX_SERVER:-localhost}
+export PX_VO PX_SERVER
 
-# ping host
-function ping_host()
-{
-	if [ -z $1 ]; then
-		set_error "No host to ping"
-		return $TEST_ERROR
-	fi
-	PING_HOST=$1
-	# XXX: there might be a better way to test the network reachability
-	result=`${SYS_PING} -c 3 $PING_HOST 2>/dev/null | ${SYS_GREP} " 0% packet loss"| wc -l`
-	if [ $result -gt 0 ]; then
-		return $TEST_OK
-	else 
-		return $TEST_ERROR
-	fi
-}
+# The port that server answers on. run.sh checks it before starting anything, and
+# the myproxy clients are not given a -p on the command line - they read this one
+# variable, which is why it is exported under the name they look for as well as the
+# name the env file carries. 7512 is the port IANA assigned to MyProxy and the one
+# the server listens on unless told otherwise.
+PX_PORT=${PX_PORT:-7512}
+export PX_PORT MYPROXY_SERVER_PORT=$PX_PORT
 
-
-# check the binaries
-function check_exec()
-{
-	if [ -z $1 ]; then
-		set_error "No binary to check"
-		return $TEST_ERROR
-	fi
-	# XXX: maybe use bash's command type?
-	local ret=`which $1 2> /dev/null`
-	if [ -n "$ret" -a -x "$ret" ]; then
-		return $TEST_OK
-	else
-		return $TEST_ERROR
-	fi
-}
-
-function check_binaries()
-{
-# TODO: test only the binaries that are needed - it can differ in each test
-	local ret=$TEST_OK
-	for file in $@
-	do	
-		check_exec $file 
-		if [ $? -gt 0 ]; then
-			update_error "file $file not found"
-			ret=$TEST_ERROR
+# MyProxy identifies the server by certificate rather than by name, and refuses the
+# connection when the DN it gets is not the one it was configured with - so the test
+# has to say the DN of the certificate the server actually holds. setup.sh reads it
+# off the host certificate of the machine serving and records both; what is here is
+# the same answer computed on the spot, for a test run by hand. The machine's own
+# certificate first, the generated one second: 'make -C tools install' installs the
+# generated one into /etc/grid-security, which is what a testbed has.
+if [ -z "${MYPROXY_HOST_CERT:-}" ]; then
+	for px_hostcert in /etc/grid-security/hostcert.pem "$TEST_CERTS/grid-security/hostcert.pem"; do
+		if [ -r "$px_hostcert" ]; then
+			MYPROXY_HOST_CERT=$px_hostcert
+			break
 		fi
 	done
-	return $ret
-}
+fi
+MYPROXY_HOST_CERT=${MYPROXY_HOST_CERT:-/etc/grid-security/hostcert.pem}
+: "${MYPROXY_SERVER_DN:=$(credentials_dn "$MYPROXY_HOST_CERT" 2> /dev/null)}"
+export MYPROXY_HOST_CERT MYPROXY_SERVER_DN
 
-# check socket
-function check_socket()
+# px-test-all.sh deposits a proxy, waits, and then compares the lifetime of the
+# renewed copy with the one it deposited. Both numbers are about a proxy that is
+# going to expire soon, so the proxy it works on is deliberately short-lived, and
+# the wait is what the renewal daemon needs to notice the deposit. Override either
+# when the deployment polls faster or slower than the default.
+PX_PROXY_HOURS=${PX_PROXY_HOURS:-1}
+PX_RENEWAL_WAIT=${PX_RENEWAL_WAIT:-1800}
+export PX_PROXY_HOURS PX_RENEWAL_WAIT
+
+# px_regen_proxy [HOURS] - issue a fresh proxy and publish it where the GSI tools
+# look.
+#
+# This is the mid-test regeneration px-test-all.sh has always needed: to show that a
+# renewal replaced what was deposited, something has to replace the deposited proxy
+# while the test is running. It used to run the deleted lb-generate-fake-proxy.sh
+# from the test directory; the tool does the same thing and is what setup.sh and
+# run.sh point at too, so there is one way credentials appear. Returns what make
+# returns; prints where the proxy went.
+px_regen_proxy()
 {
-	if [ $# -lt 2 ]; then
-		set_error "No host:port to check"
-		return $TEST_ERROR
-	fi
-	$SYS_NC -z $1 $2 > $testerrfile
-	if [ $? -eq 0 ];  then 
-		return $TEST_OK
-	else
-		return $TEST_ERROR
-	fi
-}
+	local hours=${1:-$PX_PROXY_HOURS}
 
-# Check listener
-# Arguments:
-#  $1: program expected to listen on the given port
-#  $2: TCP port to check
-function check_listener()
-{
-	req_program=$1
-	req_port=$2
-        if [ -z $1 ]; then
-                set_error "No program name entered"
-                return $TEST_ERROR
-        fi
-
-	pid=`lsof -F p -i TCP:$req_port | sed "s/^p//" | head -n 1`
-	if [ -z "$pid" ]; then
-		return $TEST_ERROR
-	fi
-	program=`ps -p ${pid} -o args= | grep -E "[\/]*$req_program[ \t]*"`
-	if [ -z "$program" ];  then 
-		return $TEST_ERROR
-	else
-		return $TEST_OK
-	fi
-}
-
-# make HTTP request using curl
-# Arguments: Options to be passed to curl, at least the URL
-# return http_code containing resulting code
-
-function call_curl()
-{
-	http_code=`curl --cert ${X509_USER_PROXY} --key ${X509_USER_PROXY} \
-		--capath ${X509_CERT_DIR} \
-		--output /dev/null --silent --write-out '%{http_code}\n' \
-		"$@"`
+	make -C "$TESTSUITE_HOME/tools" proxy \
+		CERTS="$TEST_CERTS" PROXY="$X509_USER_PROXY" HOURS="$hours" VOS="$PX_VO"
 }
