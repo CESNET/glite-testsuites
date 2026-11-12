@@ -455,11 +455,11 @@ envfile=$(state_file gridsite.env)
 	fi
 
 	report_step "GridSite module loaded into it"
-	if "$SYS_APACHECTL" -f "$GS_HTTPD_CONF" -t -D DUMP_MODULES 2>&1 | $SYS_GREP -q gridsite_module; then
+	if "$SYS_APACHE" -f "$GS_HTTPD_CONF" -t -D DUMP_MODULES 2>&1 | $SYS_GREP -q gridsite_module; then
 		test_done
 	else
 		report_fail_step
-		report_note "gridsite_module is not in '$SYS_APACHECTL -f $GS_HTTPD_CONF -t -D DUMP_MODULES' - is the GridSite package installed?"
+		report_note "gridsite_module is not in '$SYS_APACHE -f $GS_HTTPD_CONF -t -D DUMP_MODULES' - is the GridSite package installed?"
 	fi
 
 	# --- the environment run.sh sources --------------------------------------

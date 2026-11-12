@@ -37,7 +37,6 @@
 # System binaries, indirected. -----------------------------------------------
 
 : "${SYS_APACHE:=httpd}"
-: "${SYS_APACHECTL:=apachectl}"
 : "${SYS_AWK:=awk}"
 : "${SYS_BC:=bc}"
 : "${SYS_CAT:=cat}"
@@ -76,7 +75,7 @@ fi
 : "${SYS_TAIL:=tail}"
 : "${SYS_TOUCH:=touch}"
 : "${SYS_WC:=wc}"
-export SYS_APACHE SYS_APACHECTL SYS_AWK SYS_BC SYS_CAT SYS_CHMOD SYS_CURL
+export SYS_APACHE SYS_AWK SYS_BC SYS_CAT SYS_CHMOD SYS_CURL
 export SYS_DATE SYS_DOMAINNAME SYS_DPKG_QUERY SYS_ECHO SYS_EXPR SYS_FIND
 export SYS_GREP SYS_HEAD SYS_HOSTNAME SYS_LDAPSEARCH SYS_LS SYS_LSOF
 export SYS_MYSQLADMIN SYS_MYSQLD SYS_NC SYS_NL SYS_PIDOF SYS_PING SYS_PS

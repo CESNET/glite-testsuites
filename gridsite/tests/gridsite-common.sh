@@ -94,11 +94,6 @@ if [ -f /usr/sbin/apache2 ]; then
 else
 	SYS_APACHE=httpd
 fi
-if [ -f /usr/sbin/apache2ctl ]; then
-	SYS_APACHECTL=apache2ctl
-else
-	SYS_APACHECTL=apachectl
-fi
 GS_HTTPD_CONF=${GS_HTTPD_CONF:-}
 
 # The delegation CGI, which the Apache configuration points ScriptAlias at. The

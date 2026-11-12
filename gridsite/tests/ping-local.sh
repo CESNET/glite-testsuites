@@ -75,7 +75,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS $SYS_PIDOF $SYS_APACHECTL
+check_binaries $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS $SYS_PIDOF $SYS_APACHE
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -97,9 +97,9 @@ printf "Testing if GridSite is loaded"
 # setup.sh generated and not the distribution's main config. It used to be passed on
 # as the single word "-f /path", which only worked as long as the path had no spaces.
 if [ -n "$apache_config" ]; then
-	${SYS_APACHECTL} -f "$apache_config" -t -D DUMP_MODULES 2>&1
+	${SYS_APACHE} -f "$apache_config" -t -D DUMP_MODULES 2>&1
 else
-	${SYS_APACHECTL} -t -D DUMP_MODULES 2>&1
+	${SYS_APACHE} -t -D DUMP_MODULES 2>&1
 fi | grep gridsite_module >/dev/null 2>&1
 if [ $? -eq 0 ]; then
 	test_done
