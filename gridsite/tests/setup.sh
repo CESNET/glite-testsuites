@@ -359,12 +359,15 @@ envfile=$(state_file gridsite.env)
 	GS_VOMS_TOGGLE_DIR=$([ -d /usr/libexec ] && echo /usr/libexec || echo /usr/lib)/glite-testsuites
 	GS_VOMS_TOGGLE=$GS_VOMS_TOGGLE_DIR/gridsite-vomsdir
 	chown_bin=$(command -v chown)
+	cmp_bin=$(command -v cmp)
 	if [ ! -d /etc/sudoers.d ] || ! check_exec visudo; then
 		report_fail_step
 		report_note "no /etc/sudoers.d or no visudo - add by hand:"
 		printf '   %s\tALL=NOPASSWD: %s %s %s, %s root %s, %s %s %s$lf' \
 			"$TESTER" "$chown_bin" "$GS_HTTPD_USER" "$GS_HTDOCS" "$chown_bin" "$GS_HTDOCS" \
 			"$chown_bin" "$GS_HTTPD_USER" "$GS_PROXYCACHE"
+		printf '%s\tALL=NOPASSWD: %s -s %s %s\n' \
+			"$TESTER" "$cmp_bin" /tmp/test.txt "$GS_HTDOCS"/test.txt
 		printf '   %s\tALL=NOPASSWD: %s$lf' "$TESTER" "$GS_VOMS_TOGGLE"
 	elif install -d -m 0755 "$GS_VOMS_TOGGLE_DIR" \
 		&& install -m 0755 -o root -g root "$GSTESTS/gridsite-vomsdir-toggle.sh" "$GS_VOMS_TOGGLE"; then
@@ -374,6 +377,8 @@ envfile=$(state_file gridsite.env)
 			printf '%s\tALL=NOPASSWD: %s %s %s, %s root %s, %s %s %s\n' \
 				"$TESTER" "$chown_bin" "$GS_HTTPD_USER" "$GS_HTDOCS" "$chown_bin" "$GS_HTDOCS" \
 				"$chown_bin" "$GS_HTTPD_USER" "$GS_PROXYCACHE"
+			printf '%s\tALL=NOPASSWD: %s -s %s %s\n' \
+				"$TESTER" "$cmp_bin" /tmp/test.txt "$GS_HTDOCS"/test.txt
 			printf '%s\tALL=NOPASSWD: %s\n' "$TESTER" "$GS_VOMS_TOGGLE"
 		} > "$dropin"
 		if visudo -cf "$dropin" > "$tmpout" 2>&1 \

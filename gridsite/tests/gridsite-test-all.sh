@@ -252,7 +252,7 @@ EOF
 
 	printf "With gacl... "
 	code=`curl --cert "$X509_USER_CERT" --key "$X509_USER_KEY" --capath "$GS_CAPATH" --output /dev/null --silent --write-out '%{http_code}\n' --upload-file /tmp/test.txt https://$GS_SERVER/test.txt`
-	cmp -s /tmp/test.txt $GS_HTDOCS/test.txt
+	sudo cmp -s /tmp/test.txt $GS_HTDOCS/test.txt
 	uploaded=$?
 	printf "Return code $code"
 	# What arrived has to be what was sent, not merely accepted. The comparison was
