@@ -232,6 +232,12 @@ https://$GS_SERVER/`
 	else
 		test_failed
 	fi
+	printf "File not created by plain write... "
+	if [ -f "$GS_HTDOCS"/test.txt ]; then
+		test_failed
+	else
+		test_done
+	fi
 
 cat >$GS_HTDOCS/.gacl <<EOF
 <gacl>
