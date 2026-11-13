@@ -2,13 +2,13 @@
 #
 # Copyright (c) Members of the EGEE Collaboration. 2004-2010.
 # See http://www.eu-egee.org/partners for details on the copyright holders.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -92,7 +92,7 @@ if [ $? -ne 0 ]; then
         test_failed
         test_end
         exit $TEST_ERROR
-else    
+else
         test_done
 fi
 
@@ -100,7 +100,7 @@ fi
 # generator, and 'make -C tools' fakes the attributes on the tester's own box.
 printf "Testing if all binaries are available"
 check_binaries $EMI_CANL_SERVER $EMI_CANL_CLIENT \
-	$GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $SYS_LSOF $OPENSSL
+	$GRIDPROXYINFO $SYS_GREP $SYS_SED $SYS_AWK $OPENSSL
 if [ $? -gt 0 ]; then
 	test_failed
 else
@@ -147,15 +147,9 @@ sleep 0.1
 
 #test client with server not running
 printf "Testing client: connect to server not running"
-nu_port=11112
-max_port=11190
-${SYS_LSOF} -i :${nu_port}
-while [ $? -eq 0 -a ${nu_port} -lt ${max_port} ]
-do
-	nu_port=$((nu_port+1))
-	${SYS_LSOF} -i :${nu_port}
-done
-if [ ${nu_port} -ne ${max_port} ]; then
+# A port nothing listens on, which the client has to fail to reach.
+nu_port=`find_free_port 11112 11190`
+if [ -n "$nu_port" ]; then
 	${EMI_CANL_CLIENT} -s localhost -p ${nu_port} &> /dev/null
 	if [ $? != 0 ]; then
 		test_done

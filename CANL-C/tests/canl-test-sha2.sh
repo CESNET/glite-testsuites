@@ -2,13 +2,13 @@
 #
 # Copyright (c) Members of the EGEE Collaboration. 2004-2010.
 # See http://www.eu-egee.org/partners for details on the copyright holders.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -129,19 +129,12 @@ if [ ! -r "$sha2_cert" ] || [ ! -r "$sha2_key" ]; then
 	exit 2
 fi
 
-nu_port=11112
-max_port=11190
-${SYS_LSOF} -i :${nu_port}
-while [ $? -eq 0 -a ${nu_port} -lt ${max_port} ]
-do
-	nu_port=$((nu_port+1))
-	${SYS_LSOF} -i :${nu_port}
-done
+nu_port=`find_free_port 11112 11190`
 # Nothing listens on the port just picked, so the client must fail to connect.
 # The check had no label of its own and reported a bare "-TEST FAILED-"; the
 # wording is the one canl-test-sec-connection.sh uses for the same check.
 printf "Testing client: connect to server not running"
-if [ ${nu_port} -ne ${max_port} ]; then
+if [ -n "$nu_port" ]; then
 	${EMI_CANL_CLIENT} -s localhost -p ${nu_port} &> /dev/null
 	if [ $? != 0 ]; then
 		test_done
@@ -155,7 +148,7 @@ fi
 
 printf "Starting canl sample server \n"
 ${EMI_CANL_SERVER} -k "$CANL_HOST_KEY" \
-	-c "$CANL_HOST_CERT" -p "${nu_port}" & 
+	-c "$CANL_HOST_CERT" -p "${nu_port}" &
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then

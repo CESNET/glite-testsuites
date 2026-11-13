@@ -75,7 +75,7 @@ test_start
 
 # check_binaries
 printf "Testing if all binaries are available"
-check_binaries $SYS_LSOF $SYS_GREP $SYS_SED $SYS_PS $SYS_PIDOF $SYS_APACHE
+check_binaries $SYS_GREP $SYS_SED $SYS_PS $SYS_PIDOF $SYS_APACHE
 if [ $? -gt 0 ]; then
 	test_failed
 else

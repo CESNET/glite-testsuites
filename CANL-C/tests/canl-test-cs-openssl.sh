@@ -2,13 +2,13 @@
 #
 # Copyright (c) Members of the EGEE Collaboration. 2004-2010.
 # See http://www.eu-egee.org/partners for details on the copyright holders.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -118,18 +118,10 @@ if ! need_credentials; then
 fi
 
 printf "Starting openssl server \n"
-#find some unused port first
-nu_port=11112
-max_port=11190
-${SYS_LSOF} -i :${nu_port}
-while [ $? -eq 0 -a ${nu_port} -lt ${max_port} ]
-do
-        nu_port=$((nu_port+1))
-        ${SYS_LSOF} -i :${nu_port}
-done
-
-if [ ${nu_port} -eq ${max_port} ]; then
-        print_error "No port available"
+# A port to bind - find_free_port asks ss what the kernel has listening.
+nu_port=`find_free_port 11112 11190`
+if [ -z "$nu_port" ]; then
+        print_error "No port available in 11112-11190"
         test_failed
 	test_end
 	exit 2
@@ -175,7 +167,7 @@ echo "${msg_to_send_cli}" > $pipe_srv
 t=20
 found=""
 is=0
-while test $t -gt 0 && kill -0 ${last_pid} 2>/dev/null; do 
+while test $t -gt 0 && kill -0 ${last_pid} 2>/dev/null; do
 	sleep 0.5
 	found=`${SYS_GREP} "${msg_to_send_cli}" "${client_file}"`
 	if [ -n "$found" ]; then
@@ -193,18 +185,9 @@ fi
 
 kill ${last_pid} &> /dev/null
 
-#find some unused port first
-nu_port_2=11122
-max_port=11190
-${SYS_LSOF} -i :${nu_port_2}
-while [ $? -eq 0 -a ${nu_port_2} -lt ${max_port} ]
-do
-        nu_port=$((nu_port_2+1))
-        ${SYS_LSOF} -i :${nu_port_2}
-done
-
-if [ ${nu_port_2} -eq ${max_port} ]; then
-        print_error "No port available"
+nu_port_2=`find_free_port 11122 11190`
+if [ -z "$nu_port_2" ]; then
+        print_error "No port available in 11122-11190"
         test_failed
 	test_end
 	exit 2
@@ -217,7 +200,7 @@ fi
 
 printf "Starting canl sample server \n"
 ${EMI_CANL_SERVER} -k "$CANL_HOST_KEY" \
-	-c "$CANL_HOST_CERT" -p "${nu_port_2}" &> "$server_file" & 
+	-c "$CANL_HOST_CERT" -p "${nu_port_2}" &> "$server_file" &
 last_pid=$!
 lp_running=`${SYS_PS} | ${SYS_GREP} -E "${last_pid}" 2> /dev/null`
 if [ -n "$lp_running" ]; then
@@ -247,7 +230,7 @@ echo "${msg_to_send}" > $pipe
 t=20
 found=""
 is=0
-while test $t -gt 0 && kill -0 ${ssl_pid} 2>/dev/null; do 
+while test $t -gt 0 && kill -0 ${ssl_pid} 2>/dev/null; do
 	sleep 0.5
 	found=`${SYS_GREP} "${msg_to_send}" "${server_file}"`
 	if [ -n "$found" ]; then

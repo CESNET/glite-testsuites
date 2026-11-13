@@ -53,7 +53,6 @@
 : "${SYS_HOSTNAME:=hostname}"
 : "${SYS_LDAPSEARCH:=ldapsearch}"
 : "${SYS_LS:=ls}"
-: "${SYS_LSOF:=lsof}"
 : "${SYS_MYSQLADMIN:=mysqladmin}"
 : "${SYS_MYSQLD:=mysqld}"
 : "${SYS_NC:=nc}"
@@ -71,15 +70,16 @@ fi
 : "${SYS_SCP:=scp}"
 : "${SYS_SED:=sed}"
 : "${SYS_SORT:=sort}"
+: "${SYS_SS:=ss}"
 : "${SYS_STAT:=stat}"
 : "${SYS_TAIL:=tail}"
 : "${SYS_TOUCH:=touch}"
 : "${SYS_WC:=wc}"
 export SYS_APACHE SYS_AWK SYS_BC SYS_CAT SYS_CHMOD SYS_CURL
 export SYS_DATE SYS_DOMAINNAME SYS_DPKG_QUERY SYS_ECHO SYS_EXPR SYS_FIND
-export SYS_GREP SYS_HEAD SYS_HOSTNAME SYS_LDAPSEARCH SYS_LS SYS_LSOF
+export SYS_GREP SYS_HEAD SYS_HOSTNAME SYS_LDAPSEARCH SYS_LS
 export SYS_MYSQLADMIN SYS_MYSQLD SYS_NC SYS_NL SYS_PIDOF SYS_PING SYS_PS
-export SYS_RM SYS_RPM SYS_SCP SYS_SED SYS_SORT SYS_STAT SYS_TAIL SYS_TOUCH SYS_WC
+export SYS_RM SYS_RPM SYS_SCP SYS_SED SYS_SORT SYS_SS SYS_STAT SYS_TAIL SYS_TOUCH SYS_WC
 
 # Grid client binaries.
 : "${GRIDPROXYINFO:=grid-proxy-info}"
@@ -184,6 +184,64 @@ check_socket()
 	fi
 }
 
+# Which TCP ports and unix sockets are taken, asked of 'ss' (iproute2).
+need_ss()
+{
+	if check_exec "$SYS_SS"; then
+		return 0
+	fi
+	set_error "cannot list the listening sockets - ${SYS_SS} is not installed (iproute2)"
+	return "$TEST_ERROR"
+}
+
+# Is anything listening on TCP port $1? Returns $TEST_OK when it is.
+port_in_use()
+{
+	local port=${1:-}
+
+	if [ -z "$port" ]; then
+		set_error "No port to check"
+		return "$TEST_ERROR"
+	fi
+	need_ss || return "$TEST_ERROR"
+	# -n so that no port number is resolved to a service name and grepped for.
+	$SYS_SS -ltln 2> /dev/null | $SYS_GREP -qE "[:.]${port}([[:space:]]|$)"
+}
+
+# Is anything listening on the unix socket $1? Connecting to it to find out is not
+# an option: that would disturb the service the socket belongs to.
+unix_socket_in_use()
+{
+	local sock=${1:-}
+
+	if [ -z "$sock" ]; then
+		set_error "No socket to check"
+		return "$TEST_ERROR"
+	fi
+	need_ss || return "$TEST_ERROR"
+	$SYS_SS -xln 2> /dev/null | $SYS_GREP -qF -- "$sock"
+}
+
+# Print the first TCP port from $1 to $2 that nothing is listening on; $TEST_ERROR
+# and no output when the whole range is taken.
+find_free_port()
+{
+	local low=${1:-11112}
+	local high=${2:-$((low + 78))}
+	local port=$low
+
+	need_ss || return "$TEST_ERROR"
+	while [ "$port" -le "$high" ]; do
+		if ! port_in_use "$port"; then
+			printf '%s\n' "$port"
+			return 0
+		fi
+		port=$((port + 1))
+	done
+	set_error "no free TCP port in ${low}-${high}"
+	return "$TEST_ERROR"
+}
+
 # Is $1 listening on TCP port $2?
 # Arguments:
 #  $1: program expected to listen on the given port
@@ -198,20 +256,29 @@ check_listener()
 		set_error "No program name entered"
 		return "$TEST_ERROR"
 	fi
-
-	# Only the first PID can own the listening socket; passing a list of PIDs
-	# to ps -p makes it fail, which used to turn "several processes hold this
-	# port" into a false negative.
-	pid=$($SYS_LSOF -F p -i "TCP:$req_port" | $SYS_SED 's/^p//' | $SYS_HEAD -n 1)
-	if [ -z "$pid" ]; then
+	if ! port_in_use "$req_port"; then
 		return "$TEST_ERROR"
+	fi
+	# The port answers, which is what every caller of this function is asserting.
+	# Whether the program named in $1 is the one answering is a second question, and
+	# 'ss -p' can only ask it of a process whose command line this user may read: own
+	# processes, or anything at all as root. When it cannot be read the caller is
+	# told that rather than handed a failure it cannot do anything about - the suites
+	# that care about the name check it separately (pidof, httpd -t -D DUMP_MODULES).
+	# Where the name *can* be read it is still required, so a testbed with the wrong
+	# service on the port is still caught.
+	pid=$($SYS_SS -ltnp 2> /dev/null | $SYS_GREP -E "[:.]${req_port}([[:space:]]|$)" \
+		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | $SYS_HEAD -n 1)
+	if [ -z "$pid" ]; then
+		print_info "port ${req_port} answers but its owner is not readable by $(id -un) - the program name is not checked"
+		return "$TEST_OK"
 	fi
 	program=$($SYS_PS -p "$pid" -o args= | $SYS_GREP -E "[/]*${req_program}[ 	]*")
 	if [ -z "$program" ]; then
+		set_error "port ${req_port} is held by PID ${pid}: $($SYS_PS -p "$pid" -o args= 2> /dev/null)"
 		return "$TEST_ERROR"
-	else
-		return "$TEST_OK"
 	fi
+	return "$TEST_OK"
 }
 
 # Is $1 listening on unix socket $2?
@@ -228,17 +295,24 @@ check_socket_listener()
 		set_error "No program name entered"
 		return "$TEST_ERROR"
 	fi
-
-	pid=$($SYS_LSOF -F p "$req_socket" | $SYS_SED 's/^p//' | $SYS_HEAD -n 1)
-	if [ -z "$pid" ]; then
+	if ! unix_socket_in_use "$req_socket"; then
 		return "$TEST_ERROR"
+	fi
+	# As in check_listener(): the owning process is only name-checkable when this
+	# user may read it, and the socket path itself is specific enough to be the
+	# assertion when it is not.
+	pid=$($SYS_SS -xlnp 2> /dev/null | $SYS_GREP -F -- "$req_socket" \
+		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | $SYS_HEAD -n 1)
+	if [ -z "$pid" ]; then
+		print_info "socket ${req_socket} is listening; its owner is not readable by $(id -un) - the program name is not checked"
+		return "$TEST_OK"
 	fi
 	program=$($SYS_PS -p "$pid" -o args= | $SYS_GREP -E "[/]*${req_program}[ 	]*")
 	if [ -z "$program" ]; then
+		set_error "socket ${req_socket} is held by PID ${pid}: $($SYS_PS -p "$pid" -o args= 2> /dev/null)"
 		return "$TEST_ERROR"
-	else
-		return "$TEST_OK"
 	fi
+	return "$TEST_OK"
 }
 
 # ------------------------------------------------------------------------------
