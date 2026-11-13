@@ -348,7 +348,8 @@ EOF
 	# in the document root for the commands below to have anything to do.
 	gs_chown "$GS_HTTPD_USER" "$GS_HTDOCS" \
 		|| print_warning "could not change ownership; relying on the access rights setup.sh gave $GS_HTDOCS"
-
+	$SYS_RM $GS_HTDOCS/test.txt
+	$SYS_RM $GS_HTDOCS/test2.txt
 	date > /tmp/test.txt
 
 	# The arguments as text, for the report. printf with the values as arguments
