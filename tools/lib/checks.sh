@@ -49,7 +49,6 @@
 : "${SYS_EXPR:=expr}"
 : "${SYS_FIND:=find}"
 : "${SYS_GREP:=grep}"
-: "${SYS_HEAD:=head}"
 : "${SYS_HOSTNAME:=hostname}"
 : "${SYS_LDAPSEARCH:=ldapsearch}"
 : "${SYS_LS:=ls}"
@@ -67,18 +66,16 @@ if [ -z "${SYS_RM:-}" ]; then
 	SYS_RM='rm -f'
 fi
 : "${SYS_RPM:=rpm}"
-: "${SYS_SCP:=scp}"
 : "${SYS_SED:=sed}"
-: "${SYS_SORT:=sort}"
 : "${SYS_STAT:=stat}"
 : "${SYS_TAIL:=tail}"
 : "${SYS_TOUCH:=touch}"
 : "${SYS_WC:=wc}"
 export SYS_APACHE SYS_AWK SYS_BC SYS_CAT SYS_CHMOD SYS_CURL
 export SYS_DATE SYS_DOMAINNAME SYS_DPKG_QUERY SYS_ECHO SYS_EXPR SYS_FIND
-export SYS_GREP SYS_HEAD SYS_HOSTNAME SYS_LDAPSEARCH SYS_LS
+export SYS_GREP SYS_HOSTNAME SYS_LDAPSEARCH SYS_LS
 export SYS_MYSQLADMIN SYS_MYSQLD SYS_NC SYS_NL SYS_PIDOF SYS_PING SYS_PS
-export SYS_RM SYS_RPM SYS_SCP SYS_SED SYS_SORT SYS_STAT SYS_TAIL SYS_TOUCH SYS_WC
+export SYS_RM SYS_RPM SYS_SED SYS_STAT SYS_TAIL SYS_TOUCH SYS_WC
 
 # Grid client binaries.
 : "${GRIDPROXYINFO:=grid-proxy-info}"
@@ -267,7 +264,7 @@ check_listener()
 	# Where the name *can* be read it is still required, so a testbed with the wrong
 	# service on the port is still caught.
 	pid=$(ss -ltnp 2> /dev/null | $SYS_GREP -E "[:.]${req_port}([[:space:]]|$)" \
-		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | $SYS_HEAD -n 1)
+		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | head -n 1)
 	if [ -z "$pid" ]; then
 		print_info "port ${req_port} answers but its owner is not readable by $(id -un) - the program name is not checked"
 		return "$TEST_OK"
@@ -301,7 +298,7 @@ check_socket_listener()
 	# user may read it, and the socket path itself is specific enough to be the
 	# assertion when it is not.
 	pid=$(ss -xlnp 2> /dev/null | $SYS_GREP -F -- "$req_socket" \
-		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | $SYS_HEAD -n 1)
+		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | head -n 1)
 	if [ -z "$pid" ]; then
 		print_info "socket ${req_socket} is listening; its owner is not readable by $(id -un) - the program name is not checked"
 		return "$TEST_OK"
