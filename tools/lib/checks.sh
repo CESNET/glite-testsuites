@@ -70,7 +70,6 @@ fi
 : "${SYS_SCP:=scp}"
 : "${SYS_SED:=sed}"
 : "${SYS_SORT:=sort}"
-: "${SYS_SS:=ss}"
 : "${SYS_STAT:=stat}"
 : "${SYS_TAIL:=tail}"
 : "${SYS_TOUCH:=touch}"
@@ -79,7 +78,7 @@ export SYS_APACHE SYS_AWK SYS_BC SYS_CAT SYS_CHMOD SYS_CURL
 export SYS_DATE SYS_DOMAINNAME SYS_DPKG_QUERY SYS_ECHO SYS_EXPR SYS_FIND
 export SYS_GREP SYS_HEAD SYS_HOSTNAME SYS_LDAPSEARCH SYS_LS
 export SYS_MYSQLADMIN SYS_MYSQLD SYS_NC SYS_NL SYS_PIDOF SYS_PING SYS_PS
-export SYS_RM SYS_RPM SYS_SCP SYS_SED SYS_SORT SYS_SS SYS_STAT SYS_TAIL SYS_TOUCH SYS_WC
+export SYS_RM SYS_RPM SYS_SCP SYS_SED SYS_SORT SYS_STAT SYS_TAIL SYS_TOUCH SYS_WC
 
 # Grid client binaries.
 : "${GRIDPROXYINFO:=grid-proxy-info}"
@@ -187,10 +186,10 @@ check_socket()
 # Which TCP ports and unix sockets are taken, asked of 'ss' (iproute2).
 need_ss()
 {
-	if check_exec "$SYS_SS"; then
+	if check_exec ss; then
 		return 0
 	fi
-	set_error "cannot list the listening sockets - ${SYS_SS} is not installed (iproute2)"
+	set_error "cannot list the listening sockets - ss is not installed (iproute2)"
 	return "$TEST_ERROR"
 }
 
@@ -205,7 +204,7 @@ port_in_use()
 	fi
 	need_ss || return "$TEST_ERROR"
 	# -n so that no port number is resolved to a service name and grepped for.
-	$SYS_SS -ltln 2> /dev/null | $SYS_GREP -qE "[:.]${port}([[:space:]]|$)"
+	ss -ltln 2> /dev/null | $SYS_GREP -qE "[:.]${port}([[:space:]]|$)"
 }
 
 # Is anything listening on the unix socket $1? Connecting to it to find out is not
@@ -219,7 +218,7 @@ unix_socket_in_use()
 		return "$TEST_ERROR"
 	fi
 	need_ss || return "$TEST_ERROR"
-	$SYS_SS -xln 2> /dev/null | $SYS_GREP -qF -- "$sock"
+	ss -xln 2> /dev/null | $SYS_GREP -qF -- "$sock"
 }
 
 # Print the first TCP port from $1 to $2 that nothing is listening on; $TEST_ERROR
@@ -267,7 +266,7 @@ check_listener()
 	# that care about the name check it separately (pidof, httpd -t -D DUMP_MODULES).
 	# Where the name *can* be read it is still required, so a testbed with the wrong
 	# service on the port is still caught.
-	pid=$($SYS_SS -ltnp 2> /dev/null | $SYS_GREP -E "[:.]${req_port}([[:space:]]|$)" \
+	pid=$(ss -ltnp 2> /dev/null | $SYS_GREP -E "[:.]${req_port}([[:space:]]|$)" \
 		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | $SYS_HEAD -n 1)
 	if [ -z "$pid" ]; then
 		print_info "port ${req_port} answers but its owner is not readable by $(id -un) - the program name is not checked"
@@ -301,7 +300,7 @@ check_socket_listener()
 	# As in check_listener(): the owning process is only name-checkable when this
 	# user may read it, and the socket path itself is specific enough to be the
 	# assertion when it is not.
-	pid=$($SYS_SS -xlnp 2> /dev/null | $SYS_GREP -F -- "$req_socket" \
+	pid=$(ss -xlnp 2> /dev/null | $SYS_GREP -F -- "$req_socket" \
 		| $SYS_SED -n 's/.*pid=\([0-9]*\).*/\1/p' | $SYS_HEAD -n 1)
 	if [ -z "$pid" ]; then
 		print_info "socket ${req_socket} is listening; its owner is not readable by $(id -un) - the program name is not checked"
