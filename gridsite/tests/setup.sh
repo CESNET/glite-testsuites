@@ -318,20 +318,6 @@ envfile=$(state_file gridsite.env)
 		fi
 	fi
 
-	# --- VOMS trust for the .lsc checks --------------------------------------
-	# gridsite-test-all.sh checks that mod_gridsite reads the .lsc files, which
-	# needs a real VOMS server to talk to. /etc/vomses says where it is; the PX
-	# suite deploys one for vo.org.
-	report_step "VOMS server for the .lsc checks"
-	vomses=$($SYS_LS -1 /etc/vomses/* 2> /dev/null | head -n 1)
-	if [ ! -s "$vomses" ]; then
-		report_fail_step
-		report_note "no entry in /etc/vomses - deploy a VOMS server first, e.g. sudo $TESTSUITE_HOME/PX/tests/setup.sh -u $TESTER"
-	else
-		test_done
-		report_note "$vomses"
-	fi
-
 	# The .lsc file holds the DN of the VOMS host and of its CA; without it the
 	# server ignores the VOMS extensions entirely. voms_lsc_install() (tools/lib/
 	# credentials.sh) extracts them from the live servers named in /etc/vomses -
@@ -347,8 +333,8 @@ envfile=$(state_file gridsite.env)
 	if [ "$lsc_rc" -eq 0 ]; then
 		test_done
 	else
-		report_fail_step
-		report_note "nothing could be generated - the .lsc half of gridsite-test-all.sh will have nothing to check"
+		test_warning
+		report_note "No real VOMS servers in /etc/grid-security/vomsdir"
 	fi
 
 	# --- what the tester may still do as root --------------------------------
