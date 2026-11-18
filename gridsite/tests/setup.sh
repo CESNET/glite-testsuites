@@ -150,9 +150,7 @@ else
 	EXT=txt
 fi
 
-# Where the distribution keeps its Apache, and which distribution this is. The
-# version decides whether the packaged config example can be used as is or needs
-# the modernisations the module loading of Apache 2.4 insisted on.
+# Where the distribution keeps its Apache.
 HTTPD_CONFDIR=''
 for dir in /etc/httpd /etc/apache2 /etc/apache; do
 	if [ -d "$dir" ]; then
@@ -161,23 +159,6 @@ for dir in /etc/httpd /etc/apache2 /etc/apache; do
 	fi
 done
 HTTPD_SERVER_ROOT=$HTTPD_CONFDIR
-
-OS_NAME=''
-OS_VER=0
-if [ -f /etc/fedora-release ]; then
-	OS_NAME=Fedora
-	OS_VER=$($SYS_GREP -o '[0-9]\+' /etc/fedora-release | head -n 1)
-elif [ -f /etc/redhat-release ]; then
-	OS_NAME=RedHat
-	OS_VER=$($SYS_GREP -o '[0-9]\+' /etc/redhat-release | head -n 1)
-elif $SYS_GREP -qi Ubuntu /etc/issue 2> /dev/null; then
-	OS_NAME=Ubuntu
-	OS_VER=$($SYS_GREP -i Ubuntu /etc/issue | $SYS_GREP -o '[0-9]\+' | head -n 1)
-elif $SYS_GREP -qi Debian /etc/issue 2> /dev/null; then
-	OS_NAME=Debian
-	OS_VER=$($SYS_GREP -i Debian /etc/issue | $SYS_GREP -o '[0-9]\+' | head -n 1)
-fi
-OS_VER=${OS_VER:-0}
 
 # The log has to exist before anything can be reported into it.
 if [ ! -d "$STATE_DIR" ]; then
@@ -259,12 +240,23 @@ envfile=$(state_file gridsite.env)
 				-e "s/^User .*/User $GS_HTTPD_USER/" \
 				-e "s/^Group .*/Group $GS_HTTPD_USER/" \
 				"$conf_src" > "$GS_HTTPD_CONF"
+			# Session resumption needs the server-side cache. Without SSLSessionCache
+			# mod_ssl runs with the cache off: it issues no session ID below TLS 1.3,
+			# and it will not take back the TLS 1.3 tickets it hands out.
+			#
+			# The 'shm:' scheme of the packaged example is gone from Apache 2.4.31 onwards.
+			#
+			# The path for the cache is relative to ServerRoot: logs/
+			# is where this very configuration puts its PidFile, so it exists and the
+			# server can write there.
+			$SYS_SED -i '/^[#]*SSLSessionCache[ \t]/d' "$GS_HTTPD_CONF"
 			{
 				printf 'AddHandler cgi-script .cgi\n'
 				printf 'ScriptAlias /gridsite-delegation.cgi %s\n' "$GS_CGI"
 				printf 'SSLCipherSuite kEECDH:HIGH:MEDIUM:!aNULL:!MD5:!RC4:!eNULL\n'
 				printf 'SSLProtocol all -SSLv2 -SSLv3\n'
 				printf 'SSLHonorCipherOrder On\n'
+				printf 'SSLSessionCache "shmcb:logs/ssl_scache(512000)"\n'
 			} >> "$GS_HTTPD_CONF"
 			# The delegation CGI is in a different place on the two families.
 			if [ -z "$GS_CGI" ]; then
@@ -275,24 +267,17 @@ envfile=$(state_file gridsite.env)
 			if [ ! -f "$HTTPD_SERVER_ROOT/modules/mod_log_config.so" ]; then
 				$SYS_SED -i 's/^\(LoadModule[ \t]\+log_config_module.*\)/# \1/' "$GS_HTTPD_CONF"
 			fi
-			# Apache 2.4 split mpm, uid and authorisation out of the core.
-			for mod in mpm_prefork unixd authz_core; do
+			# Apache 2.4 split mpm, uid and authorisation out of the core, and the
+			# shmcb: session cache above is a socache provider of its own.
+			for mod in mpm_prefork unixd authz_core socache_shmcb; do
 				if [ -f "$HTTPD_SERVER_ROOT/modules/mod_$mod.so" ]; then
 					printf 'LoadModule %s_module\tmodules/mod_%s.so\n' "$mod" "$mod" >> "$GS_HTTPD_CONF"
 				fi
 			done
-			# Fedora 18+, SL 7+, Debian 8+: the shm:// cache syntax is gone and CGI
-			# has to be enabled per directory. Nothing has replaced shm:// as far as
-			# anyone here knows, so the line is commented out rather than guessed at.
-			if [ "$OS_NAME" = 'Fedora' ] || [ "$OS_NAME" = 'Ubuntu' ] \
-				|| { [ "$OS_NAME" = 'RedHat' ] && [ "$OS_VER" -ge 7 ]; } \
-				|| { [ "$OS_NAME" = 'Debian' ] && [ "$OS_VER" -ge 8 ]; }; then
-				$SYS_SED -i 's,^\(SSLSessionCache.*\),#\1,' "$GS_HTTPD_CONF"
-				printf 'Options ExecCGI\n' >> "$GS_HTTPD_CONF"
-			fi
+			# CGI has to be asked for per directory since Apache 2.4.
+			printf 'Options ExecCGI\n' >> "$GS_HTTPD_CONF"
 			test_done
 			report_note "$GS_HTTPD_CONF written from $conf_src (a previous one is in $GS_HTTPD_CONF.orig)"
-			report_note "this is $OS_NAME $OS_VER"
 		fi
 	fi
 
