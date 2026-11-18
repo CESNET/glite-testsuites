@@ -484,7 +484,7 @@ EOF
 		print_error "cannot hide /etc/grid-security/vomsdir as $(id -un) - setup.sh installs the sudo rule and the program it names"
 	else
 		trap 'gs_vomsdir restore > /dev/null 2>&1' EXIT INT TERM
-		GRST_CRED_2=`curl --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" --cacert "$X509_USER_PROXY" --silent https://$GS_SERVER/test.cgi|grep GRST_CRED_2`
+		GRST_CRED_2=`curl --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" --silent https://$GS_SERVER/test.cgi|grep GRST_CRED_2`
 		if [ "$GRST_CRED_2" = "" ]; then
 			test_done
 		else
@@ -519,7 +519,7 @@ EOF
 		echo "$lsc_files" | sed "s/\$/$lf/"
 		test_done
 
-		GRST_CRED_2=`curl --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" --cacert "$X509_USER_PROXY" --silent https://$GS_SERVER/test.cgi|grep GRST_CRED_2`
+		GRST_CRED_2=`curl --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" --silent https://$GS_SERVER/test.cgi|grep GRST_CRED_2`
 
 		if [ "$GRST_CRED_2" = "" ]; then
 			print_error "GRST_CRED_2 not returned"
@@ -549,7 +549,7 @@ EOF
 			test_done
 			printf "Getting list of Role attributes from test.cgi... "
 
-			curl --cert "$X509_USER_CERT" --key "$X509_USER_KEY" --capath "$GS_CAPATH" --cacert "$X509_USER_PROXY" --silent https://$GS_SERVER/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-pre.$$.out
+			curl --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" --silent https://$GS_SERVER/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-pre.$$.out
 
 			# The file just fetched from test.cgi. This tested info-roles.$$.out
 			# again - the one that was proved non-empty a few lines above - so the
@@ -564,7 +564,7 @@ EOF
 				voms-proxy-init -noregen > /dev/null 2> /dev/null
 				test_done
 				printf "Getting another set of Role attributes from test.cgi... "
-				curl --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" --cacert "$X509_USER_PROXY" --silent https://$GS_SERVER/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-post.$$.out
+				curl --cert "$X509_USER_PROXY" --key "$X509_USER_PROXY" --capath "$GS_CAPATH" --silent https://$GS_SERVER/test.cgi|grep -E "^GRST_CRED_AURI_.*Role=" | sed -r 's/^GRST_CRED_AURI_[0-9]+=fqan://' > test-roles-post.$$.out
 				if [ ! -s test-roles-post.$$.out ]; then
 					test_failed
 					print_error "List of role attributes is empty!"
