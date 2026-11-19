@@ -151,24 +151,46 @@ else
 	exit 2
 fi
 
-for args in '' '-no_ticket '; do
+# Two handshakes per round: one to obtain a session, one to come back with it. The
+# second set of arguments is the TLS 1.2 session-ID path, because TLS 1.3 has no
+# resumption without its ticket - '-no_ticket' on its own would only ask for a session
+# of the kind this OpenSSL does not issue any more.
+for args in '' '-tls1_2 -no_ticket '; do
 	rm -f $SESSION
 
-	printf "Launching first SSL session..."
-	echo -n | openssl s_client -crlf -connect $GS_SERVER:$GS_PORT -CApath "$GS_CAPATH" -cert "$X509_USER_CERT" -key "$X509_USER_KEY" -sess_out $SESSION -quiet -no_ign_eof $args 2>$ERROR
-	if [ $? -eq 0 ]; then
-		test_done
-	else
-		test_skipped
-		print_info "Sessions not supported"
-		break
+	printf "Obtaining an SSL session to resume $args..."
+	# The request with data and the sleep: TLS 1.3 sends its NewSessionTicket
+	# after the handshake, so a client that closes the moment stdin ends never receives
+	# it, has nothing resumable to keep, and -sess_out writes no file at all.
+	(cat $DATA; sleep 1) | openssl s_client -crlf -connect $GS_SERVER:$GS_PORT -CApath "$GS_CAPATH" -cert "$X509_USER_CERT" -key "$X509_USER_KEY" -sess_out $SESSION -quiet -no_ign_eof $args >$OUTPUT 2>$ERROR
+	if [ $? -ne 0 ]; then
+		test_failed
+		print_error "$(cat $ERROR)"
+		TEST_OK=$TEST_ERROR
+		continue
 	fi
+	if [ ! -s $SESSION ]; then
+		test_skipped
+		print_info "the server issued no resumable session - SSLSessionCache is what makes it do so"
+		continue
+	fi
+	test_done
 
 	printf "Test for GRST_CRED_AURI_2 $args..."
 	(cat $DATA; sleep 0.5) | openssl s_client -crlf -connect $GS_SERVER:$GS_PORT -CApath "$GS_CAPATH" -cert "$X509_USER_CERT" -key "$X509_USER_KEY" -sess_in $SESSION $args >$OUTPUT 2>$ERROR
 	if [ $? -ne 0 ]; then
 		test_failed
-		print_error "SSL connection failed!"
+		print_error "SSL connection failed: $(head -n 1 $ERROR)"
+		TEST_OK=$TEST_ERROR
+		continue
+	fi
+
+	# Resumption must be checked first, because mod_gridsite exports GRST_CRED_AURI_2 for a
+	# fresh handshake too. s_client prints 'Reused,' or 'New,' on stdout in its summary.
+	grep -q '^Reused' $OUTPUT
+	if [ $? -ne 0 ]; then
+		test_failed
+		print_error "the session was not resumed - $(grep -E '^(New|Reused)' $OUTPUT | head -n 1)"
 		TEST_OK=$TEST_ERROR
 		continue
 	fi
