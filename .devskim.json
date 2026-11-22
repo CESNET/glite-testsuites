@@ -1,0 +1,11 @@
+{
+	"Globs": [
+		"**/CANL-C/**",
+		"**/gridsite/**",
+		"**/LB/**",
+		"**/PX/**",
+		"**/rOCCI/**",
+		"**/.git/**",
+		"**/megalinter-reports/**"
+	]
+}

@@ -3,8 +3,9 @@ DISABLE:
   - COPYPASTE
   - SPELL
 
+# DS162092: DoNotLeaveDebugCodeInProduction - localhost useful
 REPOSITORY_DEVSKIM_ARGUMENTS: >-
-  --ignore-globs **/CANL-C/**,**/gridsite/**,**/LB/**,**/PX/**,**/rOCCI/**
+  --ignore-rule-ids DS162092
   --skip-git-ignored-files
 
 FILTER_REGEX_EXCLUDE: ^((CANL-C|gridsite|LB|PX|rOCCI)/.*|.*\.swp)$
