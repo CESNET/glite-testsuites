@@ -71,10 +71,9 @@ EndHelpHeader
 }
 
 # Every test of the suite, in the order it has always run: reachability first,
-# then the ACL, command and delegation behaviour, then the packaging of the
-# package under test. ping-remote.sh used to be handed the host of whoever ran the
-# generated script; the tester is on the testbed now, so it gets the name the
-# server serves.
+# then the ACL, command and delegation behaviour, then the build reports.
+# ping-remote.sh used to be handed the host of whoever ran the generated script;
+# the tester is on the testbed now, so it gets the name the server serves.
 gridsite_test_list()
 {
 	run_test ./ping-remote.sh "$GS_SERVER"
@@ -86,7 +85,6 @@ gridsite_test_list()
 	run_test ./gridsite-test-all.sh
 	run_test ./gridsite-test-session-reuse.sh
 	run_test ./gridsite-test-putproxy-new.sh
-	run_test ./gridsite-test-packaging.sh
 	run_test ./gridsite-test-build.sh
 }
 

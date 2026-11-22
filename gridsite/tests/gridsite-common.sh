@@ -25,7 +25,7 @@
 #
 # Everything generic - the output modes and the test_* verbs, the SYS_* binary
 # names, check_binaries(), check_socket(), check_listener(), ping_host(), the
-# packaging and build checkers and the credential helpers - lives in tools/lib/
+# build-log checker and the credential helpers - lives in tools/lib/
 # and arrives through testenv.sh, sourced below. It used to be duplicated in this
 # file, including a check_socket() whose fallback probed localhost:22 and never
 # looked at the host it was given.

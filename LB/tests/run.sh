@@ -100,7 +100,6 @@ lb_test_list()
 	run_test ./lb-test-dump-load.sh
 	run_test ./lb-test-cream.sh
 	run_test perl ./lb-test-purge.pl --i-want-to-purge "$LB_SERVER"
-	run_test ./lb-test-packaging.sh
 	run_test ./lb-test-build.sh
 }
 

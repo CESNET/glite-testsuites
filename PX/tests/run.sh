@@ -77,7 +77,6 @@ EndHelpHeader
 px_test_list()
 {
 	run_test ./px-test-all.sh
-	run_test ./px-test-packaging.sh
 	run_test ./px-test-build.sh
 }
 

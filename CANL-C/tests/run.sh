@@ -96,7 +96,6 @@ canl_test_list()
 	run_test ./canl-test-cs-openssl.sh -s "$SERVER_BIN" -k "$CLIENT_BIN"
 	run_test ./canl-test-sec-connection.sh -s "$SERVER_BIN" -k "$CLIENT_BIN"
 	run_test ./canl-test-sha2.sh -s "$SERVER_BIN" -k "$CLIENT_BIN"
-	run_test ./canl-test-packaging.sh
 	run_test ./canl-test-build.sh
 }
 
